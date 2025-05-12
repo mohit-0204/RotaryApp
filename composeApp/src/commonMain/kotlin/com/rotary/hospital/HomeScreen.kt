@@ -1,0 +1,136 @@
+package com.rotary.hospital
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.rotary.hospital.homescreen.DashboardCard
+import com.rotary.hospital.homescreen.QuickAccessItem
+import com.rotary.hospital.homescreen.TopBar
+import com.rotary.hospital.homescreen.WelcomeSection
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.*
+
+@Composable
+fun HomeScreen() {
+    AppTheme {
+        Scaffold(
+            topBar = {TopBar()},
+            bottomBar = {
+                NavigationBar(containerColor = Color.White) {
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                        label = { Text("Home") },
+                        selected = true,
+                        onClick = { }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.DateRange, contentDescription = "Calendar") },
+                        label = { Text("Calendar") },
+                        selected = false,
+                        onClick = { }
+                    )
+                    NavigationBarItem(
+                        icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
+                        label = { Text("Profile") },
+                        selected = false,
+                        onClick = { }
+                    )
+                }
+            }
+        ) { paddingValues ->
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .background(Color(0xFFF9F9F9))
+                    .padding(16.dp, vertical = 8.dp)
+            ) {
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                WelcomeSection()
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Feature Grid
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.height(320.dp)
+                ) {
+                    item {
+                        DashboardCard(
+                            title = "Patient Profile",
+                            subtitle = "View & manage profiles",
+                            iconRes = Res.drawable.user_icon
+                        )
+                    }
+                    item {
+                        DashboardCard(
+                            title = "OPD Booking",
+                            subtitle = "Schedule appointments",
+                            iconRes = Res.drawable.calendar_icon
+                        )
+                    }
+                    item {
+                        DashboardCard(
+                            title = "Lab Tests",
+                            subtitle = "Order & view results",
+                            iconRes = Res.drawable.test_tube_icon
+                        )
+                    }
+                    item {
+                        DashboardCard(
+                            title = "Medicine Reminders",
+                            subtitle = "Set & manage alerts",
+                            iconRes = Res.drawable.pill_icon
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Quick Access",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = ColorPrimary
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(4),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.height(200.dp)
+                ) {
+                    item { QuickAccessItem("Contact Us", Icons.Default.Phone) }
+                    item { QuickAccessItem("Settings", Icons.Default.Settings) }
+                    item { QuickAccessItem("Terms", Icons.Default.Info) }
+//                    item { QuickAccessItem("Refund Policy", Icons.Default.Receipt) }
+//                    item { QuickAccessItem("Events", Icons.Default.Event) }
+//                    item { QuickAccessItem("Rotary Website", Icons.Default.Language) }
+                }
+            }
+        }
+    }
+}
+

@@ -1,0 +1,31 @@
+.kotlin
+xcuserdata
+!src/**/build/
+.DS_Store
+captures
+.externalNativeBuild
+.cxx
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+
+### General
+.gradle
+local.properties
+build/
+**/build
+**/build/
+**/*.db
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+*.hprof
+out/
+.fleet/
