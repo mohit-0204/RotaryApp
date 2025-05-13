@@ -29,3 +29,4 @@ build/
 *.hprof
 out/
 .fleet/
+.git/credentials

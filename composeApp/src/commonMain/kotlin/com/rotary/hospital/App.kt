@@ -17,7 +17,7 @@ fun App() {
 
         NavHost(
             navController = navController,
-            startDestination = AppRoute.Home,
+            startDestination = AppRoute.Splash,
             modifier = Modifier.fillMaxSize()
         ) {
             composable<AppRoute.Splash> {
@@ -42,12 +42,18 @@ fun App() {
 
             composable<AppRoute.OtpVerification> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.OtpVerification>()
-//                OtpVerificationScreen(
-//                    phoneNumber = route.phoneNumber,
-//                    onVerified = {
-//                        // Placeholder for next screen (e.g., PatientSelection)
-//                    }
-//                )
+                OtpVerificationScreen(
+                    phoneNumber = route.phoneNumber,
+                    onVerified = {
+                        // Placeholder for next screen (e.g., PatientSelection)
+                    },
+                    onResend = {
+
+                    },
+                    onBack = {
+
+                    }
+                )
             }
         }
     }
