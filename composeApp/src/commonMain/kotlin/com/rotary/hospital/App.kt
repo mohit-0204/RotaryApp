@@ -39,13 +39,18 @@ fun App() {
                     onExitClick = { /* Platform-specific exit later */ }
                 )
             }
+            composable<AppRoute.PatientSelection> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.PatientSelection>()
+                PatientListScreen(phoneNumber = route.phoneNumber, navController = navController)
+            }
+
 
             composable<AppRoute.OtpVerification> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.OtpVerification>()
                 OtpVerificationScreen(
                     phoneNumber = route.phoneNumber,
-                    onVerified = {
-                        // Placeholder for next screen (e.g., PatientSelection)
+                    onVerified = { patients ->
+                        navController.navigate(AppRoute.PatientSelection(route.phoneNumber))
                     },
                     onResend = {
 

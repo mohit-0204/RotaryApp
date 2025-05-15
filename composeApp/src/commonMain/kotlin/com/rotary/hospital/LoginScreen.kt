@@ -218,7 +218,7 @@ suspend fun sendOtp(mobileNumber: String): SmsVerificationResponse {
     var otpCode = (1000..9999).random().toString()
     if (mobileNumber == "1111111111") otpCode = "1111"
     val response =
-        NetworkClient.httpClient.post("http://dev.erp.hospital/HMS_API/sms_verification.php") {
+        NetworkClient.httpClient.post("http://rotaryapp.mdimembrane.com/HMS_API/sms_verification.php") {
             contentType(ContentType.Application.FormUrlEncoded)
             setBody(
                 buildString {

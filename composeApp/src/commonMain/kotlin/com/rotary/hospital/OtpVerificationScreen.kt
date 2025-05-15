@@ -274,7 +274,7 @@ fun OtpVerificationScreen(
 
 
 suspend fun verifyOtp(mobileNumber: String, otpCode: String): SmsVerificationResponse {
-    val response = NetworkClient.httpClient.post("http://dev.erp.hospital/HMS_API/sms_verification.php") {
+    val response = NetworkClient.httpClient.post("http://rotaryapp.mdimembrane.com/HMS_API/sms_verification.php") {
         contentType(ContentType.Application.FormUrlEncoded)
         setBody(
             buildString {
