@@ -174,7 +174,7 @@ fun RegistrationScreen(
                         elevation = CardDefaults.cardElevation(4.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.background(White).padding(16.dp)) {
                             Text("Guardian Info", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(12.dp))
 
@@ -213,7 +213,7 @@ fun RegistrationScreen(
                         elevation = CardDefaults.cardElevation(4.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.background(White).padding(16.dp)) {
                             Text("Contact Info", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(12.dp))
 
