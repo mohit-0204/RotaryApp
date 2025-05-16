@@ -43,6 +43,13 @@ fun App() {
                 val route = backStackEntry.toRoute<AppRoute.PatientSelection>()
                 PatientListScreen(phoneNumber = route.phoneNumber, navController = navController)
             }
+            composable<AppRoute.PatientRegistration> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.PatientRegistration>()
+                RegistrationScreen(
+                    onBack = {},
+                    onSave = {},
+                    onCancel = {})
+            }
 
 
             composable<AppRoute.OtpVerification> { backStackEntry ->
@@ -50,7 +57,8 @@ fun App() {
                 OtpVerificationScreen(
                     phoneNumber = route.phoneNumber,
                     onVerified = { patients ->
-                        navController.navigate(AppRoute.PatientSelection(route.phoneNumber))
+                        navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
+//                        navController.navigate(AppRoute.PatientSelection(route.phoneNumber))
                     },
                     onResend = {
 

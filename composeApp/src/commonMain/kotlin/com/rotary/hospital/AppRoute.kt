@@ -17,6 +17,9 @@ sealed class AppRoute {
     data class PatientSelection(val phoneNumber: String) : AppRoute()
 
     @Serializable
+    data class PatientRegistration(val phoneNumber: String) : AppRoute()
+
+    @Serializable
     data object Home : AppRoute()
 }
 
