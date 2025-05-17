@@ -45,7 +45,7 @@ fun RegistrationScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Registration") },
+                title = { Text("Registered Patients List") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

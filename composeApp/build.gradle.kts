@@ -38,6 +38,9 @@ kotlin {
             implementation(libs.androidx.core.splashscreen)
             // for networking
             implementation(libs.ktor.client.okhttp)
+            // for di in android
+            implementation(libs.koin.android)
+            implementation(libs.koin.androidx.compose)
 
         }
         commonMain.dependencies {
@@ -59,9 +62,13 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             // for local storage(like shared pref)
             implementation(libs.androidx.datastore)
+            implementation(libs.androidx.datastore.preferences)
             // for icons
             implementation(libs.material.icons.core)
-
+            // for koin (dependency injection)
+            api(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
         }
 
         iosMain.dependencies {
