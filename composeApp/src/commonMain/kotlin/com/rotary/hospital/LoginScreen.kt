@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.network.NetworkClient
 import com.rotary.hospital.utils.Logger
+import com.rotary.hospital.utils.PreferenceKeys
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.logo
 import rotaryhospital.composeapp.generated.resources.login_screen_message
@@ -43,6 +45,20 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    /* for testing */
+
+    val preferences : PreferencesManager = koinInject() // Inject via Koin
+    val savedMobileNumber by preferences
+        .getString(PreferenceKeys.MOBILE_NUMBER, "")
+        .collectAsState(initial = "")
+
+
+    LaunchedEffect(savedMobileNumber) {
+        if (savedMobileNumber.isNotBlank() && mobileNumber.isBlank()) {
+            mobileNumber = savedMobileNumber
+        }
+    }
+    /*----*/
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -155,6 +171,11 @@ fun LoginScreen(
                                 try {
                                     val response = sendOtp(mobileNumber)
                                     if (response.response == true) {
+
+                                        // ✅ Save to DataStore
+                                        preferences.saveString(PreferenceKeys.MOBILE_NUMBER, mobileNumber)
+
+                                        // ✅ Navigate to next screen
                                         onNextClick(mobileNumber)
                                     } else {
                                         errorMessage = response.message
