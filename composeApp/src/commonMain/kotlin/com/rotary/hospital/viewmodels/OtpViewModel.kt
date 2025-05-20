@@ -23,7 +23,10 @@ class OtpViewModel : ViewModel() {
                 }
             }
 
-            is OtpAction.OnEnterNumber -> enterNumber(action.number,action.index)
+            is OtpAction.OnEnterNumber -> {
+                enterNumber(action.number,action.index)
+            }
+
             OtpAction.OnKeyBoardBack -> {
                 val previousIndex = getPreviousFocusedIndex(state.value.focusedIndex)
                 _state.update { it.copy(
@@ -37,7 +40,16 @@ class OtpViewModel : ViewModel() {
                     focusedIndex = previousIndex
                 ) }
             }
-        }
+
+            OtpAction.ClearFields -> {
+                _state.update {
+                    it.copy(
+                        code = List(4) { null },
+                        focusedIndex = 0,
+                        isValid = null
+                    )
+                }
+            }        }
     }
 
     private fun getPreviousFocusedIndex(currentIndex: Int?): Int? {
@@ -95,7 +107,7 @@ class OtpViewModel : ViewModel() {
             if (index <= currentFocusedIndex) {
                 return@forEachIndexed
             }
-            if (number == number) {
+            if (number == null) {
                 return index
             }
         }

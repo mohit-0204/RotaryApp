@@ -3,21 +3,19 @@ package com.rotary.hospital
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
@@ -27,7 +25,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -71,14 +68,16 @@ fun OtpVerificationScreen(
         }
 
         Box(
-            modifier = Modifier.fillMaxSize().padding(vertical = 24.dp),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Logo
                 Image(
                     painter = painterResource(Res.drawable.logo),
                     contentDescription = "Logo",
@@ -86,7 +85,6 @@ fun OtpVerificationScreen(
                     modifier = Modifier.width(200.dp).height(200.dp).padding(10.dp)
                 )
 
-                // Title
                 Text(
                     text = "OTP Verification",
                     color = ColorPrimary,
@@ -96,7 +94,6 @@ fun OtpVerificationScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                // Instruction
                 Text(
                     text = "Enter the 4-digit OTP sent to +91 $phoneNumber",
                     color = Color.DarkGray,
@@ -105,22 +102,23 @@ fun OtpVerificationScreen(
                     modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                 )
 
-                // with viewmodel
                 val viewModel = viewModel<OtpViewModel>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
-                val focusRequesterss = remember {
-                    List(4) { FocusRequester() }
-                }
-                val focusManager= LocalFocusManager.current
+                val focusRequesterss = remember { List(4) { FocusRequester() } }
+                val focusManager = LocalFocusManager.current
                 val keyboardManager = LocalSoftwareKeyboardController.current
-                LaunchedEffect (state.focusedIndex){
-                    state.focusedIndex?.let { index->
+
+                LaunchedEffect(Unit) {
+                    focusRequesterss[0].requestFocus() // Set initial focus to first field
+                }
+                LaunchedEffect(state.focusedIndex) {
+                    state.focusedIndex?.let { index ->
                         focusRequesterss.getOrNull(index)?.requestFocus()
                     }
                 }
-                LaunchedEffect(state.code,keyboardManager) {
+                LaunchedEffect(state.code, keyboardManager) {
                     val allNumbersEntered = state.code.none { it == null }
-                    if(allNumbersEntered){
+                    if (allNumbersEntered) {
                         focusManager.clearFocus()
                         keyboardManager?.hide()
                     }
@@ -131,114 +129,18 @@ fun OtpVerificationScreen(
                     onAction = { action ->
                         when (action) {
                             is OtpAction.OnEnterNumber -> {
-                                if (action.number != null) {
-                                    focusRequesterss[action.index] //todo check how to use freeFocus
+                                if (action.number != null && action.index < 3) {
+                                    focusRequesterss[action.index + 1].requestFocus()
                                 }
                             }
-
                             else -> Unit
                         }
                         viewModel.onAction(action)
-
-
                     },
                     focusRequester = focusRequesterss,
                     modifier = Modifier
                 )
 
-
-                // OTP Input Boxes
-                val otpLength = 4
-                val otpValues = remember { List(otpLength) { mutableStateOf("") } }
-                val focusRequesters = remember { List(otpLength) { FocusRequester() } }
-                val isFocused = remember { List(otpLength) { mutableStateOf(false) } }
-
-                val keyboardController = LocalSoftwareKeyboardController.current
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth(0.8f)
-                ) {
-                    otpValues.forEachIndexed { index, otpValue ->
-                        BasicTextField(
-                            value = otpValue.value,
-                            onValueChange = { newValue ->
-                                if (newValue.length <= 1 && newValue.all { it.isDigit() }) {
-                                    otpValue.value = newValue
-                                    if (newValue.isNotEmpty() && index < otpLength - 1) {
-                                        focusRequesters[index + 1].requestFocus()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.weight(1f).size(56.dp)
-                                .clip(RoundedCornerShape(12.dp)).background(White).border(
-                                    width = if (isFocused[index].value) 2.dp else 1.dp,
-                                    color = if (isFocused[index].value) ColorPrimary else Color.Gray,
-                                    shape = RoundedCornerShape(12.dp)
-                                ).focusRequester(focusRequesters[index])
-                                .onFocusChanged { isFocused[index].value = it.isFocused }
-                                .onKeyEvent { keyEvent ->
-                                    Logger.d(
-                                        "OTP", "Key event: ${keyEvent.key}, type: ${keyEvent.type}"
-                                    )
-                                    if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Backspace) {
-                                        if (otpValue.value.isNotEmpty()) {
-                                            otpValue.value = ""
-                                        } else if (index > 0) {
-                                            otpValues[index - 1].value = ""
-                                            focusRequesters[index - 1].requestFocus()
-                                        }
-                                        true
-                                    } else if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                                        if (index == otpLength - 1) {
-                                            keyboardController?.hide()
-                                        }
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }.padding(16.dp),
-                            textStyle = LocalTextStyle.current.copy(
-                                fontSize = 24.sp, color = ColorPrimary, textAlign = TextAlign.Center
-                            ),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                                imeAction = if (index == otpLength - 1) ImeAction.Done else ImeAction.Next
-                            ),
-                            keyboardActions = KeyboardActions(onNext = {
-                                if (index < otpLength - 1) {
-                                    focusRequesters[index + 1].requestFocus()
-                                }
-                            }, onDone = {
-                                if (index == otpLength - 1) {
-                                    keyboardController?.hide()
-                                }
-                            }, onPrevious = {
-                                if (index > 0) {
-                                    otpValues[index - 1].value = ""
-                                    focusRequesters[index - 1].requestFocus()
-                                }
-                            }),
-                            singleLine = true,
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    if (otpValue.value.isEmpty() && !isFocused[index].value) {
-                                        Text(
-                                            text = "-",
-                                            color = ColorPrimary.copy(alpha = 0.5f),
-                                            fontSize = 24.sp
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            })
-                    }
-                }
-
-                // Error Message
                 if (errorMessage.isNotEmpty()) {
                     Text(
                         text = errorMessage,
@@ -250,7 +152,6 @@ fun OtpVerificationScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Resend OTP
                 TextButton(
                     onClick = {
                         if (resendEnabled) {
@@ -262,8 +163,7 @@ fun OtpVerificationScreen(
                                     if (response.response) {
                                         countdown = 40
                                         resendEnabled = false
-                                        otpValues.forEach { it.value = "" }
-                                        focusRequesters[0].requestFocus()
+                                        viewModel.onAction(OtpAction.ClearFields)
                                         onResend()
                                     } else {
                                         errorMessage = response.message
@@ -287,11 +187,10 @@ fun OtpVerificationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Verify Button
                 Button(
                     onClick = {
-                        val otp = otpValues.joinToString("") { it.value }
-                        if (otp.length == otpLength) {
+                        val otp = state.code.joinToString("") { it?.toString() ?: "" }
+                        if (otp.length == 4) {
                             isLoading = true
                             errorMessage = ""
                             coroutineScope.launch {
@@ -313,7 +212,7 @@ fun OtpVerificationScreen(
                             errorMessage = "Please enter a valid 4-digit OTP"
                         }
                     },
-                    enabled = otpValues.all { it.value.isNotEmpty() } && !isLoading,
+                    enabled = state.code.all { it != null } && !isLoading,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp).height(56.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -321,7 +220,8 @@ fun OtpVerificationScreen(
                         contentColor = White,
                         disabledContainerColor = Color.LightGray,
                         disabledContentColor = Color.White
-                    )) {
+                    )
+                ) {
                     if (isLoading) {
                         CircularProgressIndicator(
                             color = White, modifier = Modifier.size(24.dp)
@@ -333,7 +233,6 @@ fun OtpVerificationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Back Button
                 Button(
                     onClick = onBack,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp)
@@ -350,7 +249,6 @@ fun OtpVerificationScreen(
     }
 }
 
-
 @Composable
 fun OtpInputField(
     number: Int?,
@@ -363,7 +261,8 @@ fun OtpInputField(
     var text by remember(number) {
         mutableStateOf(
             TextFieldValue(
-                text = number?.toString().orEmpty(), selection = TextRange(
+                text = number?.toString().orEmpty(),
+                selection = TextRange(
                     index = if (number != null) 1 else 0
                 )
             )
@@ -373,11 +272,12 @@ fun OtpInputField(
 
     Box(
         modifier = modifier
+            .background(White, shape = RoundedCornerShape(8.dp))
             .border(
                 width = 2.dp,
-                color = if (isFocused) ColorPrimary else Color.Gray
-            )
-            .background(White),
+                color = if (isFocused) ColorPrimary else Color.Gray,
+                shape = RoundedCornerShape(8.dp)
+            ),
         contentAlignment = Alignment.Center
     ) {
         BasicTextField(
@@ -407,15 +307,18 @@ fun OtpInputField(
                     onFocusChanged(it.isFocused)
                 }
                 .onKeyEvent { event ->
-                    val didPressed = event.key == Key.Backspace
-                    if (didPressed && number == null) {
-                        onKeyBoardBack()
+                    if (event.key == Key.Backspace && event.type == KeyEventType.KeyUp) {
+                        if (text.text.isEmpty()) {
+                            onKeyBoardBack()
+                        }
+                        true
+                    } else {
+                        false
                     }
-                    false
                 },
             decorationBox = { innerBox ->
+                innerBox()
                 if (!isFocused && number == null) {
-                    innerBox()
                     Text(
                         text = "-",
                         textAlign = TextAlign.Center,
@@ -425,18 +328,16 @@ fun OtpInputField(
                         modifier = Modifier.fillMaxSize().wrapContentSize()
                     )
                 }
-
             }
         )
     }
-
 }
 
 fun String.isDigitsOnly(): Boolean = all { it.isDigit() }
 
 data class OtpState(
     val code: List<Int?> = (1..4).map { null },
-    val focusedIndex: Int? = null,
+    val focusedIndex: Int? = 0, // Initialize focus on first field
     val isValid: Boolean? = null
 )
 
@@ -444,6 +345,7 @@ sealed interface OtpAction {
     data class OnEnterNumber(val number: Int?, val index: Int) : OtpAction
     data class OnChangeFieldFocus(val index: Int) : OtpAction
     data object OnKeyBoardBack : OtpAction
+    data object ClearFields : OtpAction
 }
 
 @Composable
@@ -468,12 +370,12 @@ fun OtpScreen(
                     }
                 },
                 onNumberChanged = { newNumber ->
-                    onAction(OtpAction.OnEnterNumber(number, index))
+                    onAction(OtpAction.OnEnterNumber(newNumber, index))
                 },
                 onKeyBoardBack = {
                     onAction(OtpAction.OnKeyBoardBack)
                 },
-                modifier = Modifier.weight(1f).aspectRatio(1f)
+                modifier = Modifier.size(56.dp)
             )
         }
     }
@@ -504,5 +406,3 @@ suspend fun verifyOtp(mobileNumber: String, otpCode: String): SmsVerificationRes
     val json = Json { ignoreUnknownKeys = true }
     return json.decodeFromString(responseBody)
 }
-
-
