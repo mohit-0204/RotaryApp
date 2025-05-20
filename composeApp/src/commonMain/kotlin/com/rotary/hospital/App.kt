@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.rotary.hospital.utils.Logger
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -44,12 +45,12 @@ fun App() {
                 PatientListScreen(phoneNumber = route.phoneNumber, navController = navController)
             }
             composable<AppRoute.PatientRegistration> { backStackEntry ->
-                val route = backStackEntry.toRoute<AppRoute.PatientRegistration>()
                 RegistrationScreen(
                     onBack = { navController.popBackStack() },
                     onCancel = { navController.popBackStack() },
-                    onSave = {
-                        navController.navigate(AppRoute.PatientSelection(route.phoneNumber)) {
+                    onSave = { patientId, patientName ->
+                        Logger.d("TAG", "PatientId: $patientId , PatientName: $patientName")
+                        navController.navigate(AppRoute.Home) {
                             popUpTo<AppRoute.PatientRegistration> { inclusive = true }
                         }
                     }

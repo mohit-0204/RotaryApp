@@ -1,4 +1,4 @@
-/*
+package com.rotary.hospital.utils.appicon/*
 * Converted using https://composables.com/svgtocompose
 */
 
@@ -12,15 +12,15 @@ import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
-public val MapPinSvgrepoCom: ImageVector
+public val IconMap: ImageVector
 	get() {
-		if (_MapPinSvgrepoCom != null) {
-			return _MapPinSvgrepoCom!!
+		if (_IconMap != null) {
+			return _IconMap!!
 		}
-		_MapPinSvgrepoCom = ImageVector.Builder(
+		_IconMap = ImageVector.Builder(
             name = "MapPinSvgrepoCom",
-            defaultWidth = 800.dp,
-            defaultHeight = 800.dp,
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
             viewportWidth = 293.334f,
             viewportHeight = 293.334f
         ).apply {
@@ -76,7 +76,7 @@ public val MapPinSvgrepoCom: ImageVector
 }
 }
 		}.build()
-		return _MapPinSvgrepoCom!!
+		return _IconMap!!
 	}
 
-private var _MapPinSvgrepoCom: ImageVector? = null
+private var _IconMap: ImageVector? = null

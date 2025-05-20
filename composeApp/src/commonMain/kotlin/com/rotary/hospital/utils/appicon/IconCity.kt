@@ -1,4 +1,4 @@
-/*
+package com.rotary.hospital.utils.appicon/*
 * Converted using https://composables.com/svgtocompose
 */
 
@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
-public val Location_city: ImageVector
+public val IconCity: ImageVector
 	get() {
 		if (_Location_city != null) {
 			return _Location_city!!
