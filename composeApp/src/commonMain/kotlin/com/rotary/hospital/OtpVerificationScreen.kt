@@ -35,7 +35,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rotary.hospital.network.NetworkClient
 import com.rotary.hospital.utils.Logger
 import com.rotary.hospital.viewmodels.OtpViewModel
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
@@ -43,6 +42,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.logo
 
@@ -102,18 +102,18 @@ fun OtpVerificationScreen(
                     modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                 )
 
-                val viewModel = viewModel<OtpViewModel>()
+                val viewModel: OtpViewModel = koinViewModel()
                 val state by viewModel.state.collectAsStateWithLifecycle()
-                val focusRequesterss = remember { List(4) { FocusRequester() } }
+                val focusRequesters = remember { List(4) { FocusRequester() } }
                 val focusManager = LocalFocusManager.current
                 val keyboardManager = LocalSoftwareKeyboardController.current
 
                 LaunchedEffect(Unit) {
-                    focusRequesterss[0].requestFocus() // Set initial focus to first field
+                    focusRequesters[0].requestFocus() // Set initial focus to first field
                 }
                 LaunchedEffect(state.focusedIndex) {
                     state.focusedIndex?.let { index ->
-                        focusRequesterss.getOrNull(index)?.requestFocus()
+                        focusRequesters.getOrNull(index)?.requestFocus()
                     }
                 }
                 LaunchedEffect(state.code, keyboardManager) {
@@ -130,14 +130,15 @@ fun OtpVerificationScreen(
                         when (action) {
                             is OtpAction.OnEnterNumber -> {
                                 if (action.number != null && action.index < 3) {
-                                    focusRequesterss[action.index + 1].requestFocus()
+                                    focusRequesters[action.index + 1].requestFocus()
                                 }
                             }
+
                             else -> Unit
                         }
                         viewModel.onAction(action)
                     },
-                    focusRequester = focusRequesterss,
+                    focusRequester = focusRequesters,
                     modifier = Modifier
                 )
 
@@ -159,7 +160,7 @@ fun OtpVerificationScreen(
                             errorMessage = ""
                             coroutineScope.launch {
                                 try {
-                                    val response = sendOtp(phoneNumber)
+                                    val response = sendOtp(phoneNumber, {})
                                     if (response.response) {
                                         countdown = 40
                                         resendEnabled = false

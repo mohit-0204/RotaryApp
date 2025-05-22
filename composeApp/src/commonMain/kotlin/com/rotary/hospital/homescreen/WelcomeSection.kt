@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.sp
 import com.rotary.hospital.ColorPrimary
 
 @Composable
-fun WelcomeSection() {
+fun WelcomeSection(
+    patientName: String,
+) {
     Column(modifier = Modifier) {
         Text(
             text = "Welcome back,",
@@ -32,7 +34,7 @@ fun WelcomeSection() {
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
-            text = "Dr. Michael",
+            text = patientName,
             style = MaterialTheme.typography.titleLarge.copy(
                 fontWeight = FontWeight.Bold,
                 fontSize = 25.sp

@@ -1,17 +1,36 @@
 package com.rotary.hospital.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.rotary.hospital.OtpAction
 import com.rotary.hospital.OtpState
+import com.rotary.hospital.PreferencesManager
+import com.rotary.hospital.utils.PreferenceKeys
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.minutes
 
-class OtpViewModel : ViewModel() {
+class OtpViewModel(
+    private val preferences: PreferencesManager
+) : ViewModel() {
 
     private val _state = MutableStateFlow(OtpState())
     val state = _state.asStateFlow()
+
+    private val _storedOtp = MutableStateFlow("")
+    val storedOtp = _storedOtp.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            preferences.getString(PreferenceKeys.OTP, "")
+                .collect { otp ->
+                    _storedOtp.value = otp
+                }
+        }
+    }
+
 
     fun onAction(action: OtpAction) {
         when (action) {
@@ -77,7 +96,7 @@ class OtpViewModel : ViewModel() {
                     )
                 },
                 isValid = if(newCode.none{it == null}){
-                    newCode.joinToString("")=="1111"
+                    newCode.joinToString("")==storedOtp.value
                 }else null
             )
         }

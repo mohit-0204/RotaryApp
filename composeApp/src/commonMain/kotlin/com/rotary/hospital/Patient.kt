@@ -40,7 +40,7 @@ data class PatientResponse(
 )
 
 @Composable
-fun PatientListScreen(phoneNumber: String, navController: NavController) {
+fun PatientListScreen(phoneNumber: String, onAddPatient: () -> Unit) {
     val patients = remember { mutableStateOf<List<Patient>>(emptyList()) }
     val isLoading = remember { mutableStateOf(true) }
     val errorMessage = remember { mutableStateOf("") }
@@ -49,10 +49,11 @@ fun PatientListScreen(phoneNumber: String, navController: NavController) {
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             try {
-                val response = NetworkClient.httpClient.get("http://rotaryapp.mdimembrane.com/HMS_API/patient_data.php") {
-                    parameter("action", "get_registered_patients")
-                    parameter("mobile_number", phoneNumber)
-                }
+                val response =
+                    NetworkClient.httpClient.get("http://rotaryapp.mdimembrane.com/HMS_API/patient_data.php") {
+                        parameter("action", "get_registered_patients")
+                        parameter("mobile_number", phoneNumber)
+                    }
                 val json = Json { ignoreUnknownKeys = true }
                 val responseText = response.bodyAsText()
                 com.rotary.hospital.utils.Logger.d("tag", responseText)
@@ -85,9 +86,7 @@ fun PatientListScreen(phoneNumber: String, navController: NavController) {
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-//                    navController.navigate(AppRoute.RegisterNewPatient(phoneNumber))
-                          },
+                onClick = onAddPatient,
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Patient", tint = Color.White)
@@ -99,6 +98,7 @@ fun PatientListScreen(phoneNumber: String, navController: NavController) {
                 isLoading.value -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 errorMessage.value.isNotEmpty() -> {
                     Text(
                         text = errorMessage.value,
@@ -106,6 +106,7 @@ fun PatientListScreen(phoneNumber: String, navController: NavController) {
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 patients.value.isEmpty() -> {
                     Column(
                         modifier = Modifier.fillMaxSize(),
@@ -121,6 +122,7 @@ fun PatientListScreen(phoneNumber: String, navController: NavController) {
                         }
                     }
                 }
+
                 else -> {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(patients.value) { patient ->

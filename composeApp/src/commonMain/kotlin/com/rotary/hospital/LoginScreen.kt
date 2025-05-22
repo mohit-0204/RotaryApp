@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -161,7 +162,7 @@ fun LoginScreen(
                             errorMessage = ""
                         }
                     },
-                    placeholder = { Text("Enter your mobile number") },
+                    placeholder = { Text("Enter your mobile number", fontSize = 18.sp) },
                     singleLine = true,
                     leadingIcon = {
                         Icon(Icons.Default.Phone, contentDescription = null, tint = ColorPrimary)
@@ -177,7 +178,8 @@ fun LoginScreen(
                         unfocusedTextColor = Color.Black,
                         cursorColor = ColorPrimary
                     ),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    textStyle = TextStyle(fontSize = 20.sp)
                 )
             }
 
@@ -207,12 +209,16 @@ fun LoginScreen(
                         isLoading = true
                         coroutineScope.launch {
                             try {
-                                val response = sendOtp(mobileNumber)
+                                var otp: String? = null
+                                val response = sendOtp(mobileNumber) { otpGenerated ->
+                                    otp = otpGenerated
+                                }
                                 if (response.response) {
                                     preferences.saveString(
                                         PreferenceKeys.MOBILE_NUMBER,
                                         mobileNumber
                                     )
+                                    preferences.saveString(PreferenceKeys.OTP, otp ?: "")
                                     onNextClick(mobileNumber)
                                 } else {
                                     errorMessage = response.message
@@ -291,9 +297,10 @@ data class SmsVerificationResponse(
 )
 
 
-suspend fun sendOtp(mobileNumber: String): SmsVerificationResponse {
+suspend fun sendOtp(mobileNumber: String, otpGenerated: (String) -> Unit): SmsVerificationResponse {
     var otpCode = (1000..9999).random().toString()
     if (mobileNumber == "1111111111") otpCode = "1111"
+    otpGenerated(otpCode)
     val response =
         NetworkClient.httpClient.post("http://rotaryapp.mdimembrane.com/HMS_API/sms_verification.php") {
             contentType(ContentType.Application.FormUrlEncoded)

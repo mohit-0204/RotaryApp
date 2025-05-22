@@ -29,8 +29,9 @@ fun App() {
                     }
                 }
             }
-            composable<AppRoute.Home> {
-                HomeScreen()
+            composable<AppRoute.Home> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.Home>()
+                HomeScreen(route.patientName, route.patientId)
             }
             composable<AppRoute.Login> {
                 LoginScreen(
@@ -42,7 +43,9 @@ fun App() {
             }
             composable<AppRoute.PatientSelection> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.PatientSelection>()
-                PatientListScreen(phoneNumber = route.phoneNumber, navController = navController)
+                PatientListScreen(phoneNumber = route.phoneNumber, onAddPatient = {
+                    navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
+                })
             }
             composable<AppRoute.PatientRegistration> { backStackEntry ->
                 RegistrationScreen(
@@ -50,7 +53,7 @@ fun App() {
                     onCancel = { navController.popBackStack() },
                     onSave = { patientId, patientName ->
                         Logger.d("TAG", "PatientId: $patientId , PatientName: $patientName")
-                        navController.navigate(AppRoute.Home) {
+                        navController.navigate(AppRoute.Home(patientName, patientId)) {
                             popUpTo<AppRoute.PatientRegistration> { inclusive = true }
                         }
                     }
@@ -60,8 +63,12 @@ fun App() {
                 val route = backStackEntry.toRoute<AppRoute.OtpVerification>()
                 OtpVerificationScreen(
                     phoneNumber = route.phoneNumber,
-                    onVerified = {
-                        navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
+                    onVerified = { patientCount ->
+                        Logger.d("TAG", "PatientCount: $patientCount")
+                        if (patientCount > 0)
+                            navController.navigate(AppRoute.PatientSelection(route.phoneNumber))
+                        else
+                            navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
                     },
                     onResend = { /* Resend OTP logic */ },
                     onBack = { navController.popBackStack() }

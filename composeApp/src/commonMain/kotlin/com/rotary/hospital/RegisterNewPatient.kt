@@ -235,21 +235,21 @@ fun RegistrationScreen(
                                         "AB+",
                                         "AB-"
                                     ).forEach { group ->
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Text(
-                                                        group,
-                                                        fontSize = 16.sp
-                                                    )
-                                                },
-                                                onClick = {
-                                                    bloodGroup = group
-                                                    bloodExpanded = false
-                                                    fieldErrors = fieldErrors - "bloodGroup"
-                                                },
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        }
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    group,
+                                                    fontSize = 16.sp
+                                                )
+                                            },
+                                            onClick = {
+                                                bloodGroup = group
+                                                bloodExpanded = false
+                                                fieldErrors = fieldErrors - "bloodGroup"
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -307,7 +307,8 @@ fun RegistrationScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.fillMaxWidth()
                                             .clickable { relation = rel }.padding(vertical = 4.dp),
-                                        horizontalArrangement = Arrangement.Start) {
+                                        horizontalArrangement = Arrangement.Start
+                                    ) {
                                         RadioButton(
                                             selected = relation == rel,
                                             onClick = { relation = rel },
@@ -456,10 +457,11 @@ fun RegistrationScreen(
                                 containerColor = ErrorRed, contentColor = White
                             ),
                             modifier = Modifier.weight(1f).height(56.dp)
-                                .clip(RoundedCornerShape(12.dp)).scale(cancelButtonScale)
+                                .scale(cancelButtonScale)
                                 .padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(14.dp),
                             enabled = !isLoading,
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
                             Icon(
                                 Icons.Default.Clear,
@@ -471,7 +473,7 @@ fun RegistrationScreen(
                                 "Cancel", fontSize = 16.sp, fontWeight = FontWeight.Medium
                             )
                         }
-                        Button(
+                        ElevatedButton(
                             onClick = {
                                 saveButtonScale = 0.95f
                                 val validationErrors = validateInputs(
@@ -543,10 +545,11 @@ fun RegistrationScreen(
                                 containerColor = ColorPrimary, contentColor = White
                             ),
                             modifier = Modifier.weight(1f).height(56.dp)
-                                .clip(RoundedCornerShape(12.dp)).scale(saveButtonScale)
+                                .scale(saveButtonScale)
                                 .padding(bottom = 8.dp),
+                            shape = RoundedCornerShape(12.dp),
                             enabled = !isLoading,
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
                             if (isLoading) {
                                 CircularProgressIndicator(

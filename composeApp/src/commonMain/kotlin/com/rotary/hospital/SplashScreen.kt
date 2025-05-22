@@ -26,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,10 +62,11 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.radialGradient(
-                    colors = listOf(ColorPrimary, ColorPrimaryDark),
-                    radius = 600f
-                )
+//                Brush.radialGradient(
+//                    colors = listOf(ColorPrimary, ColorPrimaryDark),
+//                    radius = 600f
+//                )
+                White
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -71,6 +74,7 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
             Image(
                 painter = painterResource(Res.drawable.logo),
                 contentDescription = null,
+                colorFilter = ColorFilter.tint(ColorPrimary),
                 modifier = Modifier
                     .offset(y = offsetY)
                     .size(240.dp)
@@ -86,13 +90,13 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
                     text = "Rotary Hospital",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = ColorPrimary
                 )
                 Text(
                     text = "Ambala Cantt",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = ColorPrimary
                 )
             }
         }

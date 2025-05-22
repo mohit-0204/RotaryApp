@@ -39,10 +39,13 @@ import rotaryhospital.composeapp.generated.resources.test_tube_icon
 import rotaryhospital.composeapp.generated.resources.user_icon
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    patientName: String,
+    patientId: String
+) {
     AppTheme {
         Scaffold(
-            topBar = {TopBar()},
+            topBar = { TopBar() },
             bottomBar = {
                 NavigationBar(containerColor = Color.White) {
                     NavigationBarItem(
@@ -76,7 +79,7 @@ fun HomeScreen() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                WelcomeSection()
+                WelcomeSection(patientName)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
