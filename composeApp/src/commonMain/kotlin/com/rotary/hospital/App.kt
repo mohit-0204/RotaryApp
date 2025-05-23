@@ -45,7 +45,8 @@ fun App() {
                 val route = backStackEntry.toRoute<AppRoute.PatientSelection>()
                 PatientListScreen(phoneNumber = route.phoneNumber, onAddPatient = {
                     navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
-                })
+                },
+                    onBackClick = { navController.popBackStack() })
             }
             composable<AppRoute.PatientRegistration> { backStackEntry ->
                 RegistrationScreen(
