@@ -2,8 +2,8 @@ package com.rotary.hospital
 
 import android.app.Application
 import android.util.Log
-import com.rotary.hospital.di.androidModule
-import com.rotary.hospital.di.sharedModule
+import com.rotary.hospital.core.di.androidModule
+import com.rotary.hospital.core.di.sharedModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 

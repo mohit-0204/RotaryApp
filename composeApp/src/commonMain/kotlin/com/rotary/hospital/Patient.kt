@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,17 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rotary.hospital.network.NetworkClient
+import com.rotary.hospital.core.navigation.Patient
+import com.rotary.hospital.core.network.NetworkClient
+import com.rotary.hospital.core.theme.ColorPrimary
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.*
-import io.ktor.util.logging.Logger
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
@@ -85,7 +82,7 @@ fun PatientListScreen(phoneNumber: String, onAddPatient: () -> Unit, onBackClick
                     }
                 val json = Json { ignoreUnknownKeys = true }
                 val responseText = response.bodyAsText()
-                com.rotary.hospital.utils.Logger.d("tag", responseText)
+                com.rotary.hospital.core.utils.Logger.d("tag", responseText)
 
                 val patientResponse = json.decodeFromString<PatientResponse>(responseText)
 
@@ -104,7 +101,7 @@ fun PatientListScreen(phoneNumber: String, onAddPatient: () -> Unit, onBackClick
                 isLoading.value = false
             } catch (e: Exception) {
                 errorMessage.value = "Error fetching patients: ${e.message}"
-                com.rotary.hospital.utils.Logger.e("tag", "Error: ${e.message}", e)
+                com.rotary.hospital.core.utils.Logger.e("tag", "Error: ${e.message}", e)
                 isLoading.value = false
             }
         }
@@ -326,7 +323,7 @@ fun PatientListItem(patient: Patient, onClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(3.dp)
-                    .background(ColorPrimary.copy(alpha = 0.5git f))
+                    .background(ColorPrimary.copy(alpha = 0.5f))
             )
         }
     }

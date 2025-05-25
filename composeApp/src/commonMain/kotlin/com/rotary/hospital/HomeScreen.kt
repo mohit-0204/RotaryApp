@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.rotary.hospital.core.theme.AppTheme
+import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.homescreen.DashboardCard
 import com.rotary.hospital.homescreen.QuickAccessItem
 import com.rotary.hospital.homescreen.TopBar

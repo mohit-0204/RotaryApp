@@ -22,12 +22,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -40,11 +37,14 @@ import appicon.IconFemale
 import appicon.IconGuardian
 import appicon.IconMale
 import appicon.IconOther
+import com.rotary.hospital.core.theme.ColorPrimary
+import com.rotary.hospital.core.theme.ErrorRed
+import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.patient.registerPatient
-import com.rotary.hospital.utils.Logger
-import com.rotary.hospital.utils.PreferenceKeys
-import com.rotary.hospital.utils.appicon.IconCity
-import com.rotary.hospital.utils.appicon.IconMap
+import com.rotary.hospital.core.utils.Logger
+import com.rotary.hospital.core.utils.PreferenceKeys
+import com.rotary.hospital.core.utils.appicon.IconCity
+import com.rotary.hospital.core.utils.appicon.IconMap
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 

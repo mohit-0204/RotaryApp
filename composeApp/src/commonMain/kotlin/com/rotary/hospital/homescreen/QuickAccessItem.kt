@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rotary.hospital.ColorPrimary
+import com.rotary.hospital.core.theme.ColorPrimary
 
 @Composable
 fun QuickAccessItem(label: String, icon: ImageVector) {

@@ -19,8 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.rotary.hospital.ColorPrimary
-import com.rotary.hospital.White
+import com.rotary.hospital.core.theme.ColorPrimary
+import com.rotary.hospital.core.theme.White
 import org.jetbrains.compose.resources.painterResource
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.logo
