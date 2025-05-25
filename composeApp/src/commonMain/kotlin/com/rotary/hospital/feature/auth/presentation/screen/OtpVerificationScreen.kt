@@ -165,17 +165,10 @@ fun OtpVerificationScreen(
                         if (resendEnabled) {
                             coroutineScope.launch {
                                 viewModel.onAction(OtpAction.ClearFields)
-                                val result = sendOtpUseCase(phoneNumber)
-                                if (result.isSuccess) {
-                                    countdown = 40
-                                    resendEnabled = false
-                                    onResend()
-                                } else {
-                                    /* todo yet to be corrected
-                                    viewModel._otpState.value = OtpVerificationState.Error(
-                                        result.exceptionOrNull()?.message ?: "Failed to resend OTP"
-                                    )*/
-                                }
+                                viewModel.resendOtp() // Call the new function
+                                countdown = 40
+                                resendEnabled = false
+                                onResend()
                             }
                         }
                     },

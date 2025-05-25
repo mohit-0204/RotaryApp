@@ -3,6 +3,7 @@ package com.rotary.hospital.feature.auth.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rotary.hospital.feature.auth.data.model.SmsVerificationResponse
+import com.rotary.hospital.feature.auth.domain.usecase.SendOtpUseCase
 import com.rotary.hospital.feature.auth.domain.usecase.VerifyOtpUseCase
 import com.rotary.hospital.feature.auth.presentation.screen.OtpAction
 import com.rotary.hospital.feature.auth.presentation.screen.OtpState
@@ -13,8 +14,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class OtpViewModel(
-    private val verifyOtpUseCase: VerifyOtpUseCase
-) : ViewModel() {
+    private val verifyOtpUseCase: VerifyOtpUseCase,
+    private val sendOtpUseCase: SendOtpUseCase
+    ) : ViewModel() {
     private val _state = MutableStateFlow(OtpState())
     val state: StateFlow<OtpState> = _state.asStateFlow()
 
@@ -70,6 +72,19 @@ class OtpViewModel(
             _otpState.value = when {
                 result.isSuccess -> OtpVerificationState.Success(result.getOrNull()!!)
                 else -> OtpVerificationState.Error(result.exceptionOrNull()?.message ?: "Invalid OTP")
+            }
+        }
+    }
+
+
+    fun resendOtp() {
+        viewModelScope.launch {
+            _otpState.value = OtpVerificationState.Loading
+            val result = sendOtpUseCase(mobileNumber)
+            _otpState.value = if (result.isSuccess) {
+                OtpVerificationState.Idle // OTP resent successfully
+            } else {
+                OtpVerificationState.Error(result.exceptionOrNull()?.message ?: "Failed to resend OTP")
             }
         }
     }
