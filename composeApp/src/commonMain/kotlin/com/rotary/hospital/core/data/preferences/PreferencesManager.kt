@@ -1,4 +1,4 @@
-package com.rotary.hospital
+package com.rotary.hospital.core.data.preferences
 
 
 import androidx.datastore.core.DataStore

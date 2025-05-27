@@ -1,7 +1,7 @@
 package com.rotary.hospital.patient
 
 import com.rotary.hospital.core.network.NetworkClient
-import com.rotary.hospital.core.utils.Logger
+import com.rotary.hospital.core.common.Logger
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*

@@ -55,6 +55,8 @@ kotlin {
             // added for type safe navigation
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ui.backhandler)
+
             // for networking
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.logging)

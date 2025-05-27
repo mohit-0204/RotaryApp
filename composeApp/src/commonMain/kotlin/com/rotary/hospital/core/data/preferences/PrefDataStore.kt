@@ -1,7 +1,6 @@
-package com.rotary.hospital
+package com.rotary.hospital.core.data.preferences
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import okio.Path.Companion.toPath

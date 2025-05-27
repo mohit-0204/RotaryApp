@@ -1,4 +1,4 @@
-package com.rotary.hospital.homescreen
+package com.rotary.hospital.feature.home.presentation.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
 
 @Composable
-fun WelcomeSection(
+fun WelcomeWidget(
     patientName: String,
 ) {
     Column(modifier = Modifier) {
@@ -41,9 +41,7 @@ fun WelcomeSection(
             ),
             color = Color.DarkGray
         )
-
         Spacer(modifier = Modifier.height(26.dp))
-
         OutlinedTextField(
             value = "",
             onValueChange = {},

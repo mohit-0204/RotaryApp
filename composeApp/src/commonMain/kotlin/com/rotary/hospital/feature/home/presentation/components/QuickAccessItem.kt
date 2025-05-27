@@ -1,6 +1,7 @@
-package com.rotary.hospital.homescreen
+package com.rotary.hospital.feature.home.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,49 +21,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun DashboardCard(title: String, subtitle: String, iconRes: DrawableResource) {
+fun QuickAccessItem(label: String, icon: ImageVector) {
     Card(
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), // Set elevation here
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth().height(140.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(1.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(90.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Column(modifier = Modifier.padding(16.dp).padding(start = 10.dp)) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(8.dp)
+        ) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.size(50.dp).clip(CircleShape)
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
                     .background(ColorPrimary.copy(alpha = 0.1f))
             ) {
-                Icon(
-                    painter = painterResource(iconRes),
-                    contentDescription = title,
-                    tint = ColorPrimary,
-                    modifier = Modifier.size(30.dp)
-                )
+                Icon(icon, contentDescription = label, tint = ColorPrimary, modifier = Modifier.size(20.dp))
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                text = label,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 12.sp
+                ),
                 fontWeight = FontWeight.Bold,
-                color = Color.DarkGray
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Gray
+                color = Color.DarkGray,
+                textAlign = TextAlign.Center
             )
         }
     }

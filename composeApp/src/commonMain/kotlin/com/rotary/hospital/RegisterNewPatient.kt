@@ -37,14 +37,15 @@ import appicon.IconFemale
 import appicon.IconGuardian
 import appicon.IconMale
 import appicon.IconOther
+import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.patient.registerPatient
-import com.rotary.hospital.core.utils.Logger
-import com.rotary.hospital.core.utils.PreferenceKeys
-import com.rotary.hospital.core.utils.appicon.IconCity
-import com.rotary.hospital.core.utils.appicon.IconMap
+import com.rotary.hospital.core.common.Logger
+import com.rotary.hospital.core.common.PreferenceKeys
+import com.rotary.hospital.core.common.appicon.IconCity
+import com.rotary.hospital.core.common.appicon.IconMap
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 
@@ -515,7 +516,7 @@ fun RegistrationScreen(
                                                         PreferenceKeys.PATIENT_NAME, patient.p_name
                                                     )
                                                     preferences.saveBoolean(
-                                                        PreferenceKeys.ACCOUNT_SESSION, true
+                                                        PreferenceKeys.IS_LOGGED_IN, true
                                                     )
                                                     preferences.saveString(
                                                         PreferenceKeys.MOBILE_NUMBER,

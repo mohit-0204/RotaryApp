@@ -1,4 +1,4 @@
-package com.rotary.hospital.homescreen
+package com.rotary.hospital.feature.home.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -26,7 +26,7 @@ import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.logo
 
 @Composable
-fun TopBar() {
+fun HomeTopBar() {
     Surface(
         color = White,
         shadowElevation = 2.dp,
@@ -51,7 +51,6 @@ fun TopBar() {
                 tint = ColorPrimary,
                 modifier = Modifier.size(46.dp)
             )
-
             Text(
                 text = "Rotary Hospital",
                 style = MaterialTheme.typography.titleLarge,

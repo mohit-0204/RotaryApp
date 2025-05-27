@@ -1,4 +1,4 @@
-package com.rotary.hospital.core.utils.appicon/*
+package com.rotary.hospital.core.common.appicon/*
 * Converted using https://composables.com/svgtocompose
 */
 

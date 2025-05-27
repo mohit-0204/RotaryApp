@@ -2,8 +2,8 @@ package com.rotary.hospital.feature.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rotary.hospital.PreferencesManager
-import com.rotary.hospital.core.utils.PreferenceKeys
+import com.rotary.hospital.core.data.preferences.PreferencesManager
+import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.feature.auth.data.model.SmsVerificationResponse
 import com.rotary.hospital.feature.auth.domain.usecase.SendOtpUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +33,9 @@ class LoginViewModel(
 
     fun setMobileNumber(number: String) {
         _mobileNumber.value = number
+    }
+    fun resetLoginState() {
+        _loginState.value = LoginState.Idle
     }
 
     fun sendOtp() {

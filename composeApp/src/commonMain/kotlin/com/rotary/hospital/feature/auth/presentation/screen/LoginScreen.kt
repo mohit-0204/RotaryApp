@@ -16,31 +16,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rotary.hospital.PreferencesManager
-import com.rotary.hospital.core.network.NetworkClient
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.core.utils.Logger
-import com.rotary.hospital.core.utils.PreferenceKeys
-import com.rotary.hospital.feature.auth.data.model.SmsVerificationResponse
 import com.rotary.hospital.feature.auth.presentation.viewmodel.LoginState
 import com.rotary.hospital.feature.auth.presentation.viewmodel.LoginViewModel
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.*
-import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.logo
@@ -98,6 +84,23 @@ fun LoginScreen(
     val loginState by viewModel.loginState.collectAsState()
     val mobileNumber by viewModel.mobileNumber.collectAsState()
 
+
+    if (loginState is LoginState.Error) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = (loginState as LoginState.Error).message,
+            color = ErrorRed,
+            fontSize = 14.sp
+        )
+    }
+    if (loginState is LoginState.Success) {
+
+        LaunchedEffect(Unit) {
+            onNextClick(mobileNumber)
+            viewModel.resetLoginState()
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -111,6 +114,10 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+
+
+
+
             Image(
                 painter = painterResource(Res.drawable.logo),
                 contentDescription = "Logo",
@@ -219,19 +226,8 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("EXIT", fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
-            if (loginState is LoginState.Error) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = (loginState as LoginState.Error).message,
-                    color = ErrorRed,
-                    fontSize = 14.sp
-                )
-            }
-            if (loginState is LoginState.Success) {
-                LaunchedEffect(Unit) {
-                    onNextClick(mobileNumber)
-                }
-            }
+
+
         }
     }
 }

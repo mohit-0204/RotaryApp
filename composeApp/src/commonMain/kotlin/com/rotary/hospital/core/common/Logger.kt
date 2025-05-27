@@ -1,4 +1,4 @@
-package com.rotary.hospital.core.utils
+package com.rotary.hospital.core.common
 
 // commonMain
 expect object Logger {

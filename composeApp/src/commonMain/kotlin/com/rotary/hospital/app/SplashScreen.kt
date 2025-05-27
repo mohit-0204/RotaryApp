@@ -1,4 +1,4 @@
-package com.rotary.hospital
+package com.rotary.hospital.app
 
 
 import androidx.compose.animation.core.LinearOutSlowInEasing

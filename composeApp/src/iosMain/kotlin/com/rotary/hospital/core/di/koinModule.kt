@@ -1,8 +1,8 @@
 package com.rotary.hospital.core.di
 
-import com.rotary.hospital.PreferencesManager
-import com.rotary.hospital.PreferencesManagerImpl
-import com.rotary.hospital.createDataStore
+import com.rotary.hospital.core.data.preferences.PreferencesManager
+import com.rotary.hospital.core.data.preferences.PreferencesManagerImpl
+import com.rotary.hospital.core.data.preferences.createDataStore
 import org.koin.dsl.module
 
 val iosModule = module {

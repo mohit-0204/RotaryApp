@@ -1,4 +1,4 @@
-package com.rotary.hospital.core.utils// iosMain
+package com.rotary.hospital.core.common// iosMain
 import platform.Foundation.NSLog
 
 actual object Logger {

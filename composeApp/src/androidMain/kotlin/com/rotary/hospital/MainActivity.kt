@@ -13,6 +13,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.rotary.hospital.app.App
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.feature.auth.presentation.screen.OtpInputField
 

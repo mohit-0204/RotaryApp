@@ -1,4 +1,4 @@
-package com.rotary.hospital
+package com.rotary.hospital.feature.home.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,16 +24,21 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.homescreen.DashboardCard
-import com.rotary.hospital.homescreen.QuickAccessItem
-import com.rotary.hospital.homescreen.TopBar
-import com.rotary.hospital.homescreen.WelcomeSection
+import com.rotary.hospital.feature.home.presentation.components.HomeTopBar
+import com.rotary.hospital.feature.home.presentation.components.WelcomeWidget
+import com.rotary.hospital.feature.home.presentation.components.DashboardCard
+import com.rotary.hospital.feature.home.presentation.components.QuickAccessItem
+import org.koin.compose.viewmodel.koinViewModel
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.calendar_icon
 import rotaryhospital.composeapp.generated.resources.pill_icon
@@ -43,11 +48,12 @@ import rotaryhospital.composeapp.generated.resources.user_icon
 @Composable
 fun HomeScreen(
     patientName: String,
-    patientId: String
+    patientId: String,
 ) {
+
     AppTheme {
         Scaffold(
-            topBar = { TopBar() },
+            topBar = { HomeTopBar() },
             bottomBar = {
                 NavigationBar(containerColor = Color.White) {
                     NavigationBarItem(
@@ -81,7 +87,7 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                WelcomeSection(patientName)
+                WelcomeWidget(patientName)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -142,9 +148,6 @@ fun HomeScreen(
                     item { QuickAccessItem("Contact Us", Icons.Default.Phone) }
                     item { QuickAccessItem("Settings", Icons.Default.Settings) }
                     item { QuickAccessItem("Terms", Icons.Default.Info) }
-//                    item { QuickAccessItem("Refund Policy", Icons.Default.Receipt) }
-//                    item { QuickAccessItem("Events", Icons.Default.Event) }
-//                    item { QuickAccessItem("Rotary Website", Icons.Default.Language) }
                 }
             }
         }

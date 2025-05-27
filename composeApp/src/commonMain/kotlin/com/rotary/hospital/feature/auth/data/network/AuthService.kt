@@ -1,8 +1,8 @@
 package com.rotary.hospital.feature.auth.data.network
 
+import com.rotary.hospital.core.network.ApiConstants
 import com.rotary.hospital.core.network.NetworkClient
-import com.rotary.hospital.core.utils.Logger
-import com.rotary.hospital.core.utils.PreferenceKeys
+import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.feature.auth.data.model.SmsVerificationResponse
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -18,7 +18,7 @@ class AuthService {
     suspend fun sendOtp(mobileNumber: String): SmsVerificationResponse {
         var otpCode = (1000..9999).random().toString()
         if (mobileNumber == "1111111111") otpCode = "1111"
-        val response = client.post(PreferenceKeys.BASE_URL + PreferenceKeys.SMS_VERIFICATION) {
+        val response = client.post(ApiConstants.BASE_URL + ApiConstants.SMS_VERIFICATION) {
             contentType(ContentType.Application.FormUrlEncoded)
             setBody(
                 buildString {
@@ -36,7 +36,7 @@ class AuthService {
 
     suspend fun verifyOtp(mobileNumber: String, otpCode: String): SmsVerificationResponse {
         val response =
-            client.post(PreferenceKeys.BASE_URL + PreferenceKeys.SMS_VERIFICATION) {
+            client.post(ApiConstants.BASE_URL + ApiConstants.SMS_VERIFICATION) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
                     buildString {

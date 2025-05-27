@@ -1,25 +1,41 @@
-package com.rotary.hospital
+package com.rotary.hospital.app
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.rotary.hospital.feature.home.presentation.screen.HomeScreen
+import com.rotary.hospital.PatientListScreen
+import com.rotary.hospital.RegistrationScreen
 import com.rotary.hospital.core.navigation.AppRoute
 import com.rotary.hospital.core.theme.AppTheme
-import com.rotary.hospital.core.utils.Logger
+import com.rotary.hospital.core.common.Logger
+import com.rotary.hospital.core.common.PreferenceKeys
+import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.feature.auth.presentation.screen.LoginScreen
 import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScreen
+import kotlinx.coroutines.flow.first
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.koinInject
 
 @Composable
 @Preview
 fun App() {
     AppTheme {
-
+        val preferences: PreferencesManager = koinInject()
         val navController = rememberNavController()
+
+        LaunchedEffect(Unit) {
+            val patientId = preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
+        }
 
         NavHost(
             navController = navController,
@@ -77,7 +93,10 @@ fun App() {
                             navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
                     },
                     onResend = { /* Resend OTP logic */ },
-                    onBack = { navController.popBackStack() }
+                    onBack = {
+                        Logger.d("TAG", "Navigating back from OtpVerification to Login")
+                        navController.popBackStack<AppRoute.Login>(inclusive = false)
+                    }
                 )
             }
         }

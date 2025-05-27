@@ -17,5 +17,5 @@ val sharedModule = module {
     factory { SendOtpUseCase(get()) }
     factory { VerifyOtpUseCase(get()) }
     viewModel { LoginViewModel(get(), get()) }
-    factory { OtpViewModel(get()) }
+    factory { OtpViewModel(get(),get()) }
 }

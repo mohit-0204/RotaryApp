@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rotary.hospital.core.navigation.Patient
+import com.rotary.hospital.core.data.model.Patient
 import com.rotary.hospital.core.network.NetworkClient
 import com.rotary.hospital.core.theme.ColorPrimary
 import io.ktor.client.request.*
@@ -82,7 +82,7 @@ fun PatientListScreen(phoneNumber: String, onAddPatient: () -> Unit, onBackClick
                     }
                 val json = Json { ignoreUnknownKeys = true }
                 val responseText = response.bodyAsText()
-                com.rotary.hospital.core.utils.Logger.d("tag", responseText)
+                com.rotary.hospital.core.common.Logger.d("tag", responseText)
 
                 val patientResponse = json.decodeFromString<PatientResponse>(responseText)
 
@@ -101,7 +101,7 @@ fun PatientListScreen(phoneNumber: String, onAddPatient: () -> Unit, onBackClick
                 isLoading.value = false
             } catch (e: Exception) {
                 errorMessage.value = "Error fetching patients: ${e.message}"
-                com.rotary.hospital.core.utils.Logger.e("tag", "Error: ${e.message}", e)
+                com.rotary.hospital.core.common.Logger.e("tag", "Error: ${e.message}", e)
                 isLoading.value = false
             }
         }

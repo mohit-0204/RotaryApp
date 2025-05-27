@@ -1,6 +1,5 @@
-package com.rotary.hospital
+package com.rotary.hospital.core.data.preferences
 
-import android.content.Context
 import org.koin.java.KoinJavaComponent.get
 
 actual fun createPreferencesManager(): PreferencesManager {
