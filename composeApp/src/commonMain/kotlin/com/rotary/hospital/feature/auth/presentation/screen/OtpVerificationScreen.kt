@@ -130,14 +130,14 @@ fun OtpVerificationScreen(
                 OtpScreen(
                     state = state,
                     onAction = { action ->
-                        when (action) {
+                        /*when (action) {
                             is OtpAction.OnEnterNumber -> {
                                 if (action.number != null && action.index < 3) {
                                     focusRequesters[action.index + 1].requestFocus()
                                 }
                             }
                             else -> Unit
-                        }
+                        }*/
                         viewModel.onAction(action)
                     },
                     focusRequester = focusRequesters,

@@ -1,4 +1,4 @@
-package com.rotary.hospital
+package com.rotary.hospital.feature.patient.presentation.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -24,61 +24,48 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rotary.hospital.core.theme.ColorPrimary
+import com.rotary.hospital.core.theme.ErrorRed
+import com.rotary.hospital.core.theme.White
+import com.rotary.hospital.core.ui.component.InputField
+import com.rotary.hospital.feature.patient.presentation.viewmodel.Gender
+import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationState
+import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationViewModel
+import com.rotary.hospital.feature.patient.presentation.viewmodel.RegistrationFormState
+import com.rotary.hospital.feature.patient.presentation.viewmodel.Relation
+import org.koin.compose.viewmodel.koinViewModel
 import appicon.IconDrop
 import appicon.IconFemale
 import appicon.IconGuardian
 import appicon.IconMale
 import appicon.IconOther
-import com.rotary.hospital.core.data.preferences.PreferencesManager
-import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
-import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.patient.registerPatient
-import com.rotary.hospital.core.common.Logger
-import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.common.appicon.IconCity
 import com.rotary.hospital.core.common.appicon.IconMap
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistrationScreen(
-    onBack: () -> Unit, onCancel: () -> Unit, onSave: (String, String) -> Unit
+    onBack: () -> Unit,
+    onCancel: () -> Unit,
+    onSave: (String) -> Unit,
+    viewModel: PatientRegistrationViewModel = koinViewModel()
 ) {
-    // Dependencies
-    val preferences: PreferencesManager = koinInject()
-    val coroutineScope = rememberCoroutineScope()
-    val savedMobileNumber by preferences.getString(PreferenceKeys.MOBILE_NUMBER, "")
-        .collectAsState(initial = "")
-
-    // State holders
-    var fullName by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf(Gender.Male) }
-    var dob by remember { mutableStateOf("") }
-    var bloodGroup by remember { mutableStateOf("") }
-    var guardianName by remember { mutableStateOf("") }
-    var relation by remember { mutableStateOf(Relation.SonOf) }
-    var email by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var state by remember { mutableStateOf("") }
+    val state by viewModel.state.collectAsState()
+    val formState by viewModel.formState.collectAsState()
     var bloodExpanded by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    var fieldErrors by remember { mutableStateOf(mapOf<String, String>()) }
-    var generalError by remember { mutableStateOf("") }
-
-    // Button scale animation states
     var cancelButtonScale by remember { mutableStateOf(1f) }
     var saveButtonScale by remember { mutableStateOf(1f) }
+
+    LaunchedEffect(state) {
+        if (state is PatientRegistrationState.Success) {
+            onSave((state as PatientRegistrationState.Success).patient.name)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -90,25 +77,31 @@ fun RegistrationScreen(
                         fontSize = 20.sp,
                         color = Color.Black
                     )
-                }, navigationIcon = {
+                },
+                navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back to previous screen",
+                            contentDescription = "Back",
                             tint = ColorPrimary.copy(alpha = 0.8f)
                         )
                     }
-                }, colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = White, titleContentColor = Color.Black
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = White,
+                    titleContentColor = Color.Black
                 )
             )
-        }, containerColor = Color(0xFFF5F5F5), // Light gray background
+        },
+        containerColor = Color(0xFFF5F5F5),
         content = { padding ->
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding)
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     // Personal Info Card
@@ -128,26 +121,23 @@ fun RegistrationScreen(
                             )
                             Spacer(Modifier.height(16.dp))
 
-                            // Full Name
                             InputField(
-                                value = fullName,
+                                value = formState.fullName,
                                 onValueChange = {
-                                    fullName = it
-                                    fieldErrors = fieldErrors - "fullName"
+                                    viewModel.updateFormState(formState.copy(fullName = it))
                                 },
                                 label = "Full Name",
                                 leadingIcon = Icons.Default.Person,
-                                errorMessage = fieldErrors["fullName"],
+                                errorMessage = formState.fieldErrors["fullName"],
                                 contentDescription = "Full name icon",
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
                                 )
-
                             )
                             Spacer(Modifier.height(12.dp))
 
-                            // Gender
                             Text(
                                 "Select Gender",
                                 fontWeight = FontWeight.Medium,
@@ -160,8 +150,10 @@ fun RegistrationScreen(
                             ) {
                                 Gender.entries.forEach { g ->
                                     FilterChip(
-                                        selected = gender == g,
-                                        onClick = { gender = g },
+                                        selected = formState.gender == g,
+                                        onClick = {
+                                            viewModel.updateFormState(formState.copy(gender = g))
+                                        },
                                         label = { Text(g.label, fontSize = 14.sp) },
                                         leadingIcon = {
                                             Icon(
@@ -171,7 +163,7 @@ fun RegistrationScreen(
                                                     else -> IconOther
                                                 },
                                                 contentDescription = "Gender ${g.label} icon",
-                                                tint = if (gender == g) ColorPrimary.copy(alpha = 0.8f) else Color.Gray
+                                                tint = if (formState.gender == g) ColorPrimary.copy(alpha = 0.8f) else Color.Gray
                                             )
                                         },
                                         colors = FilterChipDefaults.filterChipColors(
@@ -185,31 +177,30 @@ fun RegistrationScreen(
                             }
                             Spacer(Modifier.height(12.dp))
 
-                            // DOB
                             InputField(
-                                value = dob,
+                                value = formState.dob,
                                 onValueChange = {
-                                    dob = it
-                                    fieldErrors = fieldErrors - "dob"
+                                    viewModel.updateFormState(formState.copy(dob = it))
                                 },
                                 label = "Date of Birth",
                                 leadingIcon = Icons.Default.DateRange,
                                 placeholder = "dd-mm-yyyy",
-                                errorMessage = fieldErrors["dob"],
+                                errorMessage = formState.fieldErrors["dob"],
                                 contentDescription = "Date of birth icon",
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
                                 )
                             )
                             Spacer(Modifier.height(12.dp))
 
-                            // Blood Group
                             ExposedDropdownMenuBox(
                                 expanded = bloodExpanded,
-                                onExpandedChange = { bloodExpanded = !bloodExpanded }) {
+                                onExpandedChange = { bloodExpanded = !bloodExpanded }
+                            ) {
                                 InputField(
-                                    value = bloodGroup,
+                                    value = formState.bloodGroup,
                                     onValueChange = {},
                                     readOnly = true,
                                     label = "Blood Group",
@@ -217,7 +208,7 @@ fun RegistrationScreen(
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = bloodExpanded)
                                     },
-                                    errorMessage = fieldErrors["bloodGroup"],
+                                    errorMessage = formState.fieldErrors["bloodGroup"],
                                     contentDescription = "Blood group icon",
                                     modifier = Modifier.fillMaxWidth().menuAnchor()
                                 )
@@ -226,27 +217,12 @@ fun RegistrationScreen(
                                     onDismissRequest = { bloodExpanded = false },
                                     modifier = Modifier.background(White)
                                 ) {
-                                    listOf(
-                                        "A+",
-                                        "A-",
-                                        "B+",
-                                        "B-",
-                                        "O+",
-                                        "O-",
-                                        "AB+",
-                                        "AB-"
-                                    ).forEach { group ->
+                                    listOf("A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-").forEach { group ->
                                         DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    group,
-                                                    fontSize = 16.sp
-                                                )
-                                            },
+                                            text = { Text(group, fontSize = 16.sp) },
                                             onClick = {
-                                                bloodGroup = group
+                                                viewModel.updateFormState(formState.copy(bloodGroup = group))
                                                 bloodExpanded = false
-                                                fieldErrors = fieldErrors - "bloodGroup"
                                             },
                                             modifier = Modifier.fillMaxWidth()
                                         )
@@ -275,25 +251,23 @@ fun RegistrationScreen(
                             )
                             Spacer(Modifier.height(16.dp))
 
-                            // Guardian Name
                             InputField(
-                                value = guardianName,
+                                value = formState.guardianName,
                                 onValueChange = {
-                                    guardianName = it
-                                    fieldErrors = fieldErrors - "guardianName"
+                                    viewModel.updateFormState(formState.copy(guardianName = it))
                                 },
                                 label = "Guardian Name",
                                 leadingIcon = IconGuardian,
-                                errorMessage = fieldErrors["guardianName"],
+                                errorMessage = formState.fieldErrors["guardianName"],
                                 contentDescription = "Guardian name icon",
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
                                 )
                             )
                             Spacer(Modifier.height(12.dp))
 
-                            // Relation
                             Text(
                                 "Relation to Guardian",
                                 fontWeight = FontWeight.Medium,
@@ -306,20 +280,24 @@ fun RegistrationScreen(
                                 Relation.entries.forEach { rel ->
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                            .clickable { relation = rel }.padding(vertical = 4.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                viewModel.updateFormState(formState.copy(relation = rel))
+                                            }
+                                            .padding(vertical = 4.dp),
                                         horizontalArrangement = Arrangement.Start
                                     ) {
                                         RadioButton(
-                                            selected = relation == rel,
-                                            onClick = { relation = rel },
+                                            selected = formState.relation == rel,
+                                            onClick = {
+                                                viewModel.updateFormState(formState.copy(relation = rel))
+                                            },
                                             colors = RadioButtonDefaults.colors(
                                                 selectedColor = ColorPrimary.copy(alpha = 0.8f),
                                                 unselectedColor = Color.Gray
-                                            ),
-                                            modifier = Modifier.semantics {
-                                                contentDescription = "Select relation: ${rel.label}"
-                                            })
+                                            )
+                                        )
                                         Text(
                                             rel.label,
                                             fontSize = 16.sp,
@@ -350,75 +328,72 @@ fun RegistrationScreen(
                             )
                             Spacer(Modifier.height(16.dp))
 
-                            // Email
                             InputField(
-                                value = email,
+                                value = formState.email,
                                 onValueChange = {
-                                    email = it
-                                    fieldErrors = fieldErrors - "email"
+                                    viewModel.updateFormState(formState.copy(email = it))
                                 },
                                 label = "Email",
                                 leadingIcon = Icons.Default.Email,
-                                errorMessage = fieldErrors["email"],
+                                errorMessage = formState.fieldErrors["email"],
                                 contentDescription = "Email icon",
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Email, imeAction = ImeAction.Next
+                                    keyboardType = KeyboardType.Email,
+                                    imeAction = ImeAction.Next
                                 )
                             )
                             Spacer(Modifier.height(12.dp))
 
-                            // Address
                             InputField(
-                                value = address,
+                                value = formState.address,
                                 onValueChange = {
-                                    address = it
-                                    fieldErrors = fieldErrors - "address"
+                                    viewModel.updateFormState(formState.copy(address = it))
                                 },
                                 label = "Address",
                                 leadingIcon = Icons.Default.Home,
-                                errorMessage = fieldErrors["address"],
+                                errorMessage = formState.fieldErrors["address"],
                                 contentDescription = "Address icon",
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 3,
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Next
                                 )
                             )
                             Spacer(Modifier.height(12.dp))
 
-                            // City and State
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 InputField(
-                                    value = city,
+                                    value = formState.city,
                                     onValueChange = {
-                                        city = it
-                                        fieldErrors = fieldErrors - "city"
+                                        viewModel.updateFormState(formState.copy(city = it))
                                     },
                                     label = "City",
                                     leadingIcon = IconCity,
-                                    errorMessage = fieldErrors["city"],
+                                    errorMessage = formState.fieldErrors["city"],
                                     contentDescription = "City icon",
                                     modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(
-                                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                                        keyboardType = KeyboardType.Text,
+                                        imeAction = ImeAction.Next
                                     )
                                 )
                                 InputField(
-                                    value = state,
+                                    value = formState.state,
                                     onValueChange = {
-                                        state = it
-                                        fieldErrors = fieldErrors - "state"
+                                        viewModel.updateFormState(formState.copy(state = it))
                                     },
                                     label = "State",
                                     leadingIcon = IconMap,
-                                    errorMessage = fieldErrors["state"],
+                                    errorMessage = formState.fieldErrors["state"],
                                     contentDescription = "State icon",
                                     modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(
-                                        keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
+                                        keyboardType = KeyboardType.Text,
+                                        imeAction = ImeAction.Done
                                     )
                                 )
                             }
@@ -427,24 +402,28 @@ fun RegistrationScreen(
 
                     Spacer(Modifier.height(24.dp))
 
-                    // General error message
                     AnimatedVisibility(
-                        visible = generalError.isNotEmpty(), enter = fadeIn(), exit = fadeOut()
+                        visible = state is PatientRegistrationState.Error,
+                        enter = fadeIn(),
+                        exit = fadeOut()
                     ) {
-                        Text(
-                            text = generalError,
-                            color = ErrorRed,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        )
+                        if (state is PatientRegistrationState.Error) {
+                            Text(
+                                text = (state as PatientRegistrationState.Error).message,
+                                color = ErrorRed,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
                     }
 
-                    Spacer(Modifier.weight(1f)) // Push buttons to bottom
+                    Spacer(Modifier.weight(1f))
 
-                    // Action Buttons
                     Row(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -455,13 +434,16 @@ fun RegistrationScreen(
                                 cancelButtonScale = 1f
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = ErrorRed, contentColor = White
+                                containerColor = ErrorRed,
+                                contentColor = White
                             ),
-                            modifier = Modifier.weight(1f).height(56.dp)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp)
                                 .scale(cancelButtonScale)
                                 .padding(bottom = 8.dp),
                             shape = RoundedCornerShape(14.dp),
-                            enabled = !isLoading,
+                            enabled = state !is PatientRegistrationState.Loading,
                             elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
                             Icon(
@@ -471,88 +453,31 @@ fun RegistrationScreen(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Cancel", fontSize = 16.sp, fontWeight = FontWeight.Medium
+                                "Cancel",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                         ElevatedButton(
                             onClick = {
                                 saveButtonScale = 0.95f
-                                val validationErrors = validateInputs(
-                                    fullName,
-                                    guardianName,
-                                    dob,
-                                    bloodGroup,
-                                    email,
-                                    address,
-                                    city,
-                                    state
-                                )
-                                if (validationErrors == null) {
-                                    isLoading = true
-                                    fieldErrors = emptyMap()
-                                    generalError = ""
-                                    coroutineScope.launch {
-                                        try {
-                                            val response = registerPatient(
-                                                mobileNumber = savedMobileNumber,
-                                                name = fullName,
-                                                guardianType = relation.toApiString(),
-                                                guardianName = guardianName,
-                                                gender = gender.label,
-                                                age = dob,
-                                                bloodGroup = bloodGroup,
-                                                email = email,
-                                                address = address,
-                                                city = city,
-                                                state = state
-                                            )
-                                            if (response.response && response.data != null) {
-                                                val patient = response.data.firstOrNull()
-                                                if (patient != null) {
-                                                    preferences.saveString(
-                                                        PreferenceKeys.PATIENT_ID, patient.pid1
-                                                    )
-                                                    preferences.saveString(
-                                                        PreferenceKeys.PATIENT_NAME, patient.p_name
-                                                    )
-                                                    preferences.saveBoolean(
-                                                        PreferenceKeys.IS_LOGGED_IN, true
-                                                    )
-                                                    preferences.saveString(
-                                                        PreferenceKeys.MOBILE_NUMBER,
-                                                        savedMobileNumber
-                                                    )
-                                                    onSave(patient.pid1, patient.p_name)
-                                                } else {
-                                                    generalError = "No patient data received"
-                                                }
-                                            } else {
-                                                generalError = "Registration failed"
-                                            }
-                                        } catch (e: Exception) {
-                                            generalError = "Network error: ${e.message}"
-                                            Logger.e("RegistrationScreen", "Error: ${e.message}", e)
-                                        } finally {
-                                            isLoading = false
-                                        }
-                                    }
-                                } else {
-                                    fieldErrors = validationErrors
-                                    generalError = ""
-                                }
+                                viewModel.registerPatient()
                                 saveButtonScale = 1f
                             },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = ColorPrimary, contentColor = White
+                                containerColor = ColorPrimary,
+                                contentColor = White
                             ),
-                            modifier = Modifier.weight(1f).height(56.dp)
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(56.dp)
                                 .scale(saveButtonScale)
                                 .padding(bottom = 8.dp),
                             shape = RoundedCornerShape(12.dp),
-                            enabled = !isLoading,
+                            enabled = state !is PatientRegistrationState.Loading,
                             elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                         ) {
-                            if (isLoading) {
+                            if (state is PatientRegistrationState.Loading) {
                                 CircularProgressIndicator(
                                     color = White,
                                     modifier = Modifier.size(24.dp),
@@ -566,21 +491,27 @@ fun RegistrationScreen(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    "Save", fontSize = 16.sp, fontWeight = FontWeight.Medium
+                                    "Save",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
                         }
                     }
-                    Spacer(Modifier.height(8.dp)) // Ensure button elevation is visible
+                    Spacer(Modifier.height(8.dp))
                 }
 
-                // Loading overlay
                 AnimatedVisibility(
-                    visible = isLoading, enter = fadeIn(), exit = fadeOut()
+                    visible = state is PatientRegistrationState.Loading,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
                     Box(
-                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f))
-                            .clickable(enabled = false) { }, contentAlignment = Alignment.Center
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                            .clickable(enabled = false) { },
+                        contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
                             color = ColorPrimary,
@@ -590,113 +521,6 @@ fun RegistrationScreen(
                     }
                 }
             }
-        })
-}
-
-// Reusable input field component
-@Composable
-private fun InputField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    leadingIcon: ImageVector,
-    errorMessage: String? = null,
-    contentDescription: String,
-    modifier: Modifier = Modifier,
-    readOnly: Boolean = false,
-    placeholder: String? = null,
-    trailingIcon: (@Composable () -> Unit)? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    maxLines: Int = 1
-) {
-    Column(modifier = modifier.padding(bottom = 8.dp)) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label, fontSize = 14.sp) },
-            leadingIcon = {
-                Icon(
-                    leadingIcon,
-                    contentDescription = contentDescription,
-                    tint = if (errorMessage != null) ErrorRed else ColorPrimary.copy(alpha = 0.8f)
-                )
-            },
-            trailingIcon = trailingIcon,
-            placeholder = placeholder?.let { { Text(it, fontSize = 14.sp) } },
-            readOnly = readOnly,
-            isError = errorMessage != null,
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = ColorPrimary,
-                unfocusedBorderColor = Color.Gray,
-                errorBorderColor = ErrorRed,
-                focusedLabelColor = ColorPrimary,
-                unfocusedLabelColor = Color.Gray,
-                errorLabelColor = ErrorRed,
-                cursorColor = ColorPrimary
-            ),
-            shape = RoundedCornerShape(12.dp),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
-            keyboardOptions = keyboardOptions,
-            maxLines = maxLines
-        )
-        AnimatedVisibility(
-            visible = errorMessage != null, enter = fadeIn(), exit = fadeOut()
-        ) {
-            errorMessage?.let {
-                Text(
-                    text = it,
-                    color = ErrorRed,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp, top = 2.dp).sizeIn(maxHeight = 20.dp)
-                )
-            }
         }
-    }
-}
-
-// Updated validation to return field-specific errors
-private fun validateInputs(
-    fullName: String,
-    guardianName: String,
-    dob: String,
-    bloodGroup: String,
-    email: String,
-    address: String,
-    city: String,
-    state: String
-): Map<String, String>? {
-    val errors = mutableMapOf<String, String>()
-    if (fullName.isEmpty()) errors["fullName"] = "Please enter a valid name"
-    if (guardianName.isEmpty()) errors["guardianName"] = "Please enter a valid guardian name"
-    if (dob.isEmpty()) errors["dob"] = "Please enter a valid date of birth"
-    if (bloodGroup.isEmpty()) errors["bloodGroup"] = "Please select a blood group"
-    if (email.isEmpty() || !isValidEmail(email)) errors["email"] =
-        "Please enter a valid email address"
-    if (address.isEmpty()) errors["address"] = "Please enter a valid address"
-    if (city.isEmpty()) errors["city"] = "Please enter a valid city"
-    if (state.isEmpty()) errors["state"] = "Please enter a valid state"
-    return if (errors.isEmpty()) null else errors
-}
-
-private fun isValidEmail(email: String): Boolean {
-    val emailRegex = Regex(
-        "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]{1}|[\\w-]{2,}))@" + "((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?" + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\." + "([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?" + "[0-9]{1,2}|25[0-5]|2[0-4][0-9])){1}|" + "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
     )
-    return emailRegex.matches(email)
-}
-
-enum class Gender(val label: String) {
-    Male("Male"), Female("Female"), Other("Other")
-}
-
-enum class Relation(val label: String) {
-    SonOf("Son of"), DaughterOf("Daughter of"), WifeOf("Wife of"), Other("Other");
-
-    fun toApiString(): String = when (this) {
-        SonOf -> "S/O"
-        DaughterOf -> "D/O"
-        WifeOf -> "W/O"
-        Other -> "Other"
-    }
 }

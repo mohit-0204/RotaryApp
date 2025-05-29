@@ -13,8 +13,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.rotary.hospital.feature.home.presentation.screen.HomeScreen
-import com.rotary.hospital.PatientListScreen
-import com.rotary.hospital.RegistrationScreen
 import com.rotary.hospital.core.navigation.AppRoute
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.common.Logger
@@ -22,6 +20,8 @@ import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.feature.auth.presentation.screen.LoginScreen
 import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScreen
+import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
+import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
 import kotlinx.coroutines.flow.first
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
@@ -51,7 +51,7 @@ fun App() {
             }
             composable<AppRoute.Home> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.Home>()
-                HomeScreen(route.patientName, route.patientId)
+                HomeScreen(route.patientName)
             }
             composable<AppRoute.Login> {
                 LoginScreen(
@@ -67,15 +67,19 @@ fun App() {
                     phoneNumber = route.phoneNumber, onAddPatient = {
                         navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
                     },
+                    onPatientSelected = { patientName ->
+                        navController.navigate(AppRoute.Home(patientName)) {
+                            popUpTo<AppRoute.PatientSelection> { inclusive = true }
+                        }
+                    },
                     onBackClick = { navController.popBackStack() })
             }
             composable<AppRoute.PatientRegistration> { backStackEntry ->
                 RegistrationScreen(
                     onBack = { navController.popBackStack() },
                     onCancel = { navController.popBackStack() },
-                    onSave = { patientId, patientName ->
-                        Logger.d("TAG", "PatientId: $patientId , PatientName: $patientName")
-                        navController.navigate(AppRoute.Home(patientName, patientId)) {
+                    onSave = { patientName ->
+                        navController.navigate(AppRoute.Home(patientName)) {
                             popUpTo<AppRoute.PatientRegistration> { inclusive = true }
                         }
                     }

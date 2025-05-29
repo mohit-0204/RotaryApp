@@ -47,8 +47,7 @@ import rotaryhospital.composeapp.generated.resources.user_icon
 
 @Composable
 fun HomeScreen(
-    patientName: String,
-    patientId: String,
+    patientName: String
 ) {
 
     AppTheme {
