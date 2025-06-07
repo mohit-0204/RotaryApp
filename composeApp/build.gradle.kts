@@ -71,6 +71,9 @@ kotlin {
             api(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+
+            // for date time
+            implementation(libs.kotlinx.datetime)
         }
 
         iosMain.dependencies {
@@ -92,8 +95,11 @@ android {
         versionName = "1.0"
     }
     packaging {
-        resources {
+        /*resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }*/
+        resources {
+            excludes += "META-INF/**"
         }
     }
     buildTypes {
