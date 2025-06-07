@@ -29,10 +29,11 @@ import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
 
 @Composable
-fun QuickAccessItem(label: String, icon: ImageVector) {
+fun QuickAccessItem(label: String, icon: ImageVector,onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(1.dp),
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(90.dp),

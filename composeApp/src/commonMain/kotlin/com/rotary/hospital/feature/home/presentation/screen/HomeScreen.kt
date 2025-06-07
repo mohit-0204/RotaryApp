@@ -24,21 +24,19 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.feature.home.presentation.components.HomeTopBar
-import com.rotary.hospital.feature.home.presentation.components.WelcomeWidget
 import com.rotary.hospital.feature.home.presentation.components.DashboardCard
+import com.rotary.hospital.feature.home.presentation.components.HomeTopBar
 import com.rotary.hospital.feature.home.presentation.components.QuickAccessItem
-import org.koin.compose.viewmodel.koinViewModel
+import com.rotary.hospital.feature.home.presentation.components.WelcomeWidget
+import com.rotary.hospital.feature.home.presentation.model.DashboardItem
+import com.rotary.hospital.feature.home.presentation.model.HomeAction
+import com.rotary.hospital.feature.home.presentation.model.QuickAccessItemModel
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.calendar_icon
 import rotaryhospital.composeapp.generated.resources.pill_icon
@@ -47,8 +45,55 @@ import rotaryhospital.composeapp.generated.resources.user_icon
 
 @Composable
 fun HomeScreen(
-    patientName: String
+    patientName: String,
+    onItemClick: (HomeAction) -> Unit
 ) {
+    // Define dashboard items
+    val dashboardItems = listOf(
+        DashboardItem(
+            title = "Patient Profile",
+            subtitle = "View & manage profiles",
+            iconRes = Res.drawable.user_icon,
+            action = HomeAction.ViewPatientProfile
+        ),
+        DashboardItem(
+            title = "OPD Booking",
+            subtitle = "Schedule appointments",
+            iconRes = Res.drawable.calendar_icon,
+            action = HomeAction.BookOPD
+        ),
+        DashboardItem(
+            title = "Lab Tests",
+            subtitle = "Order & view results",
+            iconRes = Res.drawable.test_tube_icon,
+            action = HomeAction.ViewLabTests
+        ),
+        DashboardItem(
+            title = "Medicine Reminders",
+            subtitle = "Set & manage alerts",
+            iconRes = Res.drawable.pill_icon,
+            action = HomeAction.ManageMedicineReminders
+        )
+    )
+
+    // Define quick-access items
+    val quickAccessItems = listOf(
+        QuickAccessItemModel(
+            title = "Contact Us",
+            icon = Icons.Default.Phone,
+            action = HomeAction.ContactUs
+        ),
+        QuickAccessItemModel(
+            title = "Settings",
+            icon = Icons.Default.Settings,
+            action = HomeAction.OpenSettings
+        ),
+        QuickAccessItemModel(
+            title = "Terms",
+            icon = Icons.Default.Info,
+            action = HomeAction.ViewTerms
+        )
+    )
 
     AppTheme {
         Scaffold(
@@ -83,7 +128,6 @@ fun HomeScreen(
                     .background(Color(0xFFF9F9F9))
                     .padding(16.dp, vertical = 8.dp)
             ) {
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 WelcomeWidget(patientName)
@@ -97,32 +141,13 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.height(320.dp)
                 ) {
-                    item {
+                    items(dashboardItems.size) { index ->
+                        val item = dashboardItems[index]
                         DashboardCard(
-                            title = "Patient Profile",
-                            subtitle = "View & manage profiles",
-                            iconRes = Res.drawable.user_icon
-                        )
-                    }
-                    item {
-                        DashboardCard(
-                            title = "OPD Booking",
-                            subtitle = "Schedule appointments",
-                            iconRes = Res.drawable.calendar_icon
-                        )
-                    }
-                    item {
-                        DashboardCard(
-                            title = "Lab Tests",
-                            subtitle = "Order & view results",
-                            iconRes = Res.drawable.test_tube_icon
-                        )
-                    }
-                    item {
-                        DashboardCard(
-                            title = "Medicine Reminders",
-                            subtitle = "Set & manage alerts",
-                            iconRes = Res.drawable.pill_icon
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            iconRes = item.iconRes,
+                            onClick = { onItemClick(item.action) }
                         )
                     }
                 }
@@ -144,12 +169,16 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.height(200.dp)
                 ) {
-                    item { QuickAccessItem("Contact Us", Icons.Default.Phone) }
-                    item { QuickAccessItem("Settings", Icons.Default.Settings) }
-                    item { QuickAccessItem("Terms", Icons.Default.Info) }
+                    items(quickAccessItems.size) { index ->
+                        val item = quickAccessItems[index]
+                        QuickAccessItem(
+                            label = item.title,
+                            icon = item.icon,
+                            onClick = { onItemClick(item.action) }
+                        )
+                    }
                 }
             }
         }
     }
 }
-

@@ -1,0 +1,89 @@
+package com.rotary.hospital.feature.opd.data.model
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Opd(
+    val opdId: String,
+    val opdType: String,
+    val patientId: String,
+    val patientName: String,
+    val doctor: String,
+    val date: String
+)
+
+@Serializable
+data class Patient(
+    val patientId: String,
+    val patientName: String
+)
+
+@Serializable
+data class Specialization(
+    val data: String
+)
+
+@Serializable
+data class Doctor(
+    val name: String,
+    val id: String,
+    val opdRoom: String
+)
+
+@Serializable
+data class Slot(
+    val timeFrom: String,
+    val timeTo: String
+)
+
+@Serializable
+data class Availability(
+    val docCharges: String,
+    val docOnlineCharges: String,
+    val docTimeFrom: String,
+    val docTimeTo: String,
+    val approximateTime: String,
+    val docDurationPerPatient: String,
+    val docNoOfAppointments: String,
+    val appointments: String
+)
+
+@Serializable
+data class DoctorAvailability(
+    val docFrequency: String,
+    val docDays: String,
+    val docTimeFrom: String,
+    val docTimeTo: String
+)
+
+@Serializable
+data class Leave(
+    val cancelDate: String,
+    val cancelDateTo: String
+)
+
+@Serializable
+data class PaymentRequest(
+    val apiEndPoint: String,
+    val payloadBase64: String,
+    val checksum: String,
+    val merchantTransactionId: String
+)
+
+@Serializable
+data class PaymentStatus(
+    val response: String,
+    val messageCode: String,
+    val message: String,
+    val transactionId: String
+)
+
+@Serializable
+data class InsertOpdResponse(
+    val response: Boolean,
+    val message: String,
+    val opdId: String? = null,
+    val opdDate: String? = null,
+    val tokenNumber: String? = null,
+    val estimatedTime: String? = null
+)

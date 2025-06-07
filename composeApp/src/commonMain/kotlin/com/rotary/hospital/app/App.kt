@@ -27,6 +27,15 @@ import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.feature.auth.presentation.screen.LoginScreen
 import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScreen
+import com.rotary.hospital.feature.home.presentation.model.HomeAction
+import com.rotary.hospital.feature.opd.presentation.screen.DoctorAvailabilityScreen
+import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientListScreen
+import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentFailedScreen
+import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentPendingScreen
+import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentSuccessScreen
+import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
+import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOpdsScreen
+import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
 import kotlinx.coroutines.flow.first
@@ -42,9 +51,12 @@ fun App() {
     AppTheme {
         val preferences: PreferencesManager = koinInject()
         val navController = rememberNavController()
+        var mobileNumber by remember { mutableStateOf("")}
 
         LaunchedEffect(Unit) {
             val patientId = preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
+            mobileNumber = preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
+            Logger.d("App", "Mobile number loaded: $mobileNumber")
         }
 
         NavHost(
@@ -61,7 +73,27 @@ fun App() {
             }
             composable<AppRoute.Home> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.Home>()
-                HomeScreen(route.patientName)
+                HomeScreen(
+                    route.patientName,
+                    onItemClick = { action ->
+                        when(action){
+                            HomeAction.BookOPD -> {
+                                if (mobileNumber.isNotBlank()) {
+                                    navController.navigate(AppRoute.RegisteredOpds(mobileNumber))
+                                } else {
+                                    Logger.e("HomeScreen", "Mobile number not available")
+                                }
+                            }
+                            HomeAction.ContactUs -> TODO()
+                            HomeAction.ManageMedicineReminders -> TODO()
+                            HomeAction.OpenSettings -> TODO()
+                            HomeAction.ViewLabTests -> TODO()
+                            HomeAction.ViewPatientProfile -> TODO()
+                            HomeAction.ViewTerms -> TODO()
+                        }
+
+                    }
+                )
             }
             composable<AppRoute.Login> {
                 LoginScreen(
@@ -115,6 +147,92 @@ fun App() {
                         Logger.d("TAG", "Navigating back from OtpVerification to Login")
                         navController.popBackStack<AppRoute.Login>(inclusive = false)
                     }
+                )
+            }
+
+
+            composable<AppRoute.RegisteredOpds> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.RegisteredOpds>()
+                RegisteredOpdsScreen(
+                    onOpdClick = { opdId ->
+                        navController.navigate(AppRoute.SelectedOpdDetails(route.mobileNumber, opdId))
+                    },
+                    onAddNew = {
+                        navController.navigate(AppRoute.OpdPatientList(route.mobileNumber))
+                    }
+                )
+            }
+            composable<AppRoute.OpdPatientList> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.OpdPatientList>()
+                OpdPatientListScreen(
+                    onPatientClick = { patientId, patientName ->
+                        navController.navigate(AppRoute.RegisterNewOpd(route.mobileNumber, patientId, patientName))
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable<AppRoute.RegisterNewOpd> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
+                RegisterNewOpdScreen(
+                    onPaymentInitiated = { payment ->
+                        // TODO: Handle PhonePe payment initiation
+                        navController.navigate(AppRoute.OpdPaymentPending("Processing payment..."))
+                    },
+                    onSuccess = { response ->
+//                        navController.navigate(AppRoute.OpdPaymentSuccess(response.transactionId))
+                    },
+                    onBack = { navController.popBackStack() },
+                    patientId = route.patientId,
+                    patientName = route.patientName,
+                    mobileNumber = route.mobileNumber
+                )
+            }
+            composable<AppRoute.DoctorAvailability> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.DoctorAvailability>()
+                DoctorAvailabilityScreen(
+                    doctorId = route.doctorId,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable<AppRoute.OpdPaymentSuccess> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.OpdPaymentSuccess>()
+                OpdPaymentSuccessScreen(
+                    merchantTransactionId = route.merchantTransactionId,
+                    onShareScreenshot = {
+                        // TODO: Implement platform-specific screenshot sharing
+                    },
+                    onBack = {
+                        navController.navigate(AppRoute.RegisteredOpds(mobileNumber)) {
+                            popUpTo<AppRoute.OpdPaymentSuccess> { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable<AppRoute.OpdPaymentPending> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.OpdPaymentPending>()
+                OpdPaymentPendingScreen(
+                    message = route.message,
+                    onRetry = {
+                        // TODO: Retry payment logic
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable<AppRoute.OpdPaymentFailed> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.OpdPaymentFailed>()
+                OpdPaymentFailedScreen(
+                    message = route.message,
+                    onRetry = {
+                        // TODO: Retry payment logic
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable<AppRoute.SelectedOpdDetails> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.SelectedOpdDetails>()
+                SelectedOpdDetailsScreen(
+                    opdId = route.opdId,
+                    onBack = { navController.popBackStack() }
                 )
             }
         }
