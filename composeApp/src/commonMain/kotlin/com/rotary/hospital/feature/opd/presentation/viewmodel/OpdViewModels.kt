@@ -2,7 +2,17 @@ package com.rotary.hospital.feature.opd.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rotary.hospital.feature.opd.data.model.*
+import com.rotary.hospital.feature.opd.domain.model.Availability
+import com.rotary.hospital.feature.opd.domain.model.Doctor
+import com.rotary.hospital.feature.opd.domain.model.DoctorAvailability
+import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
+import com.rotary.hospital.feature.opd.domain.model.Leave
+import com.rotary.hospital.feature.opd.domain.model.Opd
+import com.rotary.hospital.feature.opd.domain.model.Patient
+import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
+import com.rotary.hospital.feature.opd.domain.model.PaymentStatus
+import com.rotary.hospital.feature.opd.domain.model.Slot
+import com.rotary.hospital.feature.opd.domain.model.Specialization
 import com.rotary.hospital.feature.opd.domain.usecase.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

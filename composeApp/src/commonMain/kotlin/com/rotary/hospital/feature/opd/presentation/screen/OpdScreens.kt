@@ -20,7 +20,12 @@ import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.feature.opd.data.model.*
+import com.rotary.hospital.feature.opd.domain.model.Availability
+import com.rotary.hospital.feature.opd.domain.model.Doctor
+import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
+import com.rotary.hospital.feature.opd.domain.model.Opd
+import com.rotary.hospital.feature.opd.domain.model.Patient
+import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
 import com.rotary.hospital.feature.opd.presentation.viewmodel.*
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -79,9 +84,16 @@ fun RegisteredOpdsScreen(
                             }
                         }
                     }
+
                     is RegisteredOpdsState.Error -> {
-                        Text(text = (state as RegisteredOpdsState.Error).message, color = ErrorRed, fontSize = 16.sp)
+                        Text(
+                            text = (state as RegisteredOpdsState.Error).message,
+                            color = ErrorRed,
+                            fontSize = 16.sp
+                        )
+                        Logger.e("Tag", (state as RegisteredOpdsState.Error).message);
                     }
+
                     is RegisteredOpdsState.Idle -> {}
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -143,21 +155,36 @@ fun OpdPatientListScreen(
                 is OpdPatientListState.Success -> {
                     val patients = (state as OpdPatientListState.Success).patients
                     if (patients.isEmpty()) {
-                        Text(text = "No patients registered", color = ColorPrimary, fontSize = 16.sp)
+                        Text(
+                            text = "No patients registered",
+                            color = ColorPrimary,
+                            fontSize = 16.sp
+                        )
                     } else {
                         LazyColumn {
                             items(patients) { patient ->
                                 PatientItem(
                                     patient = patient,
-                                    onClick = { onPatientClick(patient.patientId, patient.patientName) }
+                                    onClick = {
+                                        onPatientClick(
+                                            patient.patientId,
+                                            patient.patientName
+                                        )
+                                    }
                                 )
                             }
                         }
                     }
                 }
+
                 is OpdPatientListState.Error -> {
-                    Text(text = (state as OpdPatientListState.Error).message, color = ErrorRed, fontSize = 16.sp)
+                    Text(
+                        text = (state as OpdPatientListState.Error).message,
+                        color = ErrorRed,
+                        fontSize = 16.sp
+                    )
                 }
+
                 is OpdPatientListState.Idle -> {}
             }
         }
@@ -212,8 +239,13 @@ fun RegisterNewOpdScreen(
             when (state) {
                 is RegisterNewOpdState.Loading -> CircularProgressIndicator(color = ColorPrimary)
                 is RegisterNewOpdState.Error -> {
-                    Text(text = (state as RegisterNewOpdState.Error).message, color = ErrorRed, fontSize = 16.sp)
+                    Text(
+                        text = (state as RegisterNewOpdState.Error).message,
+                        color = ErrorRed,
+                        fontSize = 16.sp
+                    )
                 }
+
                 is RegisterNewOpdState.SpecializationsLoaded -> {
                     val specs = (state as RegisterNewOpdState.SpecializationsLoaded).specializations
                     Box {
@@ -247,6 +279,7 @@ fun RegisterNewOpdScreen(
                         )
                     }
                 }
+
                 is RegisterNewOpdState.DoctorsLoaded -> {
                     val doctors = (state as RegisterNewOpdState.DoctorsLoaded).doctors
                     Box {
@@ -280,6 +313,7 @@ fun RegisterNewOpdScreen(
                         )
                     }
                 }
+
                 is RegisterNewOpdState.SlotsLoaded -> {
                     val slots = (state as RegisterNewOpdState.SlotsLoaded).slots
                     Box {
@@ -300,7 +334,10 @@ fun RegisterNewOpdScreen(
                                     onClick = {
                                         selectedSlot = slot.timeFrom
                                         expandedSlot = false
-                                        viewModel.fetchAvailability(selectedDoctor!!.id, slot.timeFrom)
+                                        viewModel.fetchAvailability(
+                                            selectedDoctor!!.id,
+                                            slot.timeFrom
+                                        )
                                     }
                                 )
                             }
@@ -313,6 +350,7 @@ fun RegisterNewOpdScreen(
                         )
                     }
                 }
+
                 is RegisterNewOpdState.AvailabilityLoaded -> {
                     availability = (state as RegisterNewOpdState.AvailabilityLoaded).availability
                     if (availability != null) {
@@ -338,13 +376,17 @@ fun RegisterNewOpdScreen(
                                         doctorName = selectedDoctor!!.name
                                     )
                                 },
-                                colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary, contentColor = White)
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = ColorPrimary,
+                                    contentColor = White
+                                )
                             ) {
                                 Text("Proceed to Payment")
                             }
                         }
                     }
                 }
+
                 is RegisterNewOpdState.PaymentInitiated -> {
                     val payment = (state as RegisterNewOpdState.PaymentInitiated).payment
                     if (payment != null) {
@@ -353,12 +395,14 @@ fun RegisterNewOpdScreen(
                         }
                     }
                 }
+
                 is RegisterNewOpdState.Success -> {
                     val response = (state as RegisterNewOpdState.Success).response
                     LaunchedEffect(Unit) {
                         onSuccess(response)
                     }
                 }
+
                 is RegisterNewOpdState.Idle -> {}
             }
         }
@@ -463,9 +507,15 @@ fun DoctorAvailabilityScreen(
                         }
                     }
                 }
+
                 is DoctorAvailabilityState.Error -> {
-                    Text(text = (state as DoctorAvailabilityState.Error).message, color = ErrorRed, fontSize = 16.sp)
+                    Text(
+                        text = (state as DoctorAvailabilityState.Error).message,
+                        color = ErrorRed,
+                        fontSize = 16.sp
+                    )
                 }
+
                 is DoctorAvailabilityState.Idle -> {}
             }
         }
@@ -525,14 +575,23 @@ fun OpdPaymentSuccessScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = onShareScreenshot,
-                        colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary, contentColor = White)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorPrimary,
+                            contentColor = White
+                        )
                     ) {
                         Text("Share Screenshot")
                     }
                 }
+
                 is OpdPaymentSuccessState.Error -> {
-                    Text(text = (state as OpdPaymentSuccessState.Error).message, color = ErrorRed, fontSize = 16.sp)
+                    Text(
+                        text = (state as OpdPaymentSuccessState.Error).message,
+                        color = ErrorRed,
+                        fontSize = 16.sp
+                    )
                 }
+
                 is OpdPaymentSuccessState.Idle -> {}
             }
         }
@@ -585,11 +644,15 @@ fun OpdPaymentPendingScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = onRetry,
-                        colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary, contentColor = White)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorPrimary,
+                            contentColor = White
+                        )
                     ) {
                         Text("Retry")
                     }
                 }
+
                 is OpdPaymentPendingState.Idle -> {}
             }
         }
@@ -642,11 +705,15 @@ fun OpdPaymentFailedScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
                         onClick = onRetry,
-                        colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary, contentColor = White)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorPrimary,
+                            contentColor = White
+                        )
                     ) {
                         Text("Retry")
                     }
                 }
+
                 is OpdPaymentFailedState.Idle -> {}
             }
         }
@@ -736,9 +803,15 @@ fun SelectedOpdDetailsScreen(
                         }
                     }
                 }
+
                 is SelectedOpdDetailsState.Error -> {
-                    Text(text = (state as SelectedOpdDetailsState.Error).message, color = ErrorRed, fontSize = 16.sp)
+                    Text(
+                        text = (state as SelectedOpdDetailsState.Error).message,
+                        color = ErrorRed,
+                        fontSize = 16.sp
+                    )
                 }
+
                 is SelectedOpdDetailsState.Idle -> {}
             }
         }

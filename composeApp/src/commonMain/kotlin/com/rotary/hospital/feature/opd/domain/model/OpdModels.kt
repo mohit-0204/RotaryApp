@@ -1,8 +1,7 @@
-package com.rotary.hospital.feature.opd.data.model
+package com.rotary.hospital.feature.opd.domain.model
 
 import kotlinx.serialization.Serializable
 
-@Serializable
 data class Opd(
     val opdId: String,
     val opdType: String,

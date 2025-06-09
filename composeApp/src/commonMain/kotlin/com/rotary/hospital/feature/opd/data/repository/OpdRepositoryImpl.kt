@@ -1,44 +1,82 @@
 package com.rotary.hospital.feature.opd.data.repository
 
-import com.rotary.hospital.feature.opd.data.network.OpdService
-import com.rotary.hospital.feature.opd.data.model.*
+import com.rotary.hospital.feature.opd.data.remote.OpdService
+import com.rotary.hospital.feature.opd.data.mapper.*
+import com.rotary.hospital.feature.opd.domain.model.*
 import com.rotary.hospital.feature.opd.domain.repository.OpdRepository
 
 class OpdRepositoryImpl(private val service: OpdService) : OpdRepository {
-    override suspend fun getBookedOpds(mobileNumber: String): List<Opd> {
-        return service.getBookedOpds(mobileNumber)
+    override suspend fun getBookedOpds(mobileNumber: String): Result<List<Opd>> {
+        return service.getBookedOpds(mobileNumber).fold(
+            onSuccess = { dtoList -> Result.success(dtoList.map { it.toDomain() }) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getRegisteredPatients(mobileNumber: String): List<Patient> {
-        return service.getRegisteredPatients(mobileNumber)
+    override suspend fun getRegisteredPatients(mobileNumber: String): Result<List<Patient>> {
+        return service.getRegisteredPatients(mobileNumber).fold(
+            onSuccess = { dtoList -> Result.success(dtoList.map { it.toDomain() }) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getSpecializations(): List<Specialization> {
-        return service.getSpecializations()
+    override suspend fun getSpecializations(): Result<List<Specialization>> {
+        return service.getSpecializations().fold(
+            onSuccess = { dtoList -> Result.success(dtoList.map { it.toDomain() }) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getDoctors(specialization: String): List<Doctor> {
-        return service.getDoctors(specialization)
+    override suspend fun getDoctors(specialization: String): Result<List<Doctor>> {
+        return service.getDoctors(specialization).fold(
+            onSuccess = { dtoList -> Result.success(dtoList.map { it.toDomain() }) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getSlots(doctorId: String): List<Slot> {
-        return service.getSlots(doctorId)
+    override suspend fun getSlots(doctorId: String): Result<List<Slot>> {
+        return service.getSlots(doctorId).fold(
+            onSuccess = { dtoList -> Result.success(dtoList.map { it.toDomain() }) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getAvailability(doctorId: String, slotId: String): Availability? {
-        return service.getAvailability(doctorId, slotId)
+    override suspend fun getAvailability(doctorId: String, slotId: String): Result<Availability?> {
+        return service.getAvailability(doctorId, slotId).fold(
+            onSuccess = { dto -> Result.success(dto?.toDomain()) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getDoctorAvailability(doctorId: String): Pair<List<DoctorAvailability>, List<Leave>> {
-        return service.getDoctorAvailability(doctorId)
+    override suspend fun getDoctorAvailability(doctorId: String): Result<Pair<List<DoctorAvailability>, List<Leave>>> {
+        return service.getDoctorAvailability(doctorId).fold(
+            onSuccess = { (availDtoList, leaveDtoList) ->
+                Result.success(
+                    availDtoList.map { it.toDomain() } to leaveDtoList.map { it.toDomain() }
+                )
+            },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getPaymentReference(mobileNumber: String, amount: String, patientId: String, patientName: String, doctorName: String): PaymentRequest? {
-        return service.getPaymentReference(mobileNumber, amount, patientId, patientName, doctorName)
+    override suspend fun getPaymentReference(
+        mobileNumber: String,
+        amount: String,
+        patientId: String,
+        patientName: String,
+        doctorName: String
+    ): Result<PaymentRequest?> {
+        return service.getPaymentReference(mobileNumber, amount, patientId, patientName, doctorName).fold(
+            onSuccess = { dto -> Result.success(dto?.toDomain()) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
-    override suspend fun getPaymentStatus(merchantTransactionId: String): PaymentStatus {
-        return service.getPaymentStatus(merchantTransactionId)
+    override suspend fun getPaymentStatus(merchantTransactionId: String): Result<PaymentStatus> {
+        return service.getPaymentStatus(merchantTransactionId).fold(
+            onSuccess = { dto -> Result.success(dto.toDomain()) },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
 
     override suspend fun insertOpd(
@@ -56,10 +94,14 @@ class OpdRepositoryImpl(private val service: OpdService) : OpdRepository {
         orderId: String,
         status: String,
         message: String
-    ): InsertOpdResponse {
+    ): Result<InsertOpdResponse> {
         return service.insertOpd(
             patientId, patientName, mobileNumber, doctorName, doctorId, opdAmount,
-            durationPerPatient, docTimeFrom, opdType, transactionId, paymentId, orderId, status, message
+            durationPerPatient, docTimeFrom, opdType, transactionId, paymentId,
+            orderId, status, message
+        ).fold(
+            onSuccess = { dto -> Result.success(dto.toDomain()) },
+            onFailure = { error -> Result.failure(error) }
         )
     }
 }

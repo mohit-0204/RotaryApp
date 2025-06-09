@@ -1,6 +1,6 @@
 package com.rotary.hospital.feature.opd.di
 
-import com.rotary.hospital.feature.opd.data.network.OpdService
+import com.rotary.hospital.feature.opd.data.remote.OpdService
 import com.rotary.hospital.feature.opd.data.repository.OpdRepositoryImpl
 import com.rotary.hospital.feature.opd.domain.repository.OpdRepository
 import com.rotary.hospital.feature.opd.domain.usecase.*

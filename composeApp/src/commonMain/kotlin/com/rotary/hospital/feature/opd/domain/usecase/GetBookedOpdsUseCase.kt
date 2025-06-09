@@ -1,105 +1,78 @@
 package com.rotary.hospital.feature.opd.domain.usecase
 
-import com.rotary.hospital.feature.opd.data.model.*
+import com.rotary.hospital.feature.opd.domain.model.Availability
+import com.rotary.hospital.feature.opd.domain.model.Doctor
+import com.rotary.hospital.feature.opd.domain.model.DoctorAvailability
+import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
+import com.rotary.hospital.feature.opd.domain.model.Leave
+import com.rotary.hospital.feature.opd.domain.model.Opd
+import com.rotary.hospital.feature.opd.domain.model.Patient
+import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
+import com.rotary.hospital.feature.opd.domain.model.PaymentStatus
+import com.rotary.hospital.feature.opd.domain.model.Slot
+import com.rotary.hospital.feature.opd.domain.model.Specialization
 import com.rotary.hospital.feature.opd.domain.repository.OpdRepository
 import kotlin.Result
 
 class GetBookedOpdsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(mobileNumber: String): Result<List<Opd>> {
-        return try {
-            val opds = repository.getBookedOpds(mobileNumber)
-            Result.success(opds)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getBookedOpds(mobileNumber)
     }
 }
 
 class GetRegisteredPatientsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(mobileNumber: String): Result<List<Patient>> {
-        return try {
-            val patients = repository.getRegisteredPatients(mobileNumber)
-            Result.success(patients)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getRegisteredPatients(mobileNumber)
     }
 }
 
 class GetSpecializationsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(): Result<List<Specialization>> {
-        return try {
-            val specializations = repository.getSpecializations()
-            Result.success(specializations)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getSpecializations()
     }
 }
 
 class GetDoctorsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(specialization: String): Result<List<Doctor>> {
-        return try {
-            val doctors = repository.getDoctors(specialization)
-            Result.success(doctors)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getDoctors(specialization)
     }
 }
 
 class GetSlotsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(doctorId: String): Result<List<Slot>> {
-        return try {
-            val slots = repository.getSlots(doctorId)
-            Result.success(slots)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getSlots(doctorId)
     }
 }
 
 class GetAvailabilityUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(doctorId: String, slotId: String): Result<Availability?> {
-        return try {
-            val availability = repository.getAvailability(doctorId, slotId)
-            Result.success(availability)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getAvailability(doctorId, slotId)
     }
 }
 
 class GetDoctorAvailabilityUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(doctorId: String): Result<Pair<List<DoctorAvailability>, List<Leave>>> {
-        return try {
-            val availability = repository.getDoctorAvailability(doctorId)
-            Result.success(availability)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getDoctorAvailability(doctorId)
     }
 }
 
 class GetPaymentReferenceUseCase(private val repository: OpdRepository) {
-    suspend operator fun invoke(mobileNumber: String, amount: String, patientId: String, patientName: String, doctorName: String): Result<PaymentRequest?> {
-        return try {
-            val payment = repository.getPaymentReference(mobileNumber, amount, patientId, patientName, doctorName)
-            Result.success(payment)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    suspend operator fun invoke(
+        mobileNumber: String,
+        amount: String,
+        patientId: String,
+        patientName: String,
+        doctorName: String
+    ): Result<PaymentRequest?> {
+        return repository.getPaymentReference(
+            mobileNumber, amount, patientId, patientName, doctorName
+        )
     }
 }
 
 class GetPaymentStatusUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(merchantTransactionId: String): Result<PaymentStatus> {
-        return try {
-            val status = repository.getPaymentStatus(merchantTransactionId)
-            Result.success(status)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.getPaymentStatus(merchantTransactionId)
     }
 }
 
@@ -120,18 +93,26 @@ class InsertOpdUseCase(private val repository: OpdRepository) {
         status: String,
         message: String
     ): Result<InsertOpdResponse> {
-        return try {
-            val response = repository.insertOpd(
-                patientId, patientName, mobileNumber, doctorName, doctorId, opdAmount,
-                durationPerPatient, docTimeFrom, opdType, transactionId, paymentId, orderId, status, message
-            )
-            if (response.response && response.message == "success") {
-                Result.success(response)
-            } else {
-                Result.failure(Exception(response.message))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
+        val response = repository.insertOpd(
+            patientId,
+            patientName,
+            mobileNumber,
+            doctorName,
+            doctorId,
+            opdAmount,
+            durationPerPatient,
+            docTimeFrom,
+            opdType,
+            transactionId,
+            paymentId,
+            orderId,
+            status,
+            message
+        )
+        return if (response.isSuccess && response.getOrNull()?.response == true && response.getOrNull()?.message == "success") {
+            response
+        } else {
+            Result.failure(Exception(response.getOrNull()?.message ?: "Unknown error"))
         }
     }
 }
