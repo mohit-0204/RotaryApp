@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
@@ -86,6 +87,7 @@ fun LoginScreen(
 
 
     if (loginState is LoginState.Error) {
+        Logger.d("LoginScreen",(loginState as LoginState.Error).message)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = (loginState as LoginState.Error).message,

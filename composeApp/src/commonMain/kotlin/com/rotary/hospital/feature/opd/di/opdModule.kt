@@ -1,5 +1,6 @@
 package com.rotary.hospital.feature.opd.di
 
+import org.koin.core.module.dsl.viewModel
 import com.rotary.hospital.feature.opd.data.remote.OpdService
 import com.rotary.hospital.feature.opd.data.repository.OpdRepositoryImpl
 import com.rotary.hospital.feature.opd.domain.repository.OpdRepository
@@ -20,12 +21,12 @@ val opdModule = module {
     single { GetPaymentReferenceUseCase(get()) }
     single { GetPaymentStatusUseCase(get()) }
     single { InsertOpdUseCase(get()) }
-    factory { RegisteredOpdsViewModel(get()) }
-    factory { OpdPatientListViewModel(get(), get()) }
-    factory { RegisterNewOpdViewModel(get(), get(), get(), get(), get(), get()) }
-    factory { DoctorAvailabilityViewModel(get()) }
-    factory { OpdPaymentSuccessViewModel(get()) }
-    factory { OpdPaymentPendingViewModel() }
-    factory { OpdPaymentFailedViewModel() }
-    factory { SelectedOpdDetailsViewModel(get()) }
+    viewModel{ RegisteredOpdsViewModel(get()) }
+    viewModel{ OpdPatientListViewModel(get(), get()) }
+    viewModel{ RegisterNewOpdViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel{ DoctorAvailabilityViewModel(get()) }
+    viewModel{ OpdPaymentSuccessViewModel(get()) }
+    viewModel{ OpdPaymentPendingViewModel() }
+    viewModel{ OpdPaymentFailedViewModel() }
+    viewModel{ SelectedOpdDetailsViewModel(get()) }
 }
