@@ -15,8 +15,8 @@ data class OpdDto(
 
 @Serializable
 data class PatientDto(
-    @SerialName("patient_id") val patientId: String? = null,
-    @SerialName("patient_name") val patientName: String? = null
+    @SerialName("pid1") val patientId: String? = null,
+    @SerialName("p_name") val patientName: String? = null
 )
 
 @Serializable

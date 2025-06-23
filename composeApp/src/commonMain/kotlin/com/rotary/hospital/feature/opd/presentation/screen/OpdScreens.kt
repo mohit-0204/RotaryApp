@@ -6,10 +6,16 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,19 +32,22 @@ import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
 import com.rotary.hospital.feature.opd.domain.model.Opd
 import com.rotary.hospital.feature.opd.domain.model.Patient
 import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
+import com.rotary.hospital.feature.opd.presentation.screen.components.OpdListItem
 import com.rotary.hospital.feature.opd.presentation.viewmodel.*
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisteredOpdsScreen(
     onOpdClick: (String) -> Unit,
     onAddNew: () -> Unit,
+    onBackClick: () -> Unit,
+    onSearchClick: () -> Unit,
     viewModel: RegisteredOpdsViewModel = koinViewModel(),
     preferences: PreferencesManager = koinInject()
 ) {
     val state by viewModel.state.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
     var mobileNumber by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
@@ -52,62 +61,94 @@ fun RegisteredOpdsScreen(
         }
     }
 
-    AppTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Booked OPDs",
-                    color = ColorPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Booked OPDs",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorPrimary
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = ColorPrimary.copy(alpha = 0.8f)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onSearchClick) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = ColorPrimary.copy(alpha = 0.8f)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color.Black
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                when (state) {
-                    is RegisteredOpdsState.Loading -> CircularProgressIndicator(color = ColorPrimary)
-                    is RegisteredOpdsState.Success -> {
-                        val opds = (state as RegisteredOpdsState.Success).opds
-                        if (opds.isEmpty()) {
-                            Text(text = "No OPDs booked", color = ColorPrimary, fontSize = 16.sp)
-                        } else {
-                            LazyColumn {
-                                items(opds) { opd ->
-                                    OpdItem(opd = opd, onClick = { onOpdClick(opd.opdId) })
-                                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddNew,
+                containerColor = ColorPrimary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add OPD", tint = Color.White)
+            }
+        },
+        containerColor = Color.White
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            when (val currentState = state) {
+                is RegisteredOpdsState.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                is RegisteredOpdsState.Error -> {
+                    Text(
+                        text = currentState.message,
+                        color = ErrorRed,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+
+                is RegisteredOpdsState.Success -> {
+                    val opds = currentState.opds
+                    if (opds.isEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text("No OPDs booked.", style = MaterialTheme.typography.bodyLarge)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(onClick = onAddNew) {
+                                Text("Register New OPD")
+                            }
+                        }
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(opds) { opd ->
+                                OpdListItem(opd = opd, onClick = { onOpdClick(opd.opdId) })
                             }
                         }
                     }
-
-                    is RegisteredOpdsState.Error -> {
-                        Text(
-                            text = (state as RegisteredOpdsState.Error).message,
-                            color = ErrorRed,
-                            fontSize = 16.sp
-                        )
-                        Logger.e("Tag", (state as RegisteredOpdsState.Error).message);
-                    }
-
-                    is RegisteredOpdsState.Idle -> {}
                 }
-                Spacer(modifier = Modifier.weight(1f))
-                FloatingActionButton(
-                    onClick = onAddNew,
-                    containerColor = ColorPrimary,
-                    contentColor = White
-                ) {
-                    Text("+", fontSize = 24.sp)
-                }
+
+                else -> Unit
             }
         }
     }
 }
+
 
 @Composable
 fun OpdPatientListScreen(

@@ -22,14 +22,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
+import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.home.presentation.components.DashboardCard
 import com.rotary.hospital.feature.home.presentation.components.HomeTopBar
 import com.rotary.hospital.feature.home.presentation.components.QuickAccessItem
@@ -46,7 +50,8 @@ import rotaryhospital.composeapp.generated.resources.user_icon
 @Composable
 fun HomeScreen(
     patientName: String,
-    onItemClick: (HomeAction) -> Unit
+    onItemClick: (HomeAction) -> Unit,
+    snackbarHostState: SnackbarHostState
 ) {
     // Define dashboard items
     val dashboardItems = listOf(
@@ -69,7 +74,7 @@ fun HomeScreen(
             action = HomeAction.ViewLabTests
         ),
         DashboardItem(
-            title = "Medicine Reminders",
+            title = "Med Reminders",
             subtitle = "Set & manage alerts",
             iconRes = Res.drawable.pill_icon,
             action = HomeAction.ManageMedicineReminders
@@ -95,9 +100,13 @@ fun HomeScreen(
         )
     )
 
+    LaunchedEffect(Unit) {
+        toastController.show("Welcome back!")
+    }
     AppTheme {
         Scaffold(
             topBar = { HomeTopBar() },
+            snackbarHost = { SnackbarHost(snackbarHostState)},
             bottomBar = {
                 NavigationBar(containerColor = Color.White) {
                     NavigationBarItem(

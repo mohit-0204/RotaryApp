@@ -1,20 +1,15 @@
 package com.rotary.hospital.app
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Text
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,6 +20,7 @@ import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.data.preferences.PreferencesManager
+import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.auth.presentation.screen.LoginScreen
 import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScreen
 import com.rotary.hospital.feature.home.presentation.model.HomeAction
@@ -39,7 +35,6 @@ import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScr
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
 import kotlinx.coroutines.flow.first
-import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
@@ -52,11 +47,16 @@ fun App() {
         val preferences: PreferencesManager = koinInject()
         val navController = rememberNavController()
         var mobileNumber by remember { mutableStateOf("")}
+        // Global snackbar setup
+        val snackbarHostState = remember { SnackbarHostState() }
+        val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
-            val patientId = preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
+//            val patientId = preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
             mobileNumber = preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
             Logger.d("App", "Mobile number loaded: $mobileNumber")
+            toastController.bind(snackbarHostState, scope)
+
         }
 
         NavHost(
@@ -92,7 +92,9 @@ fun App() {
                             HomeAction.ViewTerms -> TODO()
                         }
 
-                    }
+                    },
+                    snackbarHostState = snackbarHostState
+
                 )
             }
             composable<AppRoute.Login> {
@@ -159,7 +161,9 @@ fun App() {
                     },
                     onAddNew = {
                         navController.navigate(AppRoute.OpdPatientList(route.mobileNumber))
-                    }
+                    },
+                    onBackClick = {navController.popBackStack()},
+                    onSearchClick = {}
                 )
             }
             composable<AppRoute.OpdPatientList> { backStackEntry ->

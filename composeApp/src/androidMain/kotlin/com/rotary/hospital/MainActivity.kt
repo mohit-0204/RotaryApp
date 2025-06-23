@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
+/*
 @Preview(showBackground = true)
 @Composable
 fun Prev() {
@@ -48,4 +49,4 @@ fun Prev() {
             modifier = Modifier.size(100.dp)
         )
     }
-}
+}*/
