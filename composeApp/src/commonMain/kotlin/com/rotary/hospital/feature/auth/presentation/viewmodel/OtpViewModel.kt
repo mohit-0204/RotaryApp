@@ -2,11 +2,11 @@ package com.rotary.hospital.feature.auth.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rotary.hospital.core.common.PreferenceKeys
+import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.feature.auth.data.model.SmsVerificationResponse
 import com.rotary.hospital.feature.auth.domain.usecase.SendOtpUseCase
 import com.rotary.hospital.feature.auth.domain.usecase.VerifyOtpUseCase
-import com.rotary.hospital.feature.auth.presentation.screen.OtpAction
-import com.rotary.hospital.feature.auth.presentation.screen.OtpState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +15,8 @@ import kotlinx.coroutines.launch
 
 class OtpViewModel(
     private val verifyOtpUseCase: VerifyOtpUseCase,
-    private val sendOtpUseCase: SendOtpUseCase
+    private val sendOtpUseCase: SendOtpUseCase,
+    private val preferences: PreferencesManager
     ) : ViewModel() {
     private val _state = MutableStateFlow(OtpState())
     val state: StateFlow<OtpState> = _state.asStateFlow()
@@ -24,6 +25,18 @@ class OtpViewModel(
     val otpState: StateFlow<OtpVerificationState> = _otpState.asStateFlow()
 
     private var mobileNumber: String = ""
+
+    private val _storedOtp = MutableStateFlow("")
+    val storedOtp = _storedOtp.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            preferences.getString(PreferenceKeys.OTP, "")
+                    .collect { otp ->
+                _storedOtp.value = otp
+            }
+        }
+    }
 
     fun setMobileNumber(number: String) {
         mobileNumber = number
@@ -38,16 +51,27 @@ class OtpViewModel(
                 enterNumber(action.number, action.index)
             }
             is OtpAction.OnKeyBoardBack -> {
-                val previousIndex = getPreviousFocusedIndex(state.value.focusedIndex)
-                _state.update {
-                    it.copy(
-                        code = it.code.mapIndexed { index, number ->
-                            if (index == previousIndex) null else number
-                        },
-                        focusedIndex = previousIndex
-                    )
+                val currentFocus = state.value.focusedIndex ?: return
+                val code = state.value.code.toMutableList()
+
+                if (code[currentFocus] != null) {
+                    // Case 1: current box has value → clear it
+                    code[currentFocus] = null
+                    _state.update {
+                        it.copy(code = code, focusedIndex = currentFocus)
+                    }
+                } else {
+                    // Case 2: go to previous non-null digit and clear
+                    val previous = getPreviousFocusedIndex(currentFocus)
+                    if (previous != null) {
+                        code[previous] = null
+                        _state.update {
+                            it.copy(code = code, focusedIndex = previous)
+                        }
+                    }
                 }
             }
+
             is OtpAction.ClearFields -> {
                 _state.update {
                     it.copy(
@@ -94,20 +118,28 @@ class OtpViewModel(
     }
 
     private fun enterNumber(number: Int?, index: Int) {
-        val newCode = state.value.code.mapIndexed { currentIndex, currentNumber ->
-            if (currentIndex == index) number else currentNumber
+        val oldCode = state.value.code
+        val newCode = oldCode.toMutableList()
+        newCode[index] = number
+
+        val nextFocus = if (number == null) {
+            index // backspacing - stay here
+        } else {
+            // ✅ if tapped box was filled already → go to next box directly
+            if (oldCode[index] != null) {
+                (index + 1).coerceAtMost(3)
+            } else {
+                // ✅ else use your smart "find next empty box" logic
+                getNextFocusedTextFieldIndex(newCode, index)
+            }
         }
-        val wasNumberRemoved = number == null
-        _state.update {
+
+        _state.update { it ->
             it.copy(
                 code = newCode,
-                focusedIndex = if (wasNumberRemoved || it.code.getOrNull(index) != null) {
-                    it.focusedIndex
-                } else {
-                    getNextFocusedTextFieldIndex(it.code, it.focusedIndex)
-                },
+                focusedIndex = nextFocus,
                 isValid = if (newCode.none { it == null }) {
-                    newCode.joinToString("") == "1111"
+                    newCode.joinToString("") == storedOtp.value
                 } else null
             )
         }
@@ -133,4 +165,17 @@ sealed class OtpVerificationState {
     object Loading : OtpVerificationState()
     data class Success(val response: SmsVerificationResponse) : OtpVerificationState()
     data class Error(val message: String) : OtpVerificationState()
+}
+
+data class OtpState(
+    val code: List<Int?> = (1..4).map { null },
+    val focusedIndex: Int? = 0, // Initialize focus on first field
+    val isValid: Boolean? = null
+)
+
+sealed interface OtpAction {
+    data class OnEnterNumber(val number: Int?, val index: Int) : OtpAction
+    data class OnChangeFieldFocus(val index: Int) : OtpAction
+    data object OnKeyBoardBack : OtpAction
+    data object ClearFields : OtpAction
 }

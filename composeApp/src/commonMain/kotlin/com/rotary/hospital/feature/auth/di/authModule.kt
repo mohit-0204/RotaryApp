@@ -17,5 +17,5 @@ var authModule = module {
     factory { SendOtpUseCase(get()) }
     factory { VerifyOtpUseCase(get()) }
     viewModel { LoginViewModel(get(), get()) }
-    viewModel { OtpViewModel(get(), get()) }
+    viewModel { OtpViewModel(get(), get(),get()) }
 }

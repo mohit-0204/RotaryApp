@@ -84,12 +84,24 @@ fun App() {
                                     Logger.e("HomeScreen", "Mobile number not available")
                                 }
                             }
-                            HomeAction.ContactUs -> TODO()
-                            HomeAction.ManageMedicineReminders -> TODO()
-                            HomeAction.OpenSettings -> TODO()
-                            HomeAction.ViewLabTests -> TODO()
-                            HomeAction.ViewPatientProfile -> TODO()
-                            HomeAction.ViewTerms -> TODO()
+                            HomeAction.ContactUs -> {
+                                // todo yet to be implemented
+                            }
+                            HomeAction.ManageMedicineReminders -> {
+                                // todo yet to be implemented
+                            }
+                            HomeAction.OpenSettings -> {
+                                // todo yet to be implemented
+                            }
+                            HomeAction.ViewLabTests -> {
+                                // todo yet to be implemented
+                            }
+                            HomeAction.ViewPatientProfile -> {
+                                // todo yet to be implemented
+                            }
+                            HomeAction.ViewTerms -> {
+                                // todo yet to be implemented
+                            }
                         }
 
                     },
