@@ -79,9 +79,9 @@ fun OtpVerificationScreen(
         // state for modal sheet
         val sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true,
-            confirmValueChange = { newState ->
+            /*confirmValueChange = { newState ->
                 newState != SheetValue.Hidden //  Stop bottom sheet from hiding on outside press
-            }
+            }*/
         )
 
         // set mobile + start countdown

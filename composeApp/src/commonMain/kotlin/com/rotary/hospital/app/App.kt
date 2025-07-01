@@ -119,19 +119,7 @@ fun App() {
                     }
                 )
             }
-            composable<AppRoute.PatientSelection> { backStackEntry ->
-                val route = backStackEntry.toRoute<AppRoute.PatientSelection>()
-                PatientListScreen(
-                    phoneNumber = route.phoneNumber, onAddPatient = {
-                        navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
-                    },
-                    onPatientSelected = { patientName ->
-                        navController.navigate(AppRoute.Home(patientName)) {
-                            popUpTo<AppRoute.PatientSelection> { inclusive = true }
-                        }
-                    },
-                    onBackClick = { navController.popBackStack() })
-            }
+
             composable<AppRoute.PatientRegistration> { backStackEntry ->
                 RegistrationScreen(
                     onBack = { navController.popBackStack() },
@@ -150,7 +138,7 @@ fun App() {
                     onVerified = { patientCount ->
                         Logger.d("TAG", "PatientCount: $patientCount")
                         if (patientCount > 0)
-                            navController.navigate(AppRoute.PatientSelection(route.phoneNumber))
+                            navController.navigate(AppRoute.ProfilePatientSelection(route.phoneNumber))
                         else
                             navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
                     },
@@ -164,7 +152,6 @@ fun App() {
                 )
             }
 
-
             composable<AppRoute.RegisteredOpds> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.RegisteredOpds>()
                 RegisteredOpdsScreen(
@@ -177,6 +164,21 @@ fun App() {
                     onBackClick = {navController.popBackStack()},
                     onSearchClick = {}
                 )
+            }
+
+            composable<AppRoute.ProfilePatientSelection> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.ProfilePatientSelection>()
+                PatientListScreen(
+                    phoneNumber = route.phoneNumber,
+                    onAddPatient = {
+                        navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
+                    },
+                    onPatientSelected = { patientName ->
+                        navController.navigate(AppRoute.Home(patientName)) {
+                            popUpTo<AppRoute.ProfilePatientSelection> { inclusive = true }
+                        }
+                    },
+                    onBackClick = { navController.popBackStack() })
             }
             composable<AppRoute.OpdPatientList> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.OpdPatientList>()

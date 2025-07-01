@@ -14,7 +14,9 @@ sealed class AppRoute {
     data class OtpVerification(val phoneNumber: String) : AppRoute()
 
     @Serializable
-    data class PatientSelection(val phoneNumber: String) : AppRoute()
+    data class ProfilePatientSelection(val phoneNumber: String) : AppRoute()
+    @Serializable
+    data class OpdPatientSelection(val phoneNumber: String) : AppRoute()
 
     @Serializable
     data class PatientRegistration(val phoneNumber: String) : AppRoute()

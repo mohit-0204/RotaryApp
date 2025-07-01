@@ -56,6 +56,7 @@ import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
+import com.rotary.hospital.core.ui.screen.SharedListScreen
 import com.rotary.hospital.feature.opd.domain.model.Availability
 import com.rotary.hospital.feature.opd.domain.model.Doctor
 import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
@@ -79,6 +80,7 @@ import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOpdsStat
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOpdsViewModel
 import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsViewModel
+import com.rotary.hospital.feature.patient.presentation.screen.PatientListItem
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -198,84 +200,42 @@ fun RegisteredOpdsScreen(
 @Composable
 fun OpdPatientListScreen(
     onPatientClick: (String, String) -> Unit,
-    onBack: () -> Unit,
-    viewModel: OpdPatientListViewModel = koinViewModel(),
-    preferences: PreferencesManager = koinInject()
+    onBack         : () -> Unit,
+    viewModel      : OpdPatientListViewModel = koinViewModel(),
+    preferences    : PreferencesManager = koinInject()
 ) {
     val state by viewModel.state.collectAsState()
-    var mobileNumber by remember { mutableStateOf("") }
+    val patients = (state as? OpdPatientListState.Success)?.patients.orEmpty()
+    val isLoading = state is OpdPatientListState.Loading
+    val error = (state as? OpdPatientListState.Error)?.message
 
     LaunchedEffect(Unit) {
-        preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").collect { savedMobile ->
-            if (savedMobile.isNotBlank()) {
-                mobileNumber = savedMobile
-                viewModel.fetchPatients(savedMobile)
+        preferences.getString(PreferenceKeys.MOBILE_NUMBER, "")
+            .collect { pref ->
+                if (pref.isNotBlank()) viewModel.fetchPatients(pref)
             }
-        }
     }
 
-    AppTheme {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Select Patient",
-                    color = ColorPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                TextButton(onClick = onBack) {
-                    Text("Back", color = ColorPrimary)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is OpdPatientListState.Loading -> CircularProgressIndicator(color = ColorPrimary)
-                is OpdPatientListState.Success -> {
-                    val patients = (state as OpdPatientListState.Success).patients
-                    if (patients.isEmpty()) {
-                        Text(
-                            text = "No patients registered",
-                            color = ColorPrimary,
-                            fontSize = 16.sp
-                        )
-                    } else {
-                        LazyColumn {
-                            items(patients) { patient ->
-                                PatientItem(
-                                    patient = patient,
-                                    onClick = {
-                                        onPatientClick(
-                                            patient.patientId,
-                                            patient.patientName
-                                        )
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                is OpdPatientListState.Error -> {
-                    Text(
-                        text = (state as OpdPatientListState.Error).message,
-                        color = ErrorRed,
-                        fontSize = 16.sp
-                    )
-                }
-
-                is OpdPatientListState.Idle -> {}
-            }
+    SharedListScreen(
+        title           = "Select Patient for OPD",
+        items           = patients,
+        isLoading       = isLoading,
+        errorMessage    = error,
+        emptyMessage    = "No patients registered",
+        onSearchQueryChange = null,   // no search here
+        isSearchActive  = false,
+        onToggleSearch  = null,
+        onBack          = onBack,
+        onAdd           = null,       // no FAB here
+        itemContent     = { opdPatient, onClick ->
+            PatientListItem(patient = com.rotary.hospital.core.data.model.Patient(opdPatient.patientId, opdPatient.patientName,""), onClick = onClick)
+        },
+        onItemClick     = { opdPatient ->
+            onPatientClick(opdPatient.patientId, opdPatient.patientName)
         }
-    }
+    )
 }
+
 
 @Composable
 fun RegisterNewOpdScreen(
@@ -900,51 +860,6 @@ fun SelectedOpdDetailsScreen(
 
                 is SelectedOpdDetailsState.Idle -> {}
             }
-        }
-    }
-}
-
-@Composable
-private fun OpdItem(
-    opd: Opd,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable { onClick() },
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = opd.opdType,
-                fontWeight = FontWeight.Bold,
-                color = ColorPrimary,
-                fontSize = 18.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Patient: ${opd.patientName}",
-                color = ColorPrimary,
-                fontSize = 14.sp
-            )
-            Text(
-                text = "Doctor: ${opd.doctor}",
-                color = ColorPrimary,
-                fontSize = 14.sp
-            )
-            Text(
-                text = "Date: ${opd.date}",
-                color = ColorPrimary,
-                fontSize = 14.sp
-            )
         }
     }
 }
