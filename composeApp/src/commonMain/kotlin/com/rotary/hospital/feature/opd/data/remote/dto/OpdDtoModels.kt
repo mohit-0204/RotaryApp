@@ -26,15 +26,15 @@ data class SpecializationDto(
 
 @Serializable
 data class DoctorDto(
-    @SerialName("name") val name: String? = null,
-    @SerialName("id") val id: String? = null,
-    @SerialName("opd_room") val opdRoom: String? = null
+    @SerialName("doc_name") val name: String? = null,
+    @SerialName("doc_id") val id: String? = null,
+    @SerialName("doc_opdroom") val opdRoom: String? = null
 )
 
 @Serializable
 data class SlotDto(
-    @SerialName("time_from") val timeFrom: String? = null,
-    @SerialName("time_to") val timeTo: String? = null
+    @SerialName("doc_time_from") val timeFrom: String? = null,
+    @SerialName("doc_time_to") val timeTo: String? = null
 )
 
 @Serializable

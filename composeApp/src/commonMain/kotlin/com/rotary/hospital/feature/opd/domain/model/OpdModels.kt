@@ -44,7 +44,12 @@ data class Availability(
     val approximateTime: String,
     val docDurationPerPatient: String,
     val docNoOfAppointments: String,
-    val appointments: String
+    val appointments: String,
+    val available: Boolean = run { // Computed property
+        val total = docNoOfAppointments.toIntOrNull() ?: 0
+        val booked = appointments.toIntOrNull() ?: 0
+        total > booked
+    }
 )
 
 @Serializable

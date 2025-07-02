@@ -39,14 +39,13 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
 
-
 @Composable
 @Preview
 fun App() {
     AppTheme {
         val preferences: PreferencesManager = koinInject()
         val navController = rememberNavController()
-        var mobileNumber by remember { mutableStateOf("")}
+        var mobileNumber by remember { mutableStateOf("") }
         // Global snackbar setup
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
@@ -66,9 +65,14 @@ fun App() {
         ) {
             composable<AppRoute.Splash> {
                 SplashScreen {
-                    navController.navigate(AppRoute.Login) {
-                        popUpTo<AppRoute.Splash> { inclusive = true }
-                    }
+                    if (mobileNumber.isNotEmpty()) {
+                        navController.navigate(AppRoute.Home(mobileNumber)) {
+                            popUpTo<AppRoute.Splash> { inclusive = true }
+                        }
+                    } else
+                        navController.navigate(AppRoute.Login) {
+                            popUpTo<AppRoute.Splash> { inclusive = true }
+                        }
                 }
             }
             composable<AppRoute.Home> { backStackEntry ->
@@ -76,7 +80,7 @@ fun App() {
                 HomeScreen(
                     route.patientName,
                     onItemClick = { action ->
-                        when(action){
+                        when (action) {
                             HomeAction.BookOPD -> {
                                 if (mobileNumber.isNotBlank()) {
                                     navController.navigate(AppRoute.RegisteredOpds(mobileNumber))
@@ -84,21 +88,27 @@ fun App() {
                                     Logger.e("HomeScreen", "Mobile number not available")
                                 }
                             }
+
                             HomeAction.ContactUs -> {
                                 // todo yet to be implemented
                             }
+
                             HomeAction.ManageMedicineReminders -> {
                                 // todo yet to be implemented
                             }
+
                             HomeAction.OpenSettings -> {
                                 // todo yet to be implemented
                             }
+
                             HomeAction.ViewLabTests -> {
                                 // todo yet to be implemented
                             }
+
                             HomeAction.ViewPatientProfile -> {
                                 // todo yet to be implemented
                             }
+
                             HomeAction.ViewTerms -> {
                                 // todo yet to be implemented
                             }
@@ -156,12 +166,17 @@ fun App() {
                 val route = backStackEntry.toRoute<AppRoute.RegisteredOpds>()
                 RegisteredOpdsScreen(
                     onOpdClick = { opdId ->
-                        navController.navigate(AppRoute.SelectedOpdDetails(route.mobileNumber, opdId))
+                        navController.navigate(
+                            AppRoute.SelectedOpdDetails(
+                                route.mobileNumber,
+                                opdId
+                            )
+                        )
                     },
                     onAddNew = {
                         navController.navigate(AppRoute.OpdPatientList(route.mobileNumber))
                     },
-                    onBackClick = {navController.popBackStack()},
+                    onBackClick = { navController.popBackStack() },
                     onSearchClick = {}
                 )
             }
@@ -184,7 +199,13 @@ fun App() {
                 val route = backStackEntry.toRoute<AppRoute.OpdPatientList>()
                 OpdPatientListScreen(
                     onPatientClick = { patientId, patientName ->
-                        navController.navigate(AppRoute.RegisterNewOpd(route.mobileNumber, patientId, patientName))
+                        navController.navigate(
+                            AppRoute.RegisterNewOpd(
+                                route.mobileNumber,
+                                patientId,
+                                patientName
+                            )
+                        )
                     },
                     onBack = { navController.popBackStack() }
                 )
