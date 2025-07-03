@@ -2,6 +2,7 @@
 
 package com.rotary.hospital.feature.opd.presentation.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,9 +11,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -23,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -43,6 +49,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -57,6 +65,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -274,365 +283,438 @@ fun RegisterNewOpdScreen(
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+
     LaunchedEffect(Unit) {
         println("Fetching specializations...")
         viewModel.fetchSpecializations()
     }
 
-    if (sheetState.isVisible) {
-        ModalBottomSheet(
-            onDismissRequest = {},
-            sheetState = sheetState
-        ) {
-            sheetContent()
-            Button(
-                onClick = {
-                    scope.launch {
-                        sheetState.hide()
-                    }
-                },
-                modifier = Modifier.align(Alignment.End).padding(8.dp)
+    Box(Modifier.fillMaxSize()) {
+        if (sheetState.isVisible) {
+            ModalBottomSheet(
+                onDismissRequest = { scope.launch { sheetState.hide() } },
+                sheetState = sheetState,
+                modifier = Modifier.fillMaxHeight(0.7f)
+                    .align(Alignment.BottomCenter)
             ) {
-                Text("Close")
+                sheetContent()
             }
         }
-    }
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "New Appointment",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                TextButton(onClick = onBack) {
-                    Text("Back", color = Color(0xFF00BCD4))
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = patientName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text(text = "ID: $patientId", fontSize = 14.sp, color = Color.Gray)
-                }
-            }
-        }
-        item {
-            // Custom Box for Specialization
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(4.dp)
-                    )
-                    .clickable {
-                        println("Specialization clicked - Testing click event")
-                        try {
-                            throw Exception("Button clicked - Test exception")
-                        } catch (e: Exception) {
-                            println("Exception caught: ${e.message}")
-                        }
-                        sheetContent = {
-                            SpecializationSheet(selectedSpecialization) { spec ->
-                                selectedSpecialization = spec
-                                viewModel.fetchDoctors(spec)
-                                scope.launch { sheetState.hide() }
-                            }
-                        }
-                        scope.launch {
-                            println("Attempting to show sheet, current state: ${sheetState.isVisible}")
-                            sheetState.show()
-                            println("Sheet shown, new state: ${sheetState.isVisible}")
-                        }
-                    }
-                    .padding(12.dp)
-            ) {
-                Column(modifier = Modifier.padding(end = 40.dp)) {
-                    Text(
-                        text = if (selectedSpecialization.isEmpty()) "Specialization" else selectedSpecialization,
-                        color = if (selectedSpecialization.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Dropdown",
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            // Custom Box for Doctor
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(4.dp)
-                    )
-                    .clickable(
-                        enabled = selectedSpecialization.isNotEmpty()
-                    ) {
-                        if (selectedSpecialization.isNotEmpty()) {
-                            sheetContent = {
-                                DoctorSheet(selectedDoctor) { doctor ->
-                                    selectedDoctor = doctor
-                                    viewModel.fetchSlots(doctor?.id ?: "")
-                                    scope.launch { sheetState.hide() }
-                                }
-                            }
-                            scope.launch {
-                                sheetState.show()
-                            }
-                        }
-                    }
-                    .padding(12.dp)
-            ) {
-                val isEnabled = selectedSpecialization.isNotEmpty()
-                Column(modifier = Modifier.padding(end = 40.dp)) {
-                    Text(
-                        text = selectedDoctor?.name ?: "Doctor",
-                        color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Dropdown",
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp),
-                    tint = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            // Custom Box for Slots
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(4.dp)
-                    )
-                    .clickable(
-                        enabled = selectedDoctor != null
-                    ) {
-                        if (selectedDoctor != null) {
-                            sheetContent = {
-                                SlotSheet(selectedSlot) { slot ->
-                                    selectedSlot = slot
-                                    viewModel.fetchAvailability(selectedDoctor!!.id, slot)
-                                    scope.launch { sheetState.hide() }
-                                }
-                            }
-                            scope.launch {
-                                sheetState.show()
-                            }
-                        }
-                    }
-                    .padding(12.dp)
-            ) {
-                val isEnabled = selectedDoctor != null
-                Column(modifier = Modifier.padding(end = 40.dp)) {
-                    Text(
-                        text = if (selectedSlot.isEmpty()) "Slots" else selectedSlot,
-                        color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Dropdown",
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp),
-                    tint = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        item {
-            when (state) {
-                is RegisterNewOpdState.Loading -> CircularProgressIndicator(color = Color(0xFF00BCD4))
-                is RegisterNewOpdState.Error -> Text(
-                    text = (state as RegisterNewOpdState.Error).message,
-                    color = Color.Red,
-                    fontSize = 16.sp
-                )
-                is RegisterNewOpdState.AvailabilityLoaded -> {
-                    val avail = (state as RegisterNewOpdState.AvailabilityLoaded).availability
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "Appointment Details",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("Room", fontSize = 16.sp)
-                                Text(selectedDoctor?.opdRoom ?: "", fontSize = 16.sp)
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("OPD Charges", fontSize = 16.sp)
-                                Text("${avail?.docCharges ?: 0.0}$", fontSize = 16.sp)
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("Online Charges", fontSize = 16.sp)
-                                Text("${avail?.docOnlineCharges ?: 0.0}$", fontSize = 16.sp)
-                            }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text("Expected Wait", fontSize = 16.sp)
-                                Text("${avail?.approximateTime ?: "N/A"} minutes", fontSize = 16.sp)
-                            }
-                            Text(
-                                text = if (avail?.available == true) "Available" else "Slots Full",
-                                modifier = Modifier
-                                    .background(
-                                        if (avail?.available == true) Color.Green else Color.Red,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = Color.White,
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-                }
-                else -> {}
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        if (selectedSlot.isNotEmpty()) viewModel.fetchAvailability(
-                            selectedDoctor?.id ?: "",
-                            selectedSlot
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            "New Appointment", fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = ColorPrimary
                         )
                     },
-                    modifier = Modifier.weight(1f),
-                    enabled = selectedSlot.isNotEmpty()
-                ) {
-                    Text("Check Availability", color = Color(0xFF00BCD4))
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = ColorPrimary.copy(alpha = 0.8f)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = White,
+                        titleContentColor = Color.Black
+                    )
+                )
+            },
+            bottomBar = {
+                Column {
+                    Button(
+                        onClick = {
+                            if (state is RegisterNewOpdState.AvailabilityLoaded && (state as RegisterNewOpdState.AvailabilityLoaded).availability?.available == true) {
+                                sheetContent = {
+                                    TermsSheet(
+                                        total = (state as RegisterNewOpdState.AvailabilityLoaded).availability?.docCharges?.toDoubleOrNull()
+                                            ?.plus(
+                                                (state as RegisterNewOpdState.AvailabilityLoaded).availability?.docOnlineCharges?.toDoubleOrNull()
+                                                    ?: 0.0
+                                            ) ?: 0.0
+                                    ) {
+                                        viewModel.initiatePayment(
+                                            mobileNumber = mobileNumber,
+                                            amount = it.toString(),
+                                            patientId = patientId,
+                                            patientName = patientName,
+                                            doctorName = selectedDoctor?.name ?: ""
+                                        )
+                                    }
+                                }
+                                scope.launch { sheetState.show() }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(WindowInsets.navigationBars.asPaddingValues())
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF00BCD4),
+                            contentColor = Color.White
+                        ),
+                        enabled = state is RegisterNewOpdState.AvailabilityLoaded && (state as RegisterNewOpdState.AvailabilityLoaded).availability?.available == true
+                    ) {
+                        Text("Book Appointment")
+                    }
                 }
-                Button(
-                    onClick = {
-                        if (state is RegisterNewOpdState.AvailabilityLoaded && (state as RegisterNewOpdState.AvailabilityLoaded).availability?.available == true) {
-                            sheetContent = {
-                                TermsSheet(
-                                    total = (state as RegisterNewOpdState.AvailabilityLoaded).availability?.docCharges?.toDoubleOrNull()
-                                        ?.plus(
-                                            (state as RegisterNewOpdState.AvailabilityLoaded).availability?.docOnlineCharges?.toDoubleOrNull()
-                                                ?: 0.0
-                                        ) ?: 0.0
-                                ) {
-                                    viewModel.initiatePayment(
-                                        mobileNumber = mobileNumber,
-                                        amount = it.toString(),
-                                        patientId = patientId,
-                                        patientName = patientName,
-                                        doctorName = selectedDoctor?.name ?: ""
+            }
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+            ) {
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = lerp(
+                                start = Color.White,
+                                stop = ColorPrimary,
+                                fraction = 0.1f // means 20% toward your color, 80% white = light tint
+                            )
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(text = patientName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(text = "PID: $patientId", fontSize = 14.sp, color = Color.Gray)
+                        }
+                    }
+                }
+                item {
+                    // Custom Box for Specialization
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable {
+                                sheetContent = {
+                                    SpecializationSheet(selectedSpecialization) { spec ->
+                                        selectedSpecialization = spec
+                                        viewModel.fetchDoctors(spec)
+                                        scope.launch { sheetState.hide() }
+                                    }
+                                }
+                                scope.launch {
+                                    if (state !is RegisterNewOpdState.SpecializationsLoaded) {
+                                        viewModel.fetchSpecializations()
+                                    }
+                                    sheetState.show()
+                                }
+                            }
+                            .padding(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(end = 40.dp)) {
+                            Text(
+                                text = if (selectedSpecialization.isEmpty()) "Specialization" else selectedSpecialization,
+                                color = if (selectedSpecialization.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Custom Box for Doctor
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable(
+                                enabled = selectedSpecialization.isNotEmpty()
+                            ) {
+                                if (selectedSpecialization.isNotEmpty()) {
+                                    sheetContent = {
+                                        DoctorSheet(selectedDoctor) { doctor ->
+                                            selectedDoctor = doctor
+                                            viewModel.fetchSlots(doctor?.id ?: "")
+                                            scope.launch { sheetState.hide() }
+                                        }
+                                    }
+                                    scope.launch {
+                                        sheetState.show()
+                                    }
+                                }
+                            }
+                            .padding(12.dp)
+                    ) {
+                        val isEnabled = selectedSpecialization.isNotEmpty()
+                        Column(modifier = Modifier.padding(end = 40.dp)) {
+                            Text(
+                                text = selectedDoctor?.name ?: "Doctor",
+                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                ) else MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp),
+                            tint = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Custom Box for Slots
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable(
+                                enabled = selectedDoctor != null
+                            ) {
+                                if (selectedDoctor != null) {
+                                    sheetContent = {
+                                        SlotSheet(selectedSlot) { slot ->
+                                            selectedSlot = slot
+                                            viewModel.fetchAvailability(selectedDoctor!!.id, slot)
+                                            scope.launch { sheetState.hide() }
+                                        }
+                                    }
+                                    scope.launch {
+                                        sheetState.show()
+                                    }
+                                }
+                            }
+                            .padding(12.dp)
+                    ) {
+                        val isEnabled = selectedDoctor != null
+                        Column(modifier = Modifier.padding(end = 40.dp)) {
+                            Text(
+                                text = if (selectedSlot.isEmpty()) "Slots" else selectedSlot,
+                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                ) else MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown",
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 8.dp),
+                            tint = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                item {
+                    when (state) {
+                        is RegisterNewOpdState.Loading -> CircularProgressIndicator(
+                            color = Color(
+                                0xFF00BCD4
+                            )
+                        )
+
+                        is RegisterNewOpdState.Error -> Text(
+                            text = (state as RegisterNewOpdState.Error).message,
+                            color = Color.Red,
+                            fontSize = 16.sp
+                        )
+
+                        is RegisterNewOpdState.AvailabilityLoaded -> {
+                            val avail =
+                                (state as RegisterNewOpdState.AvailabilityLoaded).availability
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "Appointment Details",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Room", fontSize = 16.sp)
+                                        Text(selectedDoctor?.opdRoom ?: "", fontSize = 16.sp)
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("OPD Charges", fontSize = 16.sp)
+                                        Text("${avail?.docCharges ?: 0.0}$", fontSize = 16.sp)
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Online Charges", fontSize = 16.sp)
+                                        Text("${avail?.docOnlineCharges ?: 0.0}$", fontSize = 16.sp)
+                                    }
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Expected Wait", fontSize = 16.sp)
+                                        Text(
+                                            "${avail?.approximateTime ?: "N/A"} minutes",
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                    Text(
+                                        text = if (avail?.available == true) "Available" else "Slots Full",
+                                        modifier = Modifier
+                                            .background(
+                                                if (avail?.available == true) Color.Green else Color.Red,
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                                        color = Color.White,
+                                        fontSize = 14.sp
                                     )
                                 }
                             }
                         }
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF00BCD4),
-                        contentColor = Color.White
-                    ),
-                    enabled = state is RegisterNewOpdState.AvailabilityLoaded && (state as RegisterNewOpdState.AvailabilityLoaded).availability?.available == true
-                ) {
-                    Text("Book Appointment")
+
+                        else -> {}
+                    }
+                }
+                item {
+                    OutlinedButton(
+                        onClick = {
+                            if (selectedSlot.isNotEmpty()) viewModel.fetchAvailability(
+                                selectedDoctor?.id ?: "",
+                                selectedSlot
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, bottom = 80.dp),
+                        enabled = selectedSlot.isNotEmpty()
+                    ) {
+                        Text("Check Availability", color = Color(0xFF00BCD4))
+                    }
+                }
+            }
+
+            if (state is RegisterNewOpdState.PaymentInitiated) {
+                LaunchedEffect(Unit) {
+                    onPaymentInitiated((state as RegisterNewOpdState.PaymentInitiated).payment!!)
+                }
+            }
+            if (state is RegisterNewOpdState.Success) {
+                LaunchedEffect(Unit) {
+                    onSuccess((state as RegisterNewOpdState.Success).response)
                 }
             }
         }
     }
 
-    if (state is RegisterNewOpdState.PaymentInitiated) {
-        LaunchedEffect(Unit) {
-            onPaymentInitiated((state as RegisterNewOpdState.PaymentInitiated).payment!!)
-        }
-    }
-    if (state is RegisterNewOpdState.Success) {
-        LaunchedEffect(Unit) {
-            onSuccess((state as RegisterNewOpdState.Success).response)
-        }
-    }
 }
 
 @Composable
 fun SpecializationSheet(selected: String, onSelect: (String) -> Unit) {
     val state by koinViewModel<RegisterNewOpdViewModel>().state.collectAsState()
+    var searchQuery by remember { mutableStateOf("") }
+
     Column(modifier = Modifier.padding(16.dp)) {
-        OutlinedTextField(
-            value = "",
-            onValueChange = { },
+        // Search bar without borders
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
             placeholder = { Text("Search Specialization") },
-            modifier = Modifier.fillMaxWidth(),
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") }
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, RoundedCornerShape(8.dp)),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            ),
+            singleLine = true
         )
-        LazyColumn {
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(modifier = Modifier.fillMaxSize()) {
             when (state) {
                 is RegisterNewOpdState.SpecializationsLoaded -> {
                     val specs = (state as RegisterNewOpdState.SpecializationsLoaded).specializations
-                    items(specs) { spec ->
+                    val filteredSpecs = specs.filter {
+                        it.data.contains(searchQuery, ignoreCase = true)
+                    }
+                    if (filteredSpecs.isEmpty()) {
                         Text(
-                            text = spec.data,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelect(spec.data) }
-                                .padding(8.dp),
-                            color = if (spec.data == selected) Color(0xFF00BCD4) else Color.Black,
+                            text = "No specializations found",
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color.Gray,
                             fontSize = 16.sp
                         )
+                    } else {
+                        LazyColumn {
+                            items(filteredSpecs) { spec ->
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                        .clickable { onSelect(spec.data) },
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (spec.data == selected) Color(0xFF00BCD4).copy(
+                                            alpha = 0.1f
+                                        ) else Color.White
+                                    ),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        text = spec.data,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        color = if (spec.data == selected) Color(0xFF00BCD4) else Color.Black,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
-                else -> item { CircularProgressIndicator(color = Color(0xFF00BCD4)) }
+                else -> {
+                    CircularProgressIndicator(
+                        color = Color(0xFF00BCD4),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
             }
         }
     }

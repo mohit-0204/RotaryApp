@@ -75,7 +75,7 @@ fun RegistrationScreen(
                         "Register New Patient",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color.Black
+                        color = ColorPrimary
                     )
                 },
                 navigationIcon = {
