@@ -288,6 +288,18 @@ fun RegisterNewOpdScreen(
         println("Fetching specializations...")
         viewModel.fetchSpecializations()
     }
+    LaunchedEffect(selectedSpecialization){
+        if(selectedSpecialization.isNotEmpty()){
+            viewModel.fetchDoctors(selectedSpecialization)
+        }
+        selectedDoctor = null
+    }
+    LaunchedEffect(selectedDoctor){
+        if(selectedDoctor != null){
+            viewModel.fetchSlots(selectedDoctor!!.id)
+        }
+        selectedSlot = ""
+    }
 
     Box(Modifier.fillMaxSize()) {
         if (sheetState.isVisible) {
@@ -420,7 +432,7 @@ fun RegisterNewOpdScreen(
                     ) {
                         Column(modifier = Modifier.padding(end = 40.dp)) {
                             Text(
-                                text = if (selectedSpecialization.isEmpty()) "Specialization" else selectedSpecialization,
+                                text = selectedSpecialization.ifEmpty { "Specialization" },
                                 color = if (selectedSpecialization.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
@@ -464,7 +476,7 @@ fun RegisterNewOpdScreen(
                         val isEnabled = selectedSpecialization.isNotEmpty()
                         Column(modifier = Modifier.padding(end = 40.dp)) {
                             Text(
-                                text = selectedDoctor?.name ?: "Doctor",
+                                text = selectedDoctor?.name ?: "Select Doctor",
                                 color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(
                                     alpha = 0.38f
                                 ) else MaterialTheme.colorScheme.onSurface,
