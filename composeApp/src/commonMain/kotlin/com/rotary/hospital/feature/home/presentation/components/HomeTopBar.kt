@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -58,8 +60,8 @@ fun HomeTopBar() {
                 color = ColorPrimary
             )
             Icon(
-                imageVector = Icons.Default.Share,
-                contentDescription = "Share",
+                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                contentDescription = "logout",
                 tint = ColorPrimary
             )
         }

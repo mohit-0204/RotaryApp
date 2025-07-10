@@ -39,7 +39,7 @@ data class SlotDto(
 
 @Serializable
 data class AvailabilityDto(
-    @SerialName("doc_charges") val docCharges: String? = null,
+    @SerialName("doc_charges") val docCharges: Int,
     @SerialName("doc_online_charges") val docOnlineCharges: String? = null,
     @SerialName("doc_time_from") val docTimeFrom: String? = null,
     @SerialName("doc_time_to") val docTimeTo: String? = null,
@@ -65,10 +65,10 @@ data class LeaveDto(
 
 @Serializable
 data class PaymentRequestDto(
-    @SerialName("api_endpoint") val apiEndPoint: String? = null,
-    @SerialName("payload_base64") val payloadBase64: String? = null,
+    @SerialName("apiEndPoint") val apiEndPoint: String? = null,
+    @SerialName("payloadBase64") val payloadBase64: String? = null,
     @SerialName("checksum") val checksum: String? = null,
-    @SerialName("merchant_transaction_id") val merchantTransactionId: String? = null
+    @SerialName("merchantTransactionId") val merchantTransactionId: String? = null
 )
 
 @Serializable

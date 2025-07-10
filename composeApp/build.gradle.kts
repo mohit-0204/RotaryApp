@@ -41,6 +41,8 @@ kotlin {
             // for di in android
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
+            // PhonePe sdk
+            implementation(libs.phonePe.intentsdk.android)
 
         }
         commonMain.dependencies {

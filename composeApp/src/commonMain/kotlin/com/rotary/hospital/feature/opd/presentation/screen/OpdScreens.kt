@@ -344,11 +344,13 @@ fun RegisterNewOpdScreen(
                             if (state is RegisterNewOpdState.AvailabilityLoaded && (state as RegisterNewOpdState.AvailabilityLoaded).availability?.available == true) {
                                 sheetContent = {
                                     TermsSheet(
-                                        total = (state as RegisterNewOpdState.AvailabilityLoaded).availability?.docCharges?.toDoubleOrNull()
+                                        total = 20.0
+                                            /* todo checkout problem
+                                            (state as RegisterNewOpdState.AvailabilityLoaded).availability?.docCharges?.toDoubleOrNull()
                                             ?.plus(
                                                 (state as RegisterNewOpdState.AvailabilityLoaded).availability?.docOnlineCharges?.toDoubleOrNull()
                                                     ?: 0.0
-                                            ) ?: 0.0
+                                            ) ?: 0.0*/
                                     ) {
                                         viewModel.initiatePayment(
                                             mobileNumber = mobileNumber,

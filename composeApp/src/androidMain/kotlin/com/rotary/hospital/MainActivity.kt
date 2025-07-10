@@ -1,10 +1,13 @@
 package com.rotary.hospital
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,27 +34,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.rotary.hospital.app.App
+import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.GrayWhite
 import com.rotary.hospital.core.theme.White
 
 class MainActivity : ComponentActivity() {
+    private lateinit var paymentResultLauncher: ActivityResultLauncher<Intent>
+    private lateinit var paymentHandler: PaymentHandler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
                 android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT
-            ), navigationBarStyle = SystemBarStyle.light(
+            ),
+            navigationBarStyle = SystemBarStyle.light(
                 android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT
             )
         )
+        paymentResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            paymentHandler.handleActivityResult(result.resultCode, result.data)
+        }
+        paymentHandler = providePaymentHandler()
         setContent {
-            App()
+            App(paymentHandler = paymentHandler)
         }
     }
-}
 
+    private fun providePaymentHandler(): PaymentHandler {
+        return PaymentHandler(this, paymentResultLauncher)
+    }
+}
 
 /*
 @Preview(showBackground = true)

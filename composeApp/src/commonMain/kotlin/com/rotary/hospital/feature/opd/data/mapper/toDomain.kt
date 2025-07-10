@@ -36,7 +36,7 @@ fun SlotDto.toDomain(): Slot = Slot(
 )
 
 fun AvailabilityDto.toDomain(): Availability = Availability(
-    docCharges = docCharges ?: "Unknown",
+    docCharges = docCharges.toString(),
     docOnlineCharges = docOnlineCharges ?: "Unknown",
     docTimeFrom = docTimeFrom ?: "Unknown",
     docTimeTo = docTimeTo ?: "Unknown",

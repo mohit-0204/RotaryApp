@@ -20,6 +20,7 @@ import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.data.preferences.PreferencesManager
+import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.auth.presentation.screen.LoginScreen
 import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScreen
@@ -41,17 +42,19 @@ import org.koin.compose.koinInject
 
 @Composable
 @Preview
-fun App() {
+fun App(paymentHandler: PaymentHandler?) {
+    var paymentResult by remember { mutableStateOf("No payment initiated") }
     AppTheme {
         val preferences: PreferencesManager = koinInject()
         val navController = rememberNavController()
         var mobileNumber by remember { mutableStateOf("") }
+        var patientName by remember { mutableStateOf("") }
         // Global snackbar setup
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
-//            val patientId = preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
+            patientName = preferences.getString(PreferenceKeys.PATIENT_NAME, "").first()
             mobileNumber = preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
             Logger.d("App", "Mobile number loaded: $mobileNumber")
             toastController.bind(snackbarHostState, scope)
@@ -65,8 +68,8 @@ fun App() {
         ) {
             composable<AppRoute.Splash> {
                 SplashScreen {
-                    if (mobileNumber.isNotEmpty()) {
-                        navController.navigate(AppRoute.Home(mobileNumber)) {
+                    if (patientName.isNotEmpty()) {
+                        navController.navigate(AppRoute.Home(patientName)) {
                             popUpTo<AppRoute.Splash> { inclusive = true }
                         }
                     } else
@@ -214,8 +217,10 @@ fun App() {
                 val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
                 RegisterNewOpdScreen(
                     onPaymentInitiated = { payment ->
-                        // TODO: Handle PhonePe payment initiation
-                        navController.navigate(AppRoute.OpdPaymentPending("Processing payment..."))
+                        paymentHandler?.startPayment(payment.payloadBase64, payment.checksum, payment.apiEndPoint,
+                            onResult = {
+                                Logger.d("TAG", "Payment result: $it")
+                            })
                     },
                     onSuccess = { response ->
 //                        navController.navigate(AppRoute.OpdPaymentSuccess(response.transactionId))

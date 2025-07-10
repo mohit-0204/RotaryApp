@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -106,26 +107,47 @@ fun HomeScreen(
     AppTheme {
         Scaffold(
             topBar = { HomeTopBar() },
-            snackbarHost = { SnackbarHost(snackbarHostState)},
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 NavigationBar(containerColor = Color.White) {
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home") },
                         selected = true,
-                        onClick = { }
+                        onClick = { },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = ColorPrimary,
+                            selectedTextColor = ColorPrimary,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                            indicatorColor = ColorPrimary.copy(alpha = 0.1f)
+                        )
                     )
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.DateRange, contentDescription = "Calendar") },
                         label = { Text("Calendar") },
                         selected = false,
-                        onClick = { }
+                        onClick = { },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = ColorPrimary,
+                            selectedTextColor = ColorPrimary,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                            indicatorColor = ColorPrimary.copy(alpha = 0.1f)
+                        )
                     )
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile") },
                         selected = false,
-                        onClick = { }
+                        onClick = { },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = ColorPrimary,
+                            selectedTextColor = ColorPrimary,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                            indicatorColor = ColorPrimary.copy(alpha = 0.1f)
+                        )
                     )
                 }
             }
