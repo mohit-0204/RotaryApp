@@ -9,6 +9,6 @@ expect class PaymentHandler {
         base64Body: String,
         checksum: String,
         apiEndPoint: String,
-        onResult: (String) -> Unit
+        onResult: (PaymentResult) -> Unit
     )
 }

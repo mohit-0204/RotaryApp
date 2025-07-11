@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import com.phonepe.intent.sdk.api.B2BPGRequestBuilder
 import com.phonepe.intent.sdk.api.PhonePe
 import com.phonepe.intent.sdk.api.PhonePeInitException
@@ -15,10 +14,9 @@ actual class PaymentHandler(
     private val activity: ComponentActivity,
     private val paymentResultLauncher: ActivityResultLauncher<Intent>
 ) {
-    private var onResultCallback: ((String) -> Unit)? = null
+    private var onResultCallback: ((PaymentResult) -> Unit)? = null
 
     init {
-        Logger.d("PaymentHandler", "Initialized")
         try {
             PhonePe.init(
                 activity.applicationContext,
@@ -27,24 +25,31 @@ actual class PaymentHandler(
                 "PGTESTPAYUAT86",
                 null
             )
+            Logger.d("PaymentHandler", "PhonePe SDK initialized")
         } catch (e: PhonePeInitException) {
-            e.printStackTrace()
+            Logger.e("PaymentHandler", "Init failed: ${e.message}")
         }
     }
+
     fun handleActivityResult(resultCode: Int, data: Intent?) {
-        if (resultCode == Activity.RESULT_OK) {
-            val response = data?.getStringExtra("response") ?: "No response"
-            onResultCallback?.invoke("Payment Success: $response")
-        } else {
-            onResultCallback?.invoke("Payment Failed or Cancelled")
+        val result = when (resultCode) {
+            Activity.RESULT_OK -> {
+                val response = data?.getStringExtra("response") ?: ""
+                PaymentResult.Success(response)
+            }
+            Activity.RESULT_CANCELED -> PaymentResult.Cancelled
+            else -> PaymentResult.Failure("Unknown result code: $resultCode")
         }
+
+        onResultCallback?.invoke(result)
         onResultCallback = null
     }
+
     actual fun startPayment(
         base64Body: String,
         checksum: String,
         apiEndPoint: String,
-        onResult: (String) -> Unit
+        onResult: (PaymentResult) -> Unit
     ) {
         try {
             val b2BPGRequest = B2BPGRequestBuilder()
@@ -56,16 +61,17 @@ actual class PaymentHandler(
             val intent = PhonePe.getImplicitIntent(
                 activity,
                 b2BPGRequest,
-                "com.phonepe.simulator" // Target PhonePe simulator app
-//                "com.phonepe.simulator" // Target PhonePe app
+                "com.phonepe.simulator" // Target PhonePe simulator app (change in real world)
             )
-            onResultCallback = onResult
-            if (intent != null)
+
+            if (intent != null) {
+                onResultCallback = onResult
                 paymentResultLauncher.launch(intent)
-            else
-                onResult("Error Occurred")
-        } catch (e: PhonePeInitException) {
-            onResult("Error initiating payment: ${e.message}")
+            } else {
+                onResult(PaymentResult.Failure("Intent is null"))
+            }
+        } catch (e: Exception) {
+            onResult(PaymentResult.Failure("Exception: ${e.message ?: "Unknown error"}"))
         }
     }
 }
