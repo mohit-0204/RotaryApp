@@ -30,7 +30,9 @@ class RegisteredOpdsViewModel(
             _state.value = RegisteredOpdsState.Loading
             getBookedOpdsUseCase(mobileNumber).fold(
                 onSuccess = { opds -> _state.value = RegisteredOpdsState.Success(opds) },
-                onFailure = { error -> _state.value = RegisteredOpdsState.Error(error.message ?: "Unknown error") }
+                onFailure = { error ->
+                    _state.value = RegisteredOpdsState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -55,7 +57,9 @@ class OpdPatientListViewModel(
             _state.value = OpdPatientListState.Loading
             getRegisteredPatientsUseCase(mobileNumber).fold(
                 onSuccess = { patients -> _state.value = OpdPatientListState.Success(patients) },
-                onFailure = { error -> _state.value = OpdPatientListState.Error(error.message ?: "Unknown error") }
+                onFailure = { error ->
+                    _state.value = OpdPatientListState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -79,12 +83,19 @@ class RegisterNewOpdViewModel(
     private val _state = MutableStateFlow<RegisterNewOpdState>(RegisterNewOpdState.Idle)
     val state: StateFlow<RegisterNewOpdState> = _state.asStateFlow()
 
+    var selectedAvailability: Availability? = null
+        private set
+
     fun fetchSpecializations() {
         viewModelScope.launch {
             _state.value = RegisterNewOpdState.Loading
             getSpecializationsUseCase().fold(
-                onSuccess = { specs -> _state.value = RegisterNewOpdState.SpecializationsLoaded(specs) },
-                onFailure = { error -> _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error") }
+                onSuccess = { specs ->
+                    _state.value = RegisterNewOpdState.SpecializationsLoaded(specs)
+                },
+                onFailure = { error ->
+                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -93,8 +104,12 @@ class RegisterNewOpdViewModel(
         viewModelScope.launch {
             _state.value = RegisterNewOpdState.Loading
             getDoctorsUseCase(specialization).fold(
-                onSuccess = { doctors -> _state.value = RegisterNewOpdState.DoctorsLoaded(doctors) },
-                onFailure = { error -> _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error") }
+                onSuccess = { doctors ->
+                    _state.value = RegisterNewOpdState.DoctorsLoaded(doctors)
+                },
+                onFailure = { error ->
+                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -104,7 +119,9 @@ class RegisterNewOpdViewModel(
             _state.value = RegisterNewOpdState.Loading
             getSlotsUseCase(doctorId).fold(
                 onSuccess = { slots -> _state.value = RegisterNewOpdState.SlotsLoaded(slots) },
-                onFailure = { error -> _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error") }
+                onFailure = { error ->
+                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -113,18 +130,39 @@ class RegisterNewOpdViewModel(
         viewModelScope.launch {
             _state.value = RegisterNewOpdState.Loading
             getAvailabilityUseCase(doctorId, slotId).fold(
-                onSuccess = { availability -> _state.value = RegisterNewOpdState.AvailabilityLoaded(availability) },
-                onFailure = { error -> _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error") }
+                onSuccess = { availability ->
+                    selectedAvailability = availability
+                    _state.value = RegisterNewOpdState.AvailabilityLoaded(availability)
+                },
+                onFailure = { error ->
+                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
 
-    fun initiatePayment(mobileNumber: String, amount: String, patientId: String, patientName: String, doctorName: String) {
+    fun initiatePayment(
+        mobileNumber: String,
+        amount: String,
+        patientId: String,
+        patientName: String,
+        doctorName: String
+    ) {
         viewModelScope.launch {
             _state.value = RegisterNewOpdState.Loading
-            getPaymentReferenceUseCase(mobileNumber, amount, patientId, patientName, doctorName).fold(
-                onSuccess = { payment -> _state.value = RegisterNewOpdState.PaymentInitiated(payment) },
-                onFailure = { error -> _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error") }
+            getPaymentReferenceUseCase(
+                mobileNumber,
+                amount,
+                patientId,
+                patientName,
+                doctorName
+            ).fold(
+                onSuccess = { payment ->
+                    _state.value = RegisterNewOpdState.PaymentInitiated(payment)
+                },
+                onFailure = { error ->
+                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -148,11 +186,25 @@ class RegisterNewOpdViewModel(
         viewModelScope.launch {
             _state.value = RegisterNewOpdState.Loading
             insertOpdUseCase(
-                patientId, patientName, mobileNumber, doctorName, doctorId, opdAmount,
-                durationPerPatient, docTimeFrom, opdType, transactionId, paymentId, orderId, status, message
+                patientId,
+                patientName,
+                mobileNumber,
+                doctorName,
+                doctorId,
+                opdAmount,
+                durationPerPatient,
+                docTimeFrom,
+                opdType,
+                transactionId,
+                paymentId,
+                orderId,
+                status,
+                message
             ).fold(
                 onSuccess = { response -> _state.value = RegisterNewOpdState.Success(response) },
-                onFailure = { error -> _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error") }
+                onFailure = { error ->
+                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -161,7 +213,9 @@ class RegisterNewOpdViewModel(
 sealed interface RegisterNewOpdState {
     data object Idle : RegisterNewOpdState
     data object Loading : RegisterNewOpdState
-    data class SpecializationsLoaded(val specializations: List<Specialization>) : RegisterNewOpdState
+    data class SpecializationsLoaded(val specializations: List<Specialization>) :
+        RegisterNewOpdState
+
     data class DoctorsLoaded(val doctors: List<Doctor>) : RegisterNewOpdState
     data class SlotsLoaded(val slots: List<Slot>) : RegisterNewOpdState
     data class AvailabilityLoaded(val availability: Availability?) : RegisterNewOpdState
@@ -180,8 +234,12 @@ class DoctorAvailabilityViewModel(
         viewModelScope.launch {
             _state.value = DoctorAvailabilityState.Loading
             getDoctorAvailabilityUseCase(doctorId).fold(
-                onSuccess = { (availability, leaves) -> _state.value = DoctorAvailabilityState.Success(availability, leaves) },
-                onFailure = { error -> _state.value = DoctorAvailabilityState.Error(error.message ?: "Unknown error") }
+                onSuccess = { (availability, leaves) ->
+                    _state.value = DoctorAvailabilityState.Success(availability, leaves)
+                },
+                onFailure = { error ->
+                    _state.value = DoctorAvailabilityState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
@@ -190,7 +248,9 @@ class DoctorAvailabilityViewModel(
 sealed interface DoctorAvailabilityState {
     data object Idle : DoctorAvailabilityState
     data object Loading : DoctorAvailabilityState
-    data class Success(val availability: List<DoctorAvailability>, val leaves: List<Leave>) : DoctorAvailabilityState
+    data class Success(val availability: List<DoctorAvailability>, val leaves: List<Leave>) :
+        DoctorAvailabilityState
+
     data class Error(val message: String) : DoctorAvailabilityState
 }
 
@@ -204,18 +264,29 @@ class OpdPaymentSuccessViewModel(
         viewModelScope.launch {
             _state.value = OpdPaymentSuccessState.Loading
             getPaymentStatusUseCase(merchantTransactionId).fold(
-                onSuccess = { status -> _state.value = OpdPaymentSuccessState.Success(status) },
-                onFailure = { error -> _state.value = OpdPaymentSuccessState.Error(error.message ?: "Unknown error") }
+                onSuccess = { status ->
+                    _state.value = when {
+                        status.isSuccess -> OpdPaymentSuccessState.Success(status)
+                        status.isPending -> OpdPaymentSuccessState.Pending(status)
+                        else -> OpdPaymentSuccessState.Error("Payment failed: ${status.message}")
+                    }
+                },
+                onFailure = { error ->
+                    _state.value = OpdPaymentSuccessState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }
 }
 
+
 sealed interface OpdPaymentSuccessState {
     data object Idle : OpdPaymentSuccessState
     data object Loading : OpdPaymentSuccessState
     data class Success(val paymentStatus: PaymentStatus) : OpdPaymentSuccessState
+    data class Pending(val paymentStatus: PaymentStatus) : OpdPaymentSuccessState
     data class Error(val message: String) : OpdPaymentSuccessState
+
 }
 
 class OpdPaymentPendingViewModel : ViewModel() {
@@ -264,7 +335,9 @@ class SelectedOpdDetailsViewModel(
                         SelectedOpdDetailsState.Error("OPD not found")
                     }
                 },
-                onFailure = { error -> _state.value = SelectedOpdDetailsState.Error(error.message ?: "Unknown error") }
+                onFailure = { error ->
+                    _state.value = SelectedOpdDetailsState.Error(error.message ?: "Unknown error")
+                }
             )
         }
     }

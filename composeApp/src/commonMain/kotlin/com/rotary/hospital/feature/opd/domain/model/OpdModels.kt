@@ -80,7 +80,14 @@ data class PaymentStatus(
     val messageCode: String,
     val message: String,
     val transactionId: String
-)
+){
+    val isSuccess: Boolean
+        get() = response == "true" && messageCode == "PAYMENT_SUCCESS"
+    val isPending: Boolean
+        get() = messageCode == "PAYMENT_PENDING"
+    val isFailure: Boolean
+        get() = !isSuccess && !isPending
+}
 
 @Serializable
 data class InsertOpdResponse(

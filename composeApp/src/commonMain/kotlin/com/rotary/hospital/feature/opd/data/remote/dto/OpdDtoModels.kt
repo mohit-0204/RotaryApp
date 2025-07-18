@@ -76,15 +76,15 @@ data class PaymentStatusDto(
     @SerialName("response") val response: String? = null,
     @SerialName("message_code") val messageCode: String? = null,
     @SerialName("message") val message: String? = null,
-    @SerialName("transaction_id") val transactionId: String? = null
+    @SerialName("transactionId") val transactionId: String? = null
 )
 
 @Serializable
 data class InsertOpdResponseDto(
     @SerialName("response") val response: Boolean? = null,
     @SerialName("message") val message: String? = null,
-    @SerialName("opd_id") val opdId: String? = null,
+    @SerialName("opd_id") val opdId: Int? = null,
     @SerialName("opd_date") val opdDate: String? = null,
-    @SerialName("token_number") val tokenNumber: String? = null,
+    @SerialName("token_number") val tokenNumber: Int? = null,
     @SerialName("estimated_time") val estimatedTime: String? = null
 )

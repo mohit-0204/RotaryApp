@@ -36,6 +36,7 @@ import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScr
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
@@ -83,37 +84,42 @@ fun App(paymentHandler: PaymentHandler?) {
                 HomeScreen(
                     route.patientName,
                     onItemClick = { action ->
-                        when (action) {
-                            HomeAction.BookOPD -> {
-                                if (mobileNumber.isNotBlank()) {
-                                    navController.navigate(AppRoute.RegisteredOpds(mobileNumber))
-                                } else {
-                                    Logger.e("HomeScreen", "Mobile number not available")
+                        scope.launch {
+                            val currentMobile = mobileNumber.ifBlank {
+                                preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
+                            }
+                            when (action) {
+                                HomeAction.BookOPD -> {
+                                    if (currentMobile.isNotBlank()) {
+                                        navController.navigate(AppRoute.RegisteredOpds(currentMobile))
+                                    } else {
+                                        Logger.e("HomeScreen", "Mobile number not available")
+                                    }
                                 }
-                            }
 
-                            HomeAction.ContactUs -> {
-                                // todo yet to be implemented
-                            }
+                                HomeAction.ContactUs -> {
+                                    // todo yet to be implemented
+                                }
 
-                            HomeAction.ManageMedicineReminders -> {
-                                // todo yet to be implemented
-                            }
+                                HomeAction.ManageMedicineReminders -> {
+                                    // todo yet to be implemented
+                                }
 
-                            HomeAction.OpenSettings -> {
-                                // todo yet to be implemented
-                            }
+                                HomeAction.OpenSettings -> {
+                                    // todo yet to be implemented
+                                }
 
-                            HomeAction.ViewLabTests -> {
-                                // todo yet to be implemented
-                            }
+                                HomeAction.ViewLabTests -> {
+                                    // todo yet to be implemented
+                                }
 
-                            HomeAction.ViewPatientProfile -> {
-                                // todo yet to be implemented
-                            }
+                                HomeAction.ViewPatientProfile -> {
+                                    // todo yet to be implemented
+                                }
 
-                            HomeAction.ViewTerms -> {
-                                // todo yet to be implemented
+                                HomeAction.ViewTerms -> {
+                                    // todo yet to be implemented
+                                }
                             }
                         }
 
@@ -216,14 +222,9 @@ fun App(paymentHandler: PaymentHandler?) {
             composable<AppRoute.RegisterNewOpd> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
                 RegisterNewOpdScreen(
-                    onPaymentInitiated = { payment ->
-                        paymentHandler?.startPayment(payment.payloadBase64, payment.checksum, payment.apiEndPoint,
-                            onResult = {
-                                Logger.d("TAG", "Payment result: $it")
-                            })
-                    },
+                    paymentHandler = paymentHandler,
                     onSuccess = { response ->
-//                        navController.navigate(AppRoute.OpdPaymentSuccess(response.transactionId))
+                        navController.navigate(AppRoute.OpdPaymentSuccess(response.opdId?:""))
                     },
                     onBack = { navController.popBackStack() },
                     patientId = route.patientId,

@@ -38,6 +38,8 @@ import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.GrayWhite
 import com.rotary.hospital.core.theme.White
+import org.koin.android.ext.android.get
+import org.koin.core.parameter.parametersOf
 
 class MainActivity : ComponentActivity() {
     private lateinit var paymentResultLauncher: ActivityResultLauncher<Intent>
@@ -57,14 +59,11 @@ class MainActivity : ComponentActivity() {
         paymentResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             paymentHandler.handleActivityResult(result.resultCode, result.data)
         }
-        paymentHandler = providePaymentHandler()
+        // Get the handler from Koin with params
+        paymentHandler = get { parametersOf(this, paymentResultLauncher) }
         setContent {
             App(paymentHandler = paymentHandler)
         }
-    }
-
-    private fun providePaymentHandler(): PaymentHandler {
-        return PaymentHandler(this, paymentResultLauncher)
     }
 }
 

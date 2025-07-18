@@ -75,8 +75,8 @@ fun PaymentStatusDto.toDomain(): PaymentStatus = PaymentStatus(
 fun InsertOpdResponseDto.toDomain(): InsertOpdResponse = InsertOpdResponse(
     response = response ?: false,
     message = message ?: "Unknown",
-    opdId = opdId,
+    opdId = opdId.toString(),
     opdDate = opdDate,
-    tokenNumber = tokenNumber,
+    tokenNumber = tokenNumber.toString(),
     estimatedTime = estimatedTime
 )

@@ -18,11 +18,12 @@ actual class PaymentHandler(
 
     init {
         try {
+
             PhonePe.init(
                 activity.applicationContext,
                 PhonePeEnvironment.SANDBOX, // Use RELEASE for production & SANDBOX for testing
 //                "M220RUD42CZ5M",
-                "PGTESTPAYUAT86",
+                "PHONEPEPGUAT8",
                 null
             )
             Logger.d("PaymentHandler", "PhonePe SDK initialized")
