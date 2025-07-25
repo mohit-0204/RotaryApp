@@ -17,6 +17,7 @@ import com.rotary.hospital.feature.opd.domain.usecase.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegisteredOpdsViewModel(
@@ -80,21 +81,19 @@ class RegisterNewOpdViewModel(
     private val getPaymentReferenceUseCase: GetPaymentReferenceUseCase,
     private val insertOpdUseCase: InsertOpdUseCase
 ) : ViewModel() {
-    private val _state = MutableStateFlow<RegisterNewOpdState>(RegisterNewOpdState.Idle)
-    val state: StateFlow<RegisterNewOpdState> = _state.asStateFlow()
 
-    var selectedAvailability: Availability? = null
-        private set
+    private val _state = MutableStateFlow(RegisterNewOpdUiState())
+    val state: StateFlow<RegisterNewOpdUiState> = _state.asStateFlow()
 
     fun fetchSpecializations() {
         viewModelScope.launch {
-            _state.value = RegisterNewOpdState.Loading
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             getSpecializationsUseCase().fold(
                 onSuccess = { specs ->
-                    _state.value = RegisterNewOpdState.SpecializationsLoaded(specs)
+                    _state.update { it.copy(isLoading = false, specializations = specs) }
                 },
                 onFailure = { error ->
-                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                    _state.update { it.copy(isLoading = false, errorMessage = error.message) }
                 }
             )
         }
@@ -102,13 +101,13 @@ class RegisterNewOpdViewModel(
 
     fun fetchDoctors(specialization: String) {
         viewModelScope.launch {
-            _state.value = RegisterNewOpdState.Loading
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             getDoctorsUseCase(specialization).fold(
                 onSuccess = { doctors ->
-                    _state.value = RegisterNewOpdState.DoctorsLoaded(doctors)
+                    _state.update { it.copy(isLoading = false, doctors = doctors) }
                 },
                 onFailure = { error ->
-                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                    _state.update { it.copy(isLoading = false, errorMessage = error.message) }
                 }
             )
         }
@@ -116,11 +115,13 @@ class RegisterNewOpdViewModel(
 
     fun fetchSlots(doctorId: String) {
         viewModelScope.launch {
-            _state.value = RegisterNewOpdState.Loading
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             getSlotsUseCase(doctorId).fold(
-                onSuccess = { slots -> _state.value = RegisterNewOpdState.SlotsLoaded(slots) },
+                onSuccess = { slots ->
+                    _state.update { it.copy(isLoading = false, slots = slots) }
+                },
                 onFailure = { error ->
-                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                    _state.update { it.copy(isLoading = false, errorMessage = error.message) }
                 }
             )
         }
@@ -128,14 +129,13 @@ class RegisterNewOpdViewModel(
 
     fun fetchAvailability(doctorId: String, slotId: String) {
         viewModelScope.launch {
-            _state.value = RegisterNewOpdState.Loading
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             getAvailabilityUseCase(doctorId, slotId).fold(
                 onSuccess = { availability ->
-                    selectedAvailability = availability
-                    _state.value = RegisterNewOpdState.AvailabilityLoaded(availability)
+                    _state.update { it.copy(isLoading = false, availability = availability) }
                 },
                 onFailure = { error ->
-                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                    _state.update { it.copy(isLoading = false, errorMessage = error.message) }
                 }
             )
         }
@@ -149,21 +149,16 @@ class RegisterNewOpdViewModel(
         doctorName: String
     ) {
         viewModelScope.launch {
-            _state.value = RegisterNewOpdState.Loading
-            getPaymentReferenceUseCase(
-                mobileNumber,
-                amount,
-                patientId,
-                patientName,
-                doctorName
-            ).fold(
-                onSuccess = { payment ->
-                    _state.value = RegisterNewOpdState.PaymentInitiated(payment)
-                },
-                onFailure = { error ->
-                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
-                }
-            )
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            getPaymentReferenceUseCase(mobileNumber, amount, patientId, patientName, doctorName)
+                .fold(
+                    onSuccess = { payment ->
+                        _state.update { it.copy(isLoading = false, payment = payment) }
+                    },
+                    onFailure = { error ->
+                        _state.update { it.copy(isLoading = false, errorMessage = error.message) }
+                    }
+                )
         }
     }
 
@@ -184,7 +179,7 @@ class RegisterNewOpdViewModel(
         message: String
     ) {
         viewModelScope.launch {
-            _state.value = RegisterNewOpdState.Loading
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
             insertOpdUseCase(
                 patientId,
                 patientName,
@@ -201,14 +196,21 @@ class RegisterNewOpdViewModel(
                 status,
                 message
             ).fold(
-                onSuccess = { response -> _state.value = RegisterNewOpdState.Success(response) },
+                onSuccess = { response ->
+                    _state.update { it.copy(isLoading = false, response = response) }
+                },
                 onFailure = { error ->
-                    _state.value = RegisterNewOpdState.Error(error.message ?: "Unknown error")
+                    _state.update { it.copy(isLoading = false, errorMessage = error.message) }
                 }
             )
         }
     }
+
+    fun clearResponse() {
+        _state.update { it.copy(response = null, payment = null) }
+    }
 }
+
 
 sealed interface RegisterNewOpdState {
     data object Idle : RegisterNewOpdState
@@ -223,6 +225,17 @@ sealed interface RegisterNewOpdState {
     data class Success(val response: InsertOpdResponse) : RegisterNewOpdState
     data class Error(val message: String) : RegisterNewOpdState
 }
+data class RegisterNewOpdUiState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val specializations: List<Specialization> = emptyList(),
+    val doctors: List<Doctor> = emptyList(),
+    val slots: List<Slot> = emptyList(),
+    val availability: Availability? = null,
+    val payment: PaymentRequest? = null,
+    val response: InsertOpdResponse? = null
+)
+
 
 class DoctorAvailabilityViewModel(
     private val getDoctorAvailabilityUseCase: GetDoctorAvailabilityUseCase
