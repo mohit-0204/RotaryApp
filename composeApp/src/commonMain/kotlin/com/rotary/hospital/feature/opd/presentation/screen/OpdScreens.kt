@@ -114,7 +114,6 @@ import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisteredOpdsScreen(
     onOpdClick: (String) -> Unit,

@@ -1,6 +1,7 @@
 package com.rotary.hospital.feature.patient.domain.repository
 
 import com.rotary.hospital.core.data.model.Patient
+import com.rotary.hospital.feature.patient.data.model.PatientProfileResponse
 import com.rotary.hospital.feature.patient.data.model.PatientRegistrationResponse
 
 interface PatientRepository {
@@ -19,4 +20,17 @@ interface PatientRepository {
     ): PatientRegistrationResponse
 
     suspend fun getRegisteredPatients(mobileNumber: String): List<Patient>
+    suspend fun getPatientProfile(patientId: String): PatientProfileResponse
+    suspend fun updatePatientProfile(mobileNumber: String,
+                                     patientId: String,
+                                     name: String,
+                                     guardianType: String,
+                                     guardianName: String,
+                                     gender: String,
+                                     age: String,
+                                     bloodGroup: String,
+                                     email: String,
+                                     address: String,
+                                     city: String,
+                                     state: String): Boolean
 }

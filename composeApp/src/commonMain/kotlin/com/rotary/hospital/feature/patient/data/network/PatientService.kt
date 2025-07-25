@@ -4,6 +4,7 @@ import com.rotary.hospital.core.network.ApiConstants
 import com.rotary.hospital.core.network.NetworkClient
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.feature.patient.data.model.PatientListResponse
+import com.rotary.hospital.feature.patient.data.model.PatientProfileResponse
 import com.rotary.hospital.feature.patient.data.model.PatientRegistrationResponse
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -48,8 +49,7 @@ class PatientService {
                     append("&city=$city")
                     append("&state=$state")
                     append("&close=close")
-                }
-            )
+                })
         }
         val responseBody = response.bodyAsText()
         Logger.d("PatientService", responseBody)
@@ -65,4 +65,56 @@ class PatientService {
         Logger.d("PatientService", responseBody)
         return json.decodeFromString(responseBody)
     }
+
+    suspend fun getPatientProfile(patientId: String): PatientProfileResponse {
+        val response = client.get(ApiConstants.BASE_URL + ApiConstants.PATIENT_DATA) {
+            parameter("action", "get_patient_profile")
+            parameter("patient_id", patientId)
+            parameter("close", "close")
+        }
+        val body = response.bodyAsText()
+        Logger.d("PatientService", body)
+        return json.decodeFromString(body)
+    }
+
+    suspend fun updatePatientProfile(
+        mobileNumber: String,
+        patientId: String,
+        name: String,
+        guardianType: String,
+        guardianName: String,
+        gender: String,
+        age: String,
+        bloodGroup: String,
+        email: String,
+        address: String,
+        city: String,
+        state: String
+    ): Boolean {
+        val response = client.post(ApiConstants.BASE_URL + ApiConstants.PATIENT_DATA) {
+            contentType(ContentType.Application.FormUrlEncoded)
+            setBody(
+                buildString {
+                    append("action=update_patient")
+                    append("&mobile_number=$mobileNumber")
+                    append("&patient_id=$patientId")
+                    append("&patient_name=$name")
+                    append("&guardian_type=$guardianType")
+                    append("&guardian_name=$guardianName")
+                    append("&gender=$gender")
+                    append("&age=$age")
+                    append("&blood_group=$bloodGroup")
+                    append("&email_id=$email")
+                    append("&address=$address")
+                    append("&city=$city")
+                    append("&state=$state")
+                    append("&close=close")
+                })
+        }
+        val body = response.bodyAsText()
+        Logger.d("PatientService", body)
+        return json.decodeFromString<PatientRegistrationResponse>(body).response
+    }
+
+
 }

@@ -52,7 +52,8 @@ enum class Relation(val label: String) {
 class PatientRegistrationViewModel(
     private val registerPatientUseCase: RegisterPatientUseCase,
     private val preferences: PreferencesManager
-) : ViewModel() {
+) : ViewModel()
+{
     private val _state = MutableStateFlow<PatientRegistrationState>(PatientRegistrationState.Idle)
     val state: StateFlow<PatientRegistrationState> = _state.asStateFlow()
 
