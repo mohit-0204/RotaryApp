@@ -34,6 +34,7 @@ import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOpdsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
+import com.rotary.hospital.feature.patient.presentation.screen.PatientProfileScreen
 import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -114,7 +115,9 @@ fun App(paymentHandler: PaymentHandler?) {
                                 }
 
                                 HomeAction.ViewPatientProfile -> {
-                                    // todo yet to be implemented
+                                    val patientId =
+                                        preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
+                                    navController.navigate(AppRoute.PatientProfile(patientId))
                                 }
 
                                 HomeAction.ViewTerms -> {
@@ -146,6 +149,18 @@ fun App(paymentHandler: PaymentHandler?) {
                     onSave = { patientName ->
                         navController.navigate(AppRoute.Home(patientName)) {
                             popUpTo<AppRoute.PatientRegistration> { inclusive = true }
+                        }
+                    }
+                )
+            }
+            composable<AppRoute.PatientProfile> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.PatientProfile>()
+                PatientProfileScreen(
+                    patientId = route.patientId,
+                    onBack = { navController.popBackStack() },
+                    onSave = { patientName ->
+                        navController.navigate(AppRoute.Home(patientName)) {
+                            popUpTo<AppRoute.PatientProfile> { inclusive = true }
                         }
                     }
                 )
@@ -224,7 +239,7 @@ fun App(paymentHandler: PaymentHandler?) {
                 RegisterNewOpdScreen(
                     paymentHandler = paymentHandler,
                     onSuccess = { response ->
-                        navController.navigate(AppRoute.OpdPaymentSuccess(response.opdId?:""))
+                        navController.navigate(AppRoute.OpdPaymentSuccess(response.opdId ?: ""))
                     },
                     onBack = { navController.popBackStack() },
                     patientId = route.patientId,
