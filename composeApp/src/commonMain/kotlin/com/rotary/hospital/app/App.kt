@@ -59,6 +59,7 @@ fun App(paymentHandler: PaymentHandler?) {
             patientName = preferences.getString(PreferenceKeys.PATIENT_NAME, "").first()
             mobileNumber = preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
             Logger.d("App", "Mobile number loaded: $mobileNumber")
+            Logger.d("App", "Patient name loaded: $patientName")
             toastController.bind(snackbarHostState, scope)
 
         }

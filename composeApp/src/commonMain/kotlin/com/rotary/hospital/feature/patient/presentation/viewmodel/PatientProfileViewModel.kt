@@ -54,13 +54,13 @@ class PatientProfileViewModel(
                         dob = profile.age,
                         bloodGroup = profile.bloodGroup,
                         guardianName = profile.guardianName,
-                        relation = Relation.entries.find { it.toApiString() == profile.gender } ?: Relation.SonOf,
+                        relation = Relation.entries.find { it.toApiString() == profile.guardianName } ?: Relation.SonOf,
                         email = profile.email,
                         address = profile.address,
                         city = profile.city,
                         state = profile.state
                     )
-                    PatientProfileState.Success(profile)
+                    PatientProfileState.FetchSuccess(profile)
                 }
                 else -> PatientProfileState.Error(result.exceptionOrNull()?.message ?: "Error fetching profile")
             }
@@ -117,7 +117,9 @@ class PatientProfileViewModel(
                 result.isSuccess && result.getOrNull() == true -> {
                     preferences.saveString(PreferenceKeys.PATIENT_NAME, form.fullName)
                     _isEditing.value = false // Exit edit mode on success
-                    PatientProfileState.Success(ApiPatientProfile(
+
+
+                        val updatedProfile = ApiPatientProfile(
                         name = form.fullName,
                         guardianName = form.guardianName,
                         age = form.dob,
@@ -127,7 +129,9 @@ class PatientProfileViewModel(
                         state = form.state,
                         bloodGroup = form.bloodGroup,
                         gender = form.gender.label
-                    ))
+                    )
+                    _formState.value = form
+                    PatientProfileState.UpdateSuccess(updatedProfile)
                 }
                 else -> PatientProfileState.Error(result.exceptionOrNull()?.message ?: "Update failed")
             }
@@ -172,7 +176,8 @@ class PatientProfileViewModel(
 sealed class PatientProfileState {
     object Idle : PatientProfileState()
     object Loading : PatientProfileState()
-    data class Success(val profile: ApiPatientProfile) : PatientProfileState()
+    data class FetchSuccess(val profile: ApiPatientProfile) : PatientProfileState()
+    data class UpdateSuccess(val profile: ApiPatientProfile) : PatientProfileState()
     data class Error(val message: String) : PatientProfileState()
 }
 

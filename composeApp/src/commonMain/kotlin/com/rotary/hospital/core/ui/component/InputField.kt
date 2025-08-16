@@ -49,17 +49,34 @@ fun InputField(
             },
             trailingIcon = trailingIcon,
             placeholder = placeholder?.let { { Text(it, fontSize = 14.sp) } },
-            readOnly = readOnly,
+            enabled = !readOnly,
             isError = errorMessage != null,
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
+                // Active
                 focusedBorderColor = ColorPrimary,
                 unfocusedBorderColor = Color.Gray,
-                errorBorderColor = ErrorRed,
                 focusedLabelColor = ColorPrimary,
                 unfocusedLabelColor = Color.Gray,
+                cursorColor = ColorPrimary,
+
+                // Error
+                errorBorderColor = ErrorRed,
                 errorLabelColor = ErrorRed,
-                cursorColor = ColorPrimary
+
+                // Disabled (no more purple!)
+
+                // Disabled (override *all* possible values)
+                disabledTextColor = Color.Black,
+                disabledBorderColor = Color.Transparent,
+                disabledContainerColor = Color(0xFFF5F5F5),
+                disabledLabelColor = Color.Gray,
+                disabledLeadingIconColor = Color.Gray,
+                disabledTrailingIconColor = Color.Gray,
+                disabledPlaceholderColor = Color.Gray,
+                disabledSupportingTextColor = Color.Gray,
+                disabledPrefixColor = Color.Gray,
+                disabledSuffixColor = Color.Gray
             ),
             shape = RoundedCornerShape(12.dp),
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
@@ -76,7 +93,9 @@ fun InputField(
                     text = it,
                     color = ErrorRed,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp, top = 2.dp).sizeIn(maxHeight = 20.dp)
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 2.dp)
+                        .sizeIn(maxHeight = 20.dp)
                 )
             }
         }

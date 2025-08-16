@@ -24,15 +24,15 @@ data class PatientListResponse(
 
 @Serializable
 data class ApiPatientProfile(
-    @SerialName("p_name") val name: String,
-    @SerialName("p_father_husband") val guardianName: String,
-    @SerialName("p_age") val age: String,
-    @SerialName("p_addresss") val address: String,
-    @SerialName("p_text6") val email: String,
-    @SerialName("p_city") val city: String,
-    @SerialName("p_state") val state: String,
-    @SerialName("p_bloodtype") val bloodGroup: String,
-    @SerialName("p_sex") val gender: String
+    @SerialName("p_name") val name: String = "",
+    @SerialName("p_father_husband") val guardianName: String = "",
+    @SerialName("p_age") val age: String = "",
+    @SerialName("p_addresss") val address: String = "",
+    @SerialName("p_text6") val email: String = "",
+    @SerialName("p_city") val city: String = "",
+    @SerialName("p_state") val state: String = "",
+    @SerialName("p_bloodtype") val bloodGroup: String = "",
+    @SerialName("p_sex") val gender: String = ""
 )
 
 @Serializable

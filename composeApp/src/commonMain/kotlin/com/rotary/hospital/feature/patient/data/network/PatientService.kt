@@ -17,7 +17,10 @@ import kotlinx.serialization.json.Json
 
 class PatientService {
     private val client = NetworkClient.httpClient
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     suspend fun registerPatient(
         mobileNumber: String,
