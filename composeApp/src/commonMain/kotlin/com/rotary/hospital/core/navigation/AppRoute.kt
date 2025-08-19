@@ -22,7 +22,7 @@ sealed class AppRoute {
     data class PatientRegistration(val phoneNumber: String) : AppRoute()
 
     @Serializable
-    data class PatientProfile(val patientId: String) : AppRoute()
+    data object PatientProfile : AppRoute()
 
     @Serializable
     data class Home(val patientName: String) : AppRoute()

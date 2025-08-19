@@ -31,7 +31,7 @@ import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentFailedScree
 import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentPendingScreen
 import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentSuccessScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
-import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOpdsScreen
+import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOPDsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientProfileScreen
@@ -51,6 +51,7 @@ fun App(paymentHandler: PaymentHandler?) {
         val navController = rememberNavController()
         var mobileNumber by remember { mutableStateOf("") }
         var patientName by remember { mutableStateOf("") }
+        var patientId by remember { mutableStateOf("") }
         // Global snackbar setup
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
@@ -58,6 +59,8 @@ fun App(paymentHandler: PaymentHandler?) {
         LaunchedEffect(Unit) {
             patientName = preferences.getString(PreferenceKeys.PATIENT_NAME, "").first()
             mobileNumber = preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
+            patientId = preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
+
             Logger.d("App", "Mobile number loaded: $mobileNumber")
             Logger.d("App", "Patient name loaded: $patientName")
             toastController.bind(snackbarHostState, scope)
@@ -116,9 +119,7 @@ fun App(paymentHandler: PaymentHandler?) {
                                 }
 
                                 HomeAction.ViewPatientProfile -> {
-                                    val patientId =
-                                        preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
-                                    navController.navigate(AppRoute.PatientProfile(patientId))
+                                    navController.navigate(AppRoute.PatientProfile)
                                 }
 
                                 HomeAction.ViewTerms -> {
@@ -155,9 +156,7 @@ fun App(paymentHandler: PaymentHandler?) {
                 )
             }
             composable<AppRoute.PatientProfile> { backStackEntry ->
-                val route = backStackEntry.toRoute<AppRoute.PatientProfile>()
                 PatientProfileScreen(
-                    patientId = route.patientId,
                     onBack = { navController.popBackStack() },
                     onSave = { patientName ->
                         navController.navigate(AppRoute.Home(patientName)) {
@@ -189,7 +188,7 @@ fun App(paymentHandler: PaymentHandler?) {
 
             composable<AppRoute.RegisteredOpds> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.RegisteredOpds>()
-                RegisteredOpdsScreen(
+                RegisteredOPDsScreen(
                     onOpdClick = { opdId ->
                         navController.navigate(
                             AppRoute.SelectedOpdDetails(

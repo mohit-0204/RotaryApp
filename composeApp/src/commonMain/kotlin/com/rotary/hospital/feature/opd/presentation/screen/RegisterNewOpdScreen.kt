@@ -1,8 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
-
 package com.rotary.hospital.feature.opd.presentation.screen
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -19,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -28,8 +25,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -37,17 +32,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -71,194 +61,24 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rotary.hospital.core.common.Logger
-import com.rotary.hospital.core.common.PreferenceKeys
-import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.payment.PaymentResult
 import com.rotary.hospital.core.theme.AppTheme
-import com.rotary.hospital.core.theme.Black
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.core.ui.screen.SharedListScreen
 import com.rotary.hospital.core.ui.toastController
-import com.rotary.hospital.feature.auth.presentation.viewmodel.LoginState
-import com.rotary.hospital.feature.opd.domain.model.Availability
 import com.rotary.hospital.feature.opd.domain.model.Doctor
 import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
-import com.rotary.hospital.feature.opd.domain.model.Opd
-import com.rotary.hospital.feature.opd.domain.model.Patient
-import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
 import com.rotary.hospital.feature.opd.domain.model.Slot
 import com.rotary.hospital.feature.opd.domain.model.Specialization
-import com.rotary.hospital.feature.opd.presentation.screen.components.OpdListItem
 import com.rotary.hospital.feature.opd.presentation.viewmodel.DoctorAvailabilityState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.DoctorAvailabilityViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientListState
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientListViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentFailedState
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentFailedViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentPendingState
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentPendingViewModel
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentSuccessState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentSuccessViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisterNewOpdState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisterNewOpdViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOpdsState
-import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOpdsViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsState
-import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsViewModel
-import com.rotary.hospital.feature.patient.presentation.screen.PatientListItem
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-
-@Composable
-fun RegisteredOpdsScreen(
-    onOpdClick: (String) -> Unit,
-    onAddNew: () -> Unit,
-    onBackClick: () -> Unit,
-    onSearchClick: () -> Unit,
-    viewModel: RegisteredOpdsViewModel = koinViewModel(),
-    preferences: PreferencesManager = koinInject()
-) {
-    val state by viewModel.state.collectAsState()
-    var mobileNumber by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").collect { savedMobile ->
-            if (savedMobile.isNotBlank()) {
-                mobileNumber = savedMobile
-                viewModel.fetchOpds(savedMobile)
-            } else {
-                Logger.e("RegisteredOpdsScreen", "Mobile number not found")
-            }
-        }
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Booked OPDs",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorPrimary
-                    )
-                }, navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = ColorPrimary.copy(alpha = 0.8f)
-                        )
-                    }
-                }, actions = {
-                    IconButton(onClick = onSearchClick) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = ColorPrimary.copy(alpha = 0.8f)
-                        )
-                    }
-                }, colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White, titleContentColor = Color.Black
-                )
-            )
-        }, floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddNew, containerColor = ColorPrimary
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add OPD", tint = Color.White)
-            }
-        }, containerColor = Color.White
-    ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
-            when (val currentState = state) {
-                is RegisteredOpdsState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                }
-
-                is RegisteredOpdsState.Error -> {
-                    Text(
-                        text = currentState.message,
-                        color = ErrorRed,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                is RegisteredOpdsState.Success -> {
-                    val opds = currentState.opds
-                    if (opds.isEmpty()) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text("No OPDs booked.", style = MaterialTheme.typography.bodyLarge)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(onClick = onAddNew) {
-                                Text("Register New OPD")
-                            }
-                        }
-                    } else {
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(opds) { opd ->
-                                OpdListItem(opd = opd, onClick = { onOpdClick(opd.opdId) })
-                            }
-                        }
-                    }
-                }
-
-                else -> Unit
-            }
-        }
-    }
-}
-
-
-@Composable
-fun OpdPatientListScreen(
-    onPatientClick: (String, String) -> Unit,
-    onBack: () -> Unit,
-    viewModel: OpdPatientListViewModel = koinViewModel(),
-    preferences: PreferencesManager = koinInject()
-) {
-    val state by viewModel.state.collectAsState()
-    val patients = (state as? OpdPatientListState.Success)?.patients.orEmpty()
-    val isLoading = state is OpdPatientListState.Loading
-    val error = (state as? OpdPatientListState.Error)?.message
-
-    LaunchedEffect(Unit) {
-        preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").collect { pref ->
-            if (pref.isNotBlank()) viewModel.fetchPatients(pref)
-        }
-    }
-
-    SharedListScreen(
-        title = "Select Patient for OPD",
-        items = patients,
-        isLoading = isLoading,
-        errorMessage = error,
-        emptyMessage = "No patients registered",
-        onSearchQueryChange = null,   // no search here
-        isSearchActive = false,
-        onToggleSearch = null,
-        onBack = onBack,
-        onAdd = null,       // no FAB here
-        itemContent = { opdPatient, onClick ->
-            PatientListItem(
-                patient = com.rotary.hospital.core.data.model.Patient(
-                    opdPatient.patientId, opdPatient.patientName, ""
-                ), onClick = onClick
-            )
-        },
-        onItemClick = { opdPatient ->
-            onPatientClick(opdPatient.patientId, opdPatient.patientName)
-        })
-}
 
 @Composable
 fun RegisterNewOpdScreen(
@@ -990,309 +810,6 @@ fun DoctorAvailabilityScreen(
 
                 is DoctorAvailabilityState.Idle -> {}
             }
-        }
-    }
-}
-
-@Composable
-fun OpdPaymentSuccessScreen(
-    merchantTransactionId: String,
-    onShareScreenshot: () -> Unit,
-    onBack: () -> Unit,
-    viewModel: OpdPaymentSuccessViewModel = koinViewModel()
-) {
-    val state by viewModel.state.collectAsState()
-
-    LaunchedEffect(Unit) {
-//        viewModel.fetchPaymentStatus(merchantTransactionId)
-    }
-
-    AppTheme {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Payment Success",
-                    color = ColorPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                TextButton(onClick = onBack) {
-                    Text("Back", color = ColorPrimary)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is OpdPaymentSuccessState.Loading -> CircularProgressIndicator(color = ColorPrimary)
-                is OpdPaymentSuccessState.Success -> {
-                    val status = (state as OpdPaymentSuccessState.Success).paymentStatus
-                    Text(
-                        text = "Transaction ID: ${status.transactionId}",
-                        color = ColorPrimary,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = status.message, color = ColorPrimary, fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onShareScreenshot, colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorPrimary, contentColor = White
-                        )
-                    ) {
-                        Text("Share Screenshot")
-                    }
-                }
-
-                is OpdPaymentSuccessState.Error -> {
-                    Text(
-                        text = (state as OpdPaymentSuccessState.Error).message,
-                        color = ErrorRed,
-                        fontSize = 16.sp
-                    )
-                }
-
-                is OpdPaymentSuccessState.Idle -> {}
-                is OpdPaymentSuccessState.Pending -> TODO()
-            }
-        }
-    }
-}
-
-@Composable
-fun OpdPaymentPendingScreen(
-    message: String,
-    onRetry: () -> Unit,
-    onBack: () -> Unit,
-    viewModel: OpdPaymentPendingViewModel = koinViewModel()
-) {
-    val state by viewModel.state.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.updatePendingState(message)
-    }
-
-    AppTheme {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Payment Pending",
-                    color = ColorPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                TextButton(onClick = onBack) {
-                    Text("Back", color = ColorPrimary)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is OpdPaymentPendingState.Pending -> {
-                    Text(
-                        text = (state as OpdPaymentPendingState.Pending).message,
-                        color = ColorPrimary,
-                        fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onRetry, colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorPrimary, contentColor = White
-                        )
-                    ) {
-                        Text("Retry")
-                    }
-                }
-
-                is OpdPaymentPendingState.Idle -> {}
-            }
-        }
-    }
-}
-
-@Composable
-fun OpdPaymentFailedScreen(
-    message: String,
-    onRetry: () -> Unit,
-    onBack: () -> Unit,
-    viewModel: OpdPaymentFailedViewModel = koinViewModel()
-) {
-    val state by viewModel.state.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.updateFailedState(message)
-    }
-
-    AppTheme {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Payment Failed",
-                    color = ColorPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                TextButton(onClick = onBack) {
-                    Text("Back", color = ColorPrimary)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is OpdPaymentFailedState.Failed -> {
-                    Text(
-                        text = (state as OpdPaymentFailedState.Failed).message ?: "Payment failed",
-                        color = ErrorRed,
-                        fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onRetry, colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorPrimary, contentColor = White
-                        )
-                    ) {
-                        Text("Retry")
-                    }
-                }
-
-                is OpdPaymentFailedState.Idle -> {}
-            }
-        }
-    }
-}
-
-@Composable
-fun SelectedOpdDetailsScreen(
-    opdId: String,
-    onBack: () -> Unit,
-    viewModel: SelectedOpdDetailsViewModel = koinViewModel(),
-    preferences: PreferencesManager = koinInject()
-) {
-    val state by viewModel.state.collectAsState()
-    var mobileNumber by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").collect { savedMobile ->
-            if (savedMobile.isNotBlank()) {
-                mobileNumber = savedMobile
-                viewModel.fetchOpdDetails(savedMobile, opdId)
-            }
-        }
-    }
-
-    AppTheme {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "OPD Details",
-                    color = ColorPrimary,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                TextButton(onClick = onBack) {
-                    Text("Back", color = ColorPrimary)
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is SelectedOpdDetailsState.Loading -> CircularProgressIndicator(color = ColorPrimary)
-                is SelectedOpdDetailsState.Success -> {
-                    val opd = (state as SelectedOpdDetailsState.Success).opd
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = "OPD ID: ${opd.opdId}",
-                                color = ColorPrimary,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Type: ${opd.opdType}",
-                                color = ColorPrimary,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = "Patient: ${opd.patientName}",
-                                color = ColorPrimary,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = "Doctor: ${opd.doctor}",
-                                color = ColorPrimary,
-                                fontSize = 16.sp
-                            )
-                            Text(
-                                text = "Date: ${opd.date}", color = ColorPrimary, fontSize = 16.sp
-                            )
-                        }
-                    }
-                }
-
-                is SelectedOpdDetailsState.Error -> {
-                    Text(
-                        text = (state as SelectedOpdDetailsState.Error).message,
-                        color = ErrorRed,
-                        fontSize = 16.sp
-                    )
-                }
-
-                is SelectedOpdDetailsState.Idle -> {}
-            }
-        }
-    }
-}
-
-@Composable
-private fun PatientItem(
-    patient: Patient, onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).clickable { onClick() },
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
-        ) {
-            Text(
-                text = patient.patientName,
-                fontWeight = FontWeight.Bold,
-                color = ColorPrimary,
-                fontSize = 18.sp
-            )
-            Text(
-                text = "ID: ${patient.patientId}", color = ColorPrimary, fontSize = 14.sp
-            )
         }
     }
 }

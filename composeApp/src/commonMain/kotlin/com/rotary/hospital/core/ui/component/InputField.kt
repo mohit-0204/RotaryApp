@@ -49,7 +49,7 @@ fun InputField(
             },
             trailingIcon = trailingIcon,
             placeholder = placeholder?.let { { Text(it, fontSize = 14.sp) } },
-            enabled = !readOnly,
+            readOnly = readOnly,
             isError = errorMessage != null,
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
