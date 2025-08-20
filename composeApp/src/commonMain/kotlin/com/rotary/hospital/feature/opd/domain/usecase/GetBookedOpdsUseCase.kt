@@ -1,18 +1,10 @@
 package com.rotary.hospital.feature.opd.domain.usecase
 
-import com.rotary.hospital.feature.opd.domain.model.Availability
-import com.rotary.hospital.feature.opd.domain.model.Doctor
-import com.rotary.hospital.feature.opd.domain.model.DoctorAvailability
-import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
-import com.rotary.hospital.feature.opd.domain.model.Leave
-import com.rotary.hospital.feature.opd.domain.model.Opd
-import com.rotary.hospital.feature.opd.domain.model.Patient
-import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
-import com.rotary.hospital.feature.opd.domain.model.PaymentStatus
-import com.rotary.hospital.feature.opd.domain.model.Slot
-import com.rotary.hospital.feature.opd.domain.model.Specialization
+import com.rotary.hospital.feature.opd.domain.model.*
 import com.rotary.hospital.feature.opd.domain.repository.OpdRepository
-import kotlin.Result
+import com.rotary.hospital.feature.opd.domain.repository.PaymentRepository
+import kotlin.math.round
+import kotlin.text.*
 
 class GetBookedOpdsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(mobileNumber: String): Result<List<Opd>> {
@@ -56,7 +48,7 @@ class GetDoctorAvailabilityUseCase(private val repository: OpdRepository) {
     }
 }
 
-class GetPaymentReferenceUseCase(private val repository: OpdRepository) {
+class GetPaymentReferenceUseCase(private val repository: PaymentRepository) {
     suspend operator fun invoke(
         mobileNumber: String,
         amount: String,
@@ -64,19 +56,32 @@ class GetPaymentReferenceUseCase(private val repository: OpdRepository) {
         patientName: String,
         doctorName: String
     ): Result<PaymentRequest?> {
+        if (amount.toDoubleOrNull()?.let { it <= 0 } == true) {
+            return Result.failure(Exception("Invalid amount: must be positive"))
+        }
+
         return repository.getPaymentReference(
-            mobileNumber, amount, patientId, patientName, doctorName
+            mobileNumber,
+            formatAmount(amount.toDoubleOrNull() ?: 0.0),
+            patientId,
+            patientName,
+            doctorName
         )
     }
 }
 
-class GetPaymentStatusUseCase(private val repository: OpdRepository) {
+class GetPaymentStatusUseCase(private val repository: PaymentRepository) {
     suspend operator fun invoke(merchantTransactionId: String): Result<PaymentStatus> {
+        if (merchantTransactionId.isBlank()) {
+            return Result.failure(Exception("Invalid transaction ID"))
+        }
         return repository.getPaymentStatus(merchantTransactionId)
     }
 }
 
-class InsertOpdUseCase(private val repository: OpdRepository) {
+class InsertOpdUseCase(private val repository: PaymentRepository) {
+    enum class Status { SUCCESS, FAILURE }
+
     suspend operator fun invoke(
         patientId: String,
         patientName: String,
@@ -94,25 +99,23 @@ class InsertOpdUseCase(private val repository: OpdRepository) {
         message: String
     ): Result<InsertOpdResponse> {
         val response = repository.insertOpd(
-            patientId,
-            patientName,
-            mobileNumber,
-            doctorName,
-            doctorId,
-            opdAmount,
-            durationPerPatient,
-            docTimeFrom,
-            opdType,
-            transactionId,
-            paymentId,
-            orderId,
-            status,
-            message
+            patientId, patientName, mobileNumber, doctorName, doctorId, opdAmount,
+            durationPerPatient, docTimeFrom, opdType, transactionId, paymentId,
+            orderId, status, message
         )
-        return if (response.isSuccess && response.getOrNull()?.response == true && response.getOrNull()?.message == "success") {
-            response
-        } else {
-            Result.failure(Exception(response.getOrNull()?.message ?: "Unknown error"))
-        }
+        return response.fold(
+            onSuccess = { dto ->
+                if (dto.response && dto.message == Status.SUCCESS.name.lowercase()) {
+                    Result.success(dto)
+                } else {
+                    Result.failure(Exception(dto.message))
+                }
+            },
+            onFailure = { error -> Result.failure(error) }
+        )
     }
+}
+
+private fun formatAmount(value: Double): String {
+    return (round(value * 100) / 100).toString()
 }

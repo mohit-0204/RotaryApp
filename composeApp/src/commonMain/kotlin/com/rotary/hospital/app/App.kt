@@ -27,12 +27,12 @@ import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScree
 import com.rotary.hospital.feature.home.presentation.model.HomeAction
 import com.rotary.hospital.feature.opd.presentation.screen.DoctorAvailabilityScreen
 import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientListScreen
-import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentFailedScreen
-import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentPendingScreen
-import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentSuccessScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOPDsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
+import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentFailedScreen
+import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentPendingScreen
+import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentSuccessScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientProfileScreen
 import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
@@ -237,9 +237,15 @@ fun App(paymentHandler: PaymentHandler?) {
             composable<AppRoute.RegisterNewOpd> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
                 RegisterNewOpdScreen(
-                    paymentHandler = paymentHandler,
+                    paymentHandler = paymentHandler ?: error("Payment handler is null"),
                     onSuccess = { response ->
                         navController.navigate(AppRoute.OpdPaymentSuccess(response.opdId ?: ""))
+                    },
+                    onPending = {
+                        navController.navigate(AppRoute.OpdPaymentPending("Payment in progress"))
+                    },
+                    onFailure = {
+                        navController.navigate(AppRoute.OpdPaymentFailed("Payment failed"))
                     },
                     onBack = { navController.popBackStack() },
                     patientId = route.patientId,

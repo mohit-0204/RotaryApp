@@ -32,11 +32,29 @@ actual class PaymentHandler(
         }
     }
 
+    fun logIntentData(data: Intent?) {
+        if (data == null) {
+            Logger.d("PaymentHandler", "Intent data = null")
+            return
+        }
+
+        val extras = data.extras
+        if (extras == null) {
+            Logger.d("PaymentHandler", "Intent has no extras")
+            return
+        }
+
+        for (key in extras.keySet()) {
+            val value = extras.get(key)
+            Logger.d("PaymentHandler", "Intent extra → $key = $value")
+        }
+    }
+
     fun handleActivityResult(resultCode: Int, data: Intent?) {
+        logIntentData(data)
         val result = when (resultCode) {
             Activity.RESULT_OK -> {
-                val response = data?.getStringExtra("response") ?: ""
-                PaymentResult.Success(response)
+                PaymentResult.Success
             }
             Activity.RESULT_CANCELED -> PaymentResult.Cancelled
             else -> PaymentResult.Failure("Unknown result code: $resultCode")

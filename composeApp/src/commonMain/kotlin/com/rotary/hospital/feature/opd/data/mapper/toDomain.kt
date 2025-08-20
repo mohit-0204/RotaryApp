@@ -3,80 +3,118 @@ package com.rotary.hospital.feature.opd.data.mapper
 import com.rotary.hospital.feature.opd.data.remote.dto.*
 import com.rotary.hospital.feature.opd.domain.model.*
 
-fun OpdDto.toDomain(): Opd {
-    return Opd(
-        opdId = opdId,
-        opdType = opdType,
-        patientId = patientId,
-        patientName = patientName,
-        doctor = doctor,
-        date = date
-    )
+fun OpdDto.toDomain(): Result<Opd> {
+    return try {
+        Result.success(
+            Opd(
+                opdId = opdId,
+                opdType = opdType,
+                patientId = patientId,
+                patientName = patientName,
+                doctor = doctor,
+                date = date
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
 }
 
+fun PatientDto.toDomain(): Result<Patient> {
+    return try {
+        Result.success(
+            Patient(
+                patientId = patientId ?: "",
+                patientName = patientName ?: ""
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
 
-fun PatientDto.toDomain(): Patient = Patient(
-    patientId = patientId ?: throw IllegalArgumentException("Patient ID missing"),
-    patientName = patientName ?: "Unknown"
-)
+fun SpecializationDto.toDomain(): Result<Specialization> {
+    return try {
+        Result.success(
+            Specialization(
+                data = data ?: ""
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
 
-fun SpecializationDto.toDomain(): Specialization = Specialization(
-    data = data ?: "Unknown"
-)
+fun DoctorDto.toDomain(): Result<Doctor> {
+    return try {
+        Result.success(
+            Doctor(
+                name = name ?: "",
+                id = id ?: "",
+                opdRoom = opdRoom ?: ""
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
 
-fun DoctorDto.toDomain(): Doctor = Doctor(
-    name = name ?: "Unknown",
-    id = id ?: throw IllegalArgumentException("Doctor ID missing"),
-    opdRoom = opdRoom ?: "Unknown"
-)
+fun SlotDto.toDomain(): Result<Slot> {
+    return try {
+        Result.success(
+            Slot(
+                timeFrom = timeFrom ?: "",
+                timeTo = timeTo ?: ""
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
 
-fun SlotDto.toDomain(): Slot = Slot(
-    timeFrom = timeFrom ?: "Unknown",
-    timeTo = timeTo ?: "Unknown"
-)
+fun AvailabilityDto.toDomain(): Result<Availability> {
+    return try {
+        Result.success(
+            Availability(
+                docCharges = docCharges,
+                docOnlineCharges = docOnlineCharges ?: "",
+                docTimeFrom = docTimeFrom ?: "",
+                docTimeTo = docTimeTo ?: "",
+                approximateTime = approximateTime ?: "",
+                docDurationPerPatient = docDurationPerPatient ?: "",
+                docNoOfAppointments = docNoOfAppointments ?: "",
+                appointments = appointments ?: ""
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
 
-fun AvailabilityDto.toDomain(): Availability = Availability(
-    docCharges = docCharges.toString(),
-    docOnlineCharges = docOnlineCharges ?: "Unknown",
-    docTimeFrom = docTimeFrom ?: "Unknown",
-    docTimeTo = docTimeTo ?: "Unknown",
-    approximateTime = approximateTime ?: "Unknown",
-    docDurationPerPatient = docDurationPerPatient ?: "Unknown",
-    docNoOfAppointments = docNoOfAppointments ?: "Unknown",
-    appointments = appointments ?: "Unknown"
-)
+fun DoctorAvailabilityDto.toDomain(): Result<DoctorAvailability> {
+    return try {
+        Result.success(
+            DoctorAvailability(
+                docFrequency = docFrequency ?: "",
+                docDays = docDays ?: "",
+                docTimeFrom = docTimeFrom ?: "",
+                docTimeTo = docTimeTo ?: ""
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
 
-fun DoctorAvailabilityDto.toDomain(): DoctorAvailability = DoctorAvailability(
-    docFrequency = docFrequency ?: "Unknown",
-    docDays = docDays ?: "Unknown",
-    docTimeFrom = docTimeFrom ?: "Unknown",
-    docTimeTo = docTimeTo ?: "Unknown"
-)
-
-fun LeaveDto.toDomain(): Leave = Leave(
-    cancelDate = cancelDate ?: "Unknown",
-    cancelDateTo = cancelDateTo ?: "Unknown"
-)
-
-fun PaymentRequestDto.toDomain(): PaymentRequest = PaymentRequest(
-    apiEndPoint = apiEndPoint ?: throw IllegalArgumentException("API endpoint missing"),
-    payloadBase64 = payloadBase64 ?: throw IllegalArgumentException("Payload missing"),
-    checksum = checksum ?: throw IllegalArgumentException("Checksum missing"),
-    merchantTransactionId = merchantTransactionId ?: throw IllegalArgumentException("Transaction ID missing")
-)
-
-fun PaymentStatusDto.toDomain(): PaymentStatus = PaymentStatus(
-    response = response ?: "Unknown",
-    messageCode = messageCode ?: "Unknown",
-    message = message ?: "Unknown",
-    transactionId = transactionId ?: throw IllegalArgumentException("Transaction ID missing")
-)
-
-fun InsertOpdResponseDto.toDomain(): InsertOpdResponse = InsertOpdResponse(
-    response = response ?: false,
-    message = message ?: "Unknown",
-    opdId = opdId.toString(),
-    opdDate = opdDate,
-    tokenNumber = tokenNumber.toString(),
-    estimatedTime = estimatedTime
-)
+fun LeaveDto.toDomain(): Result<Leave> {
+    return try {
+        Result.success(
+            Leave(
+                cancelDate = cancelDate ?: "",
+                cancelDateTo = cancelDateTo ?: ""
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}

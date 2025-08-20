@@ -26,7 +26,6 @@ import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentSuccessState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentSuccessViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -64,39 +63,13 @@ fun OpdPaymentSuccessScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is OpdPaymentSuccessState.Loading -> CircularProgressIndicator(color = ColorPrimary)
-                is OpdPaymentSuccessState.Success -> {
-                    val status = (state as OpdPaymentSuccessState.Success).paymentStatus
-                    Text(
-                        text = "Transaction ID: ${status.transactionId}",
-                        color = ColorPrimary,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = status.message, color = ColorPrimary, fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onShareScreenshot, colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorPrimary, contentColor = White
-                        )
-                    ) {
-                        Text("Share Screenshot")
-                    }
-                }
 
-                is OpdPaymentSuccessState.Error -> {
-                    Text(
-                        text = (state as OpdPaymentSuccessState.Error).message,
-                        color = ErrorRed,
-                        fontSize = 16.sp
-                    )
-                }
-
-                is OpdPaymentSuccessState.Idle -> {}
-                is OpdPaymentSuccessState.Pending -> TODO()
-            }
+            Text(
+                text = "Success",
+                color = ColorPrimary,
+                fontSize = 16.sp
+            )
         }
+
     }
 }

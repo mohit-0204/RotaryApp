@@ -37,7 +37,7 @@ data class Slot(
 
 @Serializable
 data class Availability(
-    val docCharges: String,
+    val docCharges: Int,
     val docOnlineCharges: String,
     val docTimeFrom: String,
     val docTimeTo: String,

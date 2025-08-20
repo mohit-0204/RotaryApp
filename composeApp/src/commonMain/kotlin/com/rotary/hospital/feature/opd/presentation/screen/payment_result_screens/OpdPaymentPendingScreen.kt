@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentPendingState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentPendingViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -38,7 +37,7 @@ fun OpdPaymentPendingScreen(
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.updatePendingState(message)
+        viewModel.updatePendingState(message, 2)
     }
 
     AppTheme {
@@ -62,25 +61,12 @@ fun OpdPaymentPendingScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is OpdPaymentPendingState.Pending -> {
-                    Text(
-                        text = (state as OpdPaymentPendingState.Pending).message,
-                        color = ColorPrimary,
-                        fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onRetry, colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorPrimary, contentColor = White
-                        )
-                    ) {
-                        Text("Retry")
-                    }
-                }
 
-                is OpdPaymentPendingState.Idle -> {}
-            }
+            Text(
+                text = "Pending",
+                color = ColorPrimary,
+                fontSize = 16.sp
+            )
         }
     }
 }

@@ -3,7 +3,14 @@ package com.rotary.hospital.feature.opd.data.remote
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.network.ApiConstants
 import com.rotary.hospital.core.network.NetworkClient
-import com.rotary.hospital.feature.opd.data.remote.dto.*
+import com.rotary.hospital.feature.opd.data.remote.dto.OpdDto
+import com.rotary.hospital.feature.opd.data.remote.dto.PatientDto
+import com.rotary.hospital.feature.opd.data.remote.dto.SpecializationDto
+import com.rotary.hospital.feature.opd.data.remote.dto.DoctorDto
+import com.rotary.hospital.feature.opd.data.remote.dto.SlotDto
+import com.rotary.hospital.feature.opd.data.remote.dto.AvailabilityDto
+import com.rotary.hospital.feature.opd.data.remote.dto.DoctorAvailabilityDto
+import com.rotary.hospital.feature.opd.data.remote.dto.LeaveDto
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -19,16 +26,24 @@ class OpdService {
     private val client = NetworkClient.httpClient
     private val json = Json { ignoreUnknownKeys = true }
 
+    private fun buildFormBody(params: Map<String, String>): String {
+        return params.entries.joinToString("&") { (key, value) ->
+            "$key=$value"
+        }
+    }
+
     suspend fun getBookedOpds(mobileNumber: String): Result<List<OpdDto>> {
         return try {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
-                    buildString {
-                        append("action=get_booked_app")
-                        append("&mobile_number=$mobileNumber")
-                        append("&close=close")
-                    }
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_booked_app",
+                            "mobile_number" to mobileNumber,
+                            "close" to "close"
+                        )
+                    )
                 )
             }
             val responseBody = response.bodyAsText()
@@ -41,7 +56,11 @@ class OpdService {
                 val dtoList = json.decodeFromString<List<OpdDto>>(jsonObject["data"].toString())
                 Result.success(dtoList)
             } else {
-                Result.failure(Exception(jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"))
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getBookedOpds error: ${e.message}")
@@ -54,11 +73,13 @@ class OpdService {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.PATIENT_DATA) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
-                    buildString {
-                        append("action=get_registered_patients")
-                        append("&mobile_number=$mobileNumber")
-                        append("&close=close")
-                    }
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_registered_patients",
+                            "mobile_number" to mobileNumber,
+                            "close" to "close"
+                        )
+                    )
                 )
             }
             val responseBody = response.bodyAsText()
@@ -68,10 +89,15 @@ class OpdService {
                 jsonObject["response"]?.jsonPrimitive?.boolean == true &&
                 jsonObject["message"]?.jsonPrimitive?.content == "OK"
             ) {
-                val dtoList = json.decodeFromString<List<PatientDto>>(jsonObject["data"]?.jsonArray.toString())
+                val dtoList =
+                    json.decodeFromString<List<PatientDto>>(jsonObject["data"]?.jsonArray.toString())
                 Result.success(dtoList)
             } else {
-                Result.failure(Exception(jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"))
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getRegisteredPatients error: ${e.message}")
@@ -84,10 +110,12 @@ class OpdService {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
-                    buildString {
-                        append("action=get_doctor_specilizations")
-                        append("&close=close")
-                    }
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_doctor_specilizations",
+                            "close" to "close"
+                        )
+                    )
                 )
             }
             val responseBody = response.bodyAsText()
@@ -97,10 +125,15 @@ class OpdService {
                 jsonObject["response"]?.jsonPrimitive?.boolean == true &&
                 jsonObject["message"]?.jsonPrimitive?.content == "OK"
             ) {
-                val dtoList = json.decodeFromString<List<SpecializationDto>>(jsonObject["data"]?.jsonArray.toString())
+                val dtoList =
+                    json.decodeFromString<List<SpecializationDto>>(jsonObject["data"].toString())
                 Result.success(dtoList)
             } else {
-                Result.failure(Exception(jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"))
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getSpecializations error: ${e.message}")
@@ -113,11 +146,13 @@ class OpdService {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
-                    buildString {
-                        append("action=get_doctor")
-                        append("&spec=$specialization")
-                        append("&close=close")
-                    }
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_doctor",
+                            "spec" to specialization,
+                            "close" to "close"
+                        )
+                    )
                 )
             }
             val responseBody = response.bodyAsText()
@@ -127,10 +162,14 @@ class OpdService {
                 jsonObject["response"]?.jsonPrimitive?.boolean == true &&
                 jsonObject["message"]?.jsonPrimitive?.content == "OK"
             ) {
-                val dtoList = json.decodeFromString<List<DoctorDto>>(jsonObject["data"]?.jsonArray.toString())
+                val dtoList = json.decodeFromString<List<DoctorDto>>(jsonObject["data"].toString())
                 Result.success(dtoList)
             } else {
-                Result.failure(Exception(jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"))
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getDoctors error: ${e.message}")
@@ -143,11 +182,13 @@ class OpdService {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
-                    buildString {
-                        append("action=get_slots")
-                        append("&doc_id=$doctorId")
-                        append("&close=close")
-                    }
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_slots",
+                            "doc_id" to doctorId,
+                            "close" to "close"
+                        )
+                    )
                 )
             }
             val responseBody = response.bodyAsText()
@@ -157,10 +198,14 @@ class OpdService {
                 jsonObject["response"]?.jsonPrimitive?.boolean == true &&
                 jsonObject["message"]?.jsonPrimitive?.content == "OK"
             ) {
-                val dtoList = json.decodeFromString<List<SlotDto>>(jsonObject["data"]?.jsonArray.toString())
+                val dtoList = json.decodeFromString<List<SlotDto>>(jsonObject["data"].toString())
                 Result.success(dtoList)
             } else {
-                Result.failure(Exception(jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"))
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getSlots error: ${e.message}")
@@ -173,12 +218,14 @@ class OpdService {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
-                    buildString {
-                        append("action=get_availability_new")
-                        append("&doc_id=$doctorId")
-                        append("&slot_id=$slotId")
-                        append("&close=close")
-                    }
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_availability_new",
+                            "doc_id" to doctorId,
+                            "slot_id" to slotId,
+                            "close" to "close"
+                        )
+                    )
                 )
             }
             val responseBody = response.bodyAsText()
@@ -188,10 +235,17 @@ class OpdService {
                 jsonObject["response"]?.jsonPrimitive?.boolean == true &&
                 jsonObject["message"]?.jsonPrimitive?.content == "OK"
             ) {
-                val dtoList = json.decodeFromString<List<AvailabilityDto>>(jsonObject["data"]?.jsonArray.toString())
-                Result.success(dtoList.firstOrNull())
+                val dto = jsonObject["data"]?.let {
+                    val dtoList = json.decodeFromString<List<AvailabilityDto>>(it.toString())
+                    dtoList.firstOrNull()
+                }
+                Result.success(dto)
             } else {
-                Result.success(null)
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getAvailability error: ${e.message}")
@@ -204,11 +258,13 @@ class OpdService {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
-                    buildString {
-                        append("action=check_availability")
-                        append("&doc_id=$doctorId")
-                        append("&close=close")
-                    }
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_doctor_availability",
+                            "doc_id" to doctorId,
+                            "close" to "close"
+                        )
+                    )
                 )
             }
             val responseBody = response.bodyAsText()
@@ -218,116 +274,20 @@ class OpdService {
                 jsonObject["response"]?.jsonPrimitive?.boolean == true &&
                 jsonObject["message"]?.jsonPrimitive?.content == "OK"
             ) {
-                val availability = json.decodeFromString<List<DoctorAvailabilityDto>>(jsonObject["data"]?.jsonArray.toString())
-                val leaves = json.decodeFromString<List<LeaveDto>>(jsonObject["on_leave"]?.jsonArray.toString())
-                Result.success(availability to leaves)
+                val availabilityList =
+                    json.decodeFromString<List<DoctorAvailabilityDto>>(jsonObject["availability"].toString())
+                val leaveList =
+                    json.decodeFromString<List<LeaveDto>>(jsonObject["leaves"].toString())
+                Result.success(availabilityList to leaveList)
             } else {
-                Result.success(emptyList<DoctorAvailabilityDto>() to emptyList<LeaveDto>())
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getDoctorAvailability error: ${e.message}")
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getPaymentReference(
-        mobileNumber: String,
-        amount: String,
-        patientId: String,
-        patientName: String,
-        doctorName: String
-    ): Result<PaymentRequestDto?> {
-        return try {
-            val response = client.post(ApiConstants.BASE_URL + ApiConstants.PAYMENT_API) {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    buildString {
-                        append("action=payment_api_payPage")
-                        append("&mobile_no=$mobileNumber")
-                        append("&amount=$amount")
-                        append("&p_id=$patientId")
-                        append("&name=$patientName")
-                        append("&doc_name=$doctorName")
-                    }
-                )
-            }
-            val responseBody = response.bodyAsText()
-            Logger.d("OpdService", "getPaymentReference: $responseBody")
-            val dto = json.decodeFromString<PaymentRequestDto>(responseBody)
-            Result.success(dto)
-        } catch (e: Exception) {
-            Logger.e("OpdService", "getPaymentReference error: ${e.message}")
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getPaymentStatus(merchantTransactionId: String): Result<PaymentStatusDto> {
-        return try {
-            val response = client.post(ApiConstants.BASE_URL + ApiConstants.PAYMENT_API) {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    buildString {
-                        append("action=payment_status")
-                        append("&merchantTransactionId=$merchantTransactionId")
-                    }
-                )
-            }
-            val responseBody = response.bodyAsText()
-            Logger.d("OpdService", "getPaymentStatus: $responseBody")
-            val dto = json.decodeFromString<PaymentStatusDto>(responseBody)
-            Result.success(dto)
-        } catch (e: Exception) {
-            Logger.e("OpdService", "getPaymentStatus error: ${e.message}")
-            Result.failure(e)
-        }
-    }
-
-    suspend fun insertOpd(
-        patientId: String,
-        patientName: String,
-        mobileNumber: String,
-        doctorName: String,
-        doctorId: String,
-        opdAmount: String,
-        durationPerPatient: String,
-        docTimeFrom: String,
-        opdType: String,
-        transactionId: String,
-        paymentId: String,
-        orderId: String,
-        status: String,
-        message: String
-    ): Result<InsertOpdResponseDto> {
-        return try {
-            val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody(
-                    buildString {
-                        append("action=insert_opd")
-                        append("&p_id=$patientId")
-                        append("&p_name=$patientName")
-                        append("&mobile_number=$mobileNumber")
-                        append("&doc_name=$doctorName")
-                        append("&doc_id=$doctorId")
-                        append("&opd_amount=$opdAmount")
-                        append("&duration_per_patient=$durationPerPatient")
-                        append("&doc_time_from=$docTimeFrom")
-                        append("&opd_type=$opdType")
-                        append("&transaction_id=$transactionId")
-                        append("&payment_id=$paymentId")
-                        append("&order_id=$orderId")
-                        append("&status=$status")
-                        append("&message=$message")
-                        append("&close=close")
-                    }
-                )
-            }
-            val responseBody = response.bodyAsText()
-            Logger.d("OpdService", "insertOpd: $responseBody")
-            val dto = json.decodeFromString<InsertOpdResponseDto>(responseBody)
-            Result.success(dto)
-        } catch (e: Exception) {
-            Logger.e("OpdService", "insertOpd error: ${e.message}")
             Result.failure(e)
         }
     }

@@ -25,7 +25,6 @@ import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentFailedState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentFailedViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -63,25 +62,12 @@ fun OpdPaymentFailedScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            when (state) {
-                is OpdPaymentFailedState.Failed -> {
+
                     Text(
-                        text = (state as OpdPaymentFailedState.Failed).message ?: "Payment failed",
+                        text = "Payment failed",
                         color = ErrorRed,
                         fontSize = 16.sp
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = onRetry, colors = ButtonDefaults.buttonColors(
-                            containerColor = ColorPrimary, contentColor = White
-                        )
-                    ) {
-                        Text("Retry")
-                    }
-                }
-
-                is OpdPaymentFailedState.Idle -> {}
-            }
         }
     }
 }

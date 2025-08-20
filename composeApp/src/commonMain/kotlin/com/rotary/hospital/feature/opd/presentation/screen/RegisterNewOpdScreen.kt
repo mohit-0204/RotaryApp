@@ -61,57 +61,98 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.payment.PaymentHandler
-import com.rotary.hospital.core.payment.PaymentResult
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.ui.toastController
+import com.rotary.hospital.feature.opd.domain.model.Availability
 import com.rotary.hospital.feature.opd.domain.model.Doctor
+import com.rotary.hospital.feature.opd.domain.model.DoctorAvailability
 import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
+import com.rotary.hospital.feature.opd.domain.model.Leave
+import com.rotary.hospital.feature.opd.domain.model.Patient
 import com.rotary.hospital.feature.opd.domain.model.Slot
 import com.rotary.hospital.feature.opd.domain.model.Specialization
-import com.rotary.hospital.feature.opd.presentation.viewmodel.DoctorAvailabilityState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.DoctorAvailabilityViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentSuccessState
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentSuccessViewModel
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisterNewOpdViewModel
+import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Updated to match the new ViewModels (split UiState sources).
+ * Keeps the original look & UX while modernizing state handling and improving robustness.
+ */
 @Composable
 fun RegisterNewOpdScreen(
     paymentHandler: PaymentHandler?,
     onSuccess: (InsertOpdResponse) -> Unit,
+    onPending: () -> Unit,
+    onFailure: () -> Unit,
     onBack: () -> Unit,
     patientId: String,
     patientName: String,
     mobileNumber: String,
-    viewModel: RegisterNewOpdViewModel = koinViewModel(),
-    paymentViewModel: OpdPaymentSuccessViewModel = koinViewModel()
+    viewModel: RegisterNewOpdViewModel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
-    val paymentState by paymentViewModel.state.collectAsState()
+    // --- Collect VM states ---
+    val paymentState by viewModel.paymentState.collectAsState()
+    val availabilityState by viewModel.availabilityState.collectAsState()
+    val specializationsState by viewModel.specializationsState.collectAsState()
+    val doctorsState by viewModel.doctorsState.collectAsState()
+    val slotsState by viewModel.slotsState.collectAsState()
 
-    val availability = state.availability
-    var selectedSpecialization by remember { mutableStateOf("") }
-    var selectedDoctor by remember { mutableStateOf<Doctor?>(null) }
-    var selectedSlot by remember { mutableStateOf("") }
+    val selectedPatient by viewModel.selectedPatient.collectAsState()
+    val selectedSpecialization by viewModel.selectedSpecialization.collectAsState()
+    val selectedDoctor by viewModel.selectedDoctor.collectAsState()
+    val selectedSlot by viewModel.selectedSlot.collectAsState()
+
+    // --- Local bottom sheet plumbing (kept same UX) ---
     var sheetContent by remember { mutableStateOf<@Composable () -> Unit>({}) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // Initial loads
     LaunchedEffect(Unit) {
-        if (state.specializations.isEmpty()) {
-            viewModel.fetchSpecializations()
+        if (specializationsState !is UiState.Success) viewModel.fetchSpecializations()
+        // If you want to show saved patients in a picker later:
+        // viewModel.fetchRegisteredPatients(mobileNumber)
+        if (selectedPatient == null) {
+            // In this flow patient comes from nav args; still reflect it in VM for consistency.
+            viewModel.onSelectPatient(
+                patient = Patient(
+                    patientId = patientId,
+                    patientName = patientName
+                )
+            )
         }
     }
 
-
-    LaunchedEffect(selectedDoctor) {
+    // Keep slots in sync with doctor selection (ViewModel also exposes helper methods)
+    LaunchedEffect(selectedDoctor?.id) {
         selectedDoctor?.id?.let { viewModel.fetchSlots(it) }
-        selectedSlot = ""
+    }
+
+    // Handle payment result -> success handoff
+    LaunchedEffect(paymentState) {
+        when (paymentState) {
+            is UiState.Success -> {
+                onSuccess((paymentState as UiState.Success).data)
+            }
+
+            is UiState.Error -> {
+                toastController.show((paymentState as UiState.Error).message)
+                Logger.d("Payment Result UI","Payment failed: ${(paymentState as UiState.Error).message}")
+                onFailure() // Navigate to failed screen
+            }
+            is UiState.Loading -> {
+                Logger.d("Payment Result UI","Payment in progress")
+            }
+            UiState.Idle -> {}
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -119,7 +160,9 @@ fun RegisterNewOpdScreen(
             ModalBottomSheet(
                 onDismissRequest = { scope.launch { sheetState.hide() } },
                 sheetState = sheetState,
-                modifier = Modifier.fillMaxHeight(0.7f).align(Alignment.BottomCenter)
+                modifier = Modifier
+                    .fillMaxHeight(0.7f)
+                    .align(Alignment.BottomCenter)
             ) {
                 sheetContent()
             }
@@ -152,35 +195,50 @@ fun RegisterNewOpdScreen(
                 )
             },
             bottomBar = {
+                val availability: Availability? = (availabilityState as? UiState.Success)?.data
+                val canBook = availability?.available == true
+
                 Column {
                     ElevatedButton(
                         onClick = {
-                            availability?.let { availability ->
-                                if (availability.available) {
-                                    val total = availability.docCharges.toDoubleOrNull()
-                                        ?.plus(
-                                            availability.docOnlineCharges.toDoubleOrNull() ?: 0.0
-                                        ) ?: 0.0
-                                    sheetContent = {
-                                        TermsSheet(total = total, onAccept = { amount ->
-                                            if (amount > 0) {
-                                                viewModel.initiatePayment(
-                                                    mobileNumber = mobileNumber,
-                                                    amount = amount.toString(),
-                                                    patientId = patientId,
-                                                    patientName = patientName,
-                                                    doctorName = selectedDoctor?.name ?: ""
-                                                )
-                                            }
-                                            scope.launch { sheetState.hide() }
-                                        })
+                            val a = availability ?: return@ElevatedButton
+                            if (!a.available) return@ElevatedButton
 
+                            val total = (a.docCharges.toString().toDoubleOrNull() ?: 0.0) +
+                                    (a.docOnlineCharges.toDoubleOrNull() ?: 0.0)
+
+                            sheetContent = {
+                                TermsSheet(total = total, onAccept = { amount ->
+                                    if (amount <= 0.0) {
+                                        scope.launch { sheetState.hide() }
+                                        return@TermsSheet
                                     }
-                                    scope.launch { sheetState.show() }
-                                }
+
+                                    if (paymentHandler == null) {
+                                        toastController.show("Payment configuration missing")
+                                        scope.launch { sheetState.hide() }
+                                        return@TermsSheet
+                                    }
+
+                                    viewModel.initiatePayment(
+                                        paymentHandler = paymentHandler,
+                                        mobileNumber = mobileNumber,
+                                        amount = amount.toString(),
+                                        patientId = patientId,
+                                        patientName = patientName,
+                                        doctorName = selectedDoctor?.name ?: "",
+                                        doctorId = selectedDoctor?.id ?: "",
+                                        durationPerPatient = a.docDurationPerPatient,
+                                        docTimeFrom = a.docTimeFrom,
+                                        opdType = selectedSpecialization ?: ""
+                                    )
+                                    scope.launch { sheetState.hide() }
+                                })
                             }
+                            scope.launch { sheetState.show() }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .padding(WindowInsets.navigationBars.asPaddingValues())
                             .padding(horizontal = 8.dp)
                             .height(56.dp),
@@ -190,7 +248,7 @@ fun RegisterNewOpdScreen(
                         ),
                         shape = RoundedCornerShape(14.dp),
                         elevation = ButtonDefaults.elevatedButtonElevation(2.dp),
-                        enabled = availability?.available == true
+                        enabled = canBook
                     ) {
                         Text("Book Appointment")
                     }
@@ -203,18 +261,20 @@ fun RegisterNewOpdScreen(
                     .padding(innerPadding)
                     .padding(horizontal = 16.dp)
             ) {
-                // ... No changes to patient card, selection boxes ...
+                // Patient card (unchanged look)
                 item {
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = lerp(
                                 start = Color.White,
                                 stop = ColorPrimary,
-                                fraction = 0.1f // means 20% toward your color, 80% white = light tint
+                                fraction = 0.1f
                             )
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(text = patientName, fontSize = 20.sp, fontWeight = FontWeight.Bold)
@@ -222,8 +282,9 @@ fun RegisterNewOpdScreen(
                         }
                     }
                 }
-                item {
 
+                // Specialization selector
+                item {
                     Spacer(modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth())
                     Text(
                         text = "Specialization:",
@@ -232,35 +293,33 @@ fun RegisterNewOpdScreen(
                     )
                     Spacer(modifier = Modifier.padding(vertical = 2.dp).fillMaxWidth())
 
-                    // Custom Box for Specialization
                     Box(
-                        modifier = Modifier.fillMaxWidth().border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(4.dp)
-                        ).clickable {
-                            sheetContent = {
-                                SpecializationSheet(
-                                    selected = selectedSpecialization,
-                                    specializations = state.specializations
-                                ) { spec ->
-                                    selectedSpecialization = spec
-                                    selectedDoctor = null
-                                    viewModel.fetchDoctors(spec)
-                                    scope.launch { sheetState.hide() }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable {
+                                sheetContent = {
+                                    val list = (specializationsState as? UiState.Success<List<Specialization>>)?.data ?: emptyList()
+                                    SpecializationSheet(
+                                        selected = selectedSpecialization ?: "",
+                                        specializations = list
+                                    ) { spec ->
+                                        viewModel.onSelectSpecialization(spec)
+                                        scope.launch { sheetState.hide() }
+                                    }
                                 }
+                                scope.launch { sheetState.show() }
                             }
-                            scope.launch {
-                                sheetState.show()
-                            }
-                        }.padding(12.dp)
+                            .padding(12.dp)
                     ) {
-
-
                         Column(modifier = Modifier.padding(end = 40.dp)) {
                             Text(
-                                text = selectedSpecialization.ifEmpty { "Select Specialization" },
-                                color = if (selectedSpecialization.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                text = (selectedSpecialization ?: "").ifEmpty { "Select Specialization" },
+                                color = if ((selectedSpecialization ?: "").isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -272,8 +331,7 @@ fun RegisterNewOpdScreen(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
 
-
-                    // Custom Box for Doctor
+                    // Doctor selector
                     Text(
                         text = "Doctor:",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -281,37 +339,33 @@ fun RegisterNewOpdScreen(
                     )
                     Spacer(modifier = Modifier.padding(vertical = 2.dp).fillMaxWidth())
                     Box(
-                        modifier = Modifier.fillMaxWidth().border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(4.dp)
-                        ).clickable(
-                            enabled = selectedSpecialization.isNotEmpty()
-                        ) {
-                            if (selectedSpecialization.isNotEmpty()) {
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable(enabled = !selectedSpecialization.isNullOrEmpty()) {
                                 sheetContent = {
+                                    val list = (doctorsState as? UiState.Success<List<Doctor>>)?.data ?: emptyList()
                                     DoctorSheet(
                                         selected = selectedDoctor,
-                                        doctors = state.doctors
+                                        doctors = list
                                     ) { doctor ->
-                                        selectedDoctor = doctor
-                                        viewModel.fetchSlots(doctor?.id ?: "")
+                                        if (doctor != null) viewModel.onSelectDoctor(doctor)
                                         scope.launch { sheetState.hide() }
                                     }
                                 }
-                                scope.launch {
-                                    sheetState.show()
-                                }
+                                scope.launch { sheetState.show() }
                             }
-                        }.padding(12.dp)
+                            .padding(12.dp)
                     ) {
-                        val isEnabled = selectedSpecialization.isNotEmpty()
+                        val isEnabled = !selectedSpecialization.isNullOrEmpty()
                         Column(modifier = Modifier.padding(end = 40.dp)) {
                             Text(
                                 text = selectedDoctor?.name ?: "Select Doctor",
-                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.38f
-                                ) else MaterialTheme.colorScheme.onSurface,
+                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -323,7 +377,8 @@ fun RegisterNewOpdScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
-                    // Custom Box for Slots
+
+                    // Slot selector
                     Text(
                         text = "Slot:",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -331,38 +386,35 @@ fun RegisterNewOpdScreen(
                     )
                     Spacer(modifier = Modifier.padding(vertical = 2.dp).fillMaxWidth())
                     Box(
-                        modifier = Modifier.fillMaxWidth().border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(4.dp)
-                        ).clickable(
-                            enabled = selectedDoctor != null
-                        ) {
-                            if (selectedDoctor != null) {
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .clickable(enabled = selectedDoctor != null) {
                                 sheetContent = {
+                                    val list = (slotsState as? UiState.Success<List<Slot>>)?.data ?: emptyList()
                                     SlotSheet(
                                         selected = selectedSlot,
-                                        slots = state.slots,
+                                        slots = list,
                                         onSelect = { slot ->
-                                            selectedSlot = slot
-                                            viewModel.fetchAvailability(selectedDoctor!!.id, slot)
+                                            viewModel.onSelectSlot(slot)
                                             scope.launch { sheetState.hide() }
                                         }
                                     )
                                 }
-                                scope.launch {
-                                    sheetState.show()
-                                }
+                                scope.launch { sheetState.show() }
                             }
-                        }.padding(12.dp)
+                            .padding(12.dp)
                     ) {
                         val isEnabled = selectedDoctor != null
                         Column(modifier = Modifier.padding(end = 40.dp)) {
+                            val slotLabel = selectedSlot?.let { "${it.timeFrom} - ${it.timeTo}" } ?: "Select Slot Timing"
                             Text(
-                                text = selectedSlot.ifEmpty { "Select Slot Timing" },
-                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(
-                                    alpha = 0.38f
-                                ) else MaterialTheme.colorScheme.onSurface,
+                                text = slotLabel,
+                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -376,22 +428,19 @@ fun RegisterNewOpdScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
+                // Availability details + loading/error handling (scoped to availability state)
                 item {
-                    when {
-                        state.isLoading -> Box(Modifier.fillMaxWidth()) {
-                            CircularProgressIndicator(
-                                Modifier.align(Alignment.Center),
-                                color = ColorPrimary
-                            )
+                    when (availabilityState) {
+                        is UiState.Loading -> Box(Modifier.fillMaxWidth()) {
+                            CircularProgressIndicator(Modifier.align(Alignment.Center), color = ColorPrimary)
                         }
-
-                        state.errorMessage != null -> Text(
-                            text = state.errorMessage ?: "",
+                        is UiState.Error -> Text(
+                            text = (availabilityState as UiState.Error).message,
                             color = Color.Red,
                             fontSize = 16.sp
                         )
-
-                        availability != null -> {
+                        is UiState.Success -> {
+                            val availability = (availabilityState as UiState.Success<Availability>).data
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -400,7 +449,7 @@ fun RegisterNewOpdScreen(
                                     containerColor = lerp(
                                         start = Color.White,
                                         stop = ColorPrimary,
-                                        fraction = 0.1f // means 20% toward your color, 80% white = light tint
+                                        fraction = 0.1f
                                     )
                                 ),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -410,17 +459,15 @@ fun RegisterNewOpdScreen(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Text(
-                                            "Appointment Details",
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
+                                        Text("Appointment Details", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                         Text(
                                             text = if (availability.available) "Available" else "Slots Full",
-                                            modifier = Modifier.background(
-                                                if (availability.available) Color.Green else Color.Red,
-                                                shape = RoundedCornerShape(8.dp)
-                                            ).padding(horizontal = 8.dp, vertical = 4.dp),
+                                            modifier = Modifier
+                                                .background(
+                                                    if (availability.available) Color.Green else Color.Red,
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                                .padding(horizontal = 8.dp, vertical = 4.dp),
                                             color = Color.White,
                                             fontSize = 18.sp
                                         )
@@ -436,73 +483,40 @@ fun RegisterNewOpdScreen(
                                     }
                                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                                         Text("Online Charges:", fontSize = 16.sp)
-                                        Text(
-                                            "${availability.docOnlineCharges} Rs",
-                                            fontSize = 16.sp
-                                        )
+                                        Text("${availability.docOnlineCharges} Rs", fontSize = 16.sp)
                                     }
                                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                                         Text("Expected Wait Time:", fontSize = 16.sp)
-                                        Text(
-                                            "${availability.approximateTime} minutes",
-                                            fontSize = 16.sp
-                                        )
+                                        Text("${availability.approximateTime} minutes", fontSize = 16.sp)
                                     }
                                 }
                             }
                         }
+                        UiState.Idle -> {}
                     }
                 }
-            }
 
-            // ✅ Payment Trigger
-            LaunchedEffect(state.payment) {
-                state.payment?.let { payment ->
-                    paymentHandler?.startPayment(
-                        payment.payloadBase64,
-                        payment.checksum,
-                        payment.apiEndPoint
-                    ) { result ->
-                        when (result) {
-                            PaymentResult.Cancelled -> toastController.show("Payment got canceled")
-                            is PaymentResult.Failure -> toastController.show("Payment failed")
-                            is PaymentResult.Success -> {
-                                paymentViewModel.fetchPaymentStatus(payment.merchantTransactionId)
-                            }
+                // Payment state handling
+                item {
+                    when (paymentState) {
+                        is UiState.Loading -> Box(Modifier.fillMaxWidth()) {
+                            CircularProgressIndicator(Modifier.align(Alignment.Center), color = ColorPrimary)
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = "Processing Payment...",
+                                fontSize = 16.sp,
+                                color = ColorPrimary,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
                         }
+                        is UiState.Error -> Text(
+                            text = (paymentState as UiState.Error).message,
+                            color = ErrorRed,
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        else -> {}
                     }
-                }
-            }
-
-            // ✅ OPD Insert after Payment Success
-            LaunchedEffect(paymentState) {
-                val success =
-                    paymentState as? OpdPaymentSuccessState.Success ?: return@LaunchedEffect
-                availability?.let {
-                    viewModel.insertOpd(
-                        patientId = patientId,
-                        patientName = patientName,
-                        mobileNumber = mobileNumber,
-                        doctorName = selectedDoctor?.name.orEmpty(),
-                        doctorId = selectedDoctor?.id.orEmpty(),
-                        opdAmount = it.docCharges,
-                        durationPerPatient = it.docDurationPerPatient,
-                        docTimeFrom = it.docTimeFrom,
-                        opdType = selectedSpecialization,
-                        transactionId = success.paymentStatus.transactionId,
-                        paymentId = success.paymentStatus.transactionId,
-                        orderId = success.paymentStatus.transactionId,
-                        status = success.paymentStatus.response,
-                        message = success.paymentStatus.message
-                    )
-                }
-            }
-
-            // ✅ Final success response trigger
-            LaunchedEffect(state.response) {
-                state.response?.let {
-                    onSuccess(it)
-                    viewModel.clearResponse()
                 }
             }
         }
@@ -523,7 +537,9 @@ fun SpecializationSheet(
             onValueChange = { searchQuery = it },
             placeholder = { Text("Search Specialization") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            modifier = Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(8.dp)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, RoundedCornerShape(8.dp)),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -535,9 +551,7 @@ fun SpecializationSheet(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        val filteredSpecs = specializations.filter {
-            it.data.contains(searchQuery, ignoreCase = true)
-        }
+        val filteredSpecs = specializations.filter { it.data.contains(searchQuery, ignoreCase = true) }
 
         if (filteredSpecs.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -552,17 +566,19 @@ fun SpecializationSheet(
             LazyColumn {
                 items(filteredSpecs) { spec ->
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
                             .clickable { onSelect(spec.data) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        ),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             text = spec.data,
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
                             color = if (spec.data == selected) Color(0xFF00BCD4) else Color.Black,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
@@ -573,7 +589,6 @@ fun SpecializationSheet(
         }
     }
 }
-
 
 @Composable
 fun DoctorSheet(
@@ -589,7 +604,9 @@ fun DoctorSheet(
             onValueChange = { searchQuery = it },
             placeholder = { Text("Search Doctor") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            modifier = Modifier.fillMaxWidth().background(Color.White, RoundedCornerShape(8.dp)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, RoundedCornerShape(8.dp)),
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
@@ -601,9 +618,7 @@ fun DoctorSheet(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        val filteredDoctors = doctors.filter {
-            it.name.contains(searchQuery, ignoreCase = true)
-        }
+        val filteredDoctors = doctors.filter { it.name.contains(searchQuery, ignoreCase = true) }
 
         if (filteredDoctors.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -618,7 +633,9 @@ fun DoctorSheet(
             LazyColumn {
                 items(filteredDoctors) { doctor ->
                     Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
                             .clickable { onSelect(doctor) },
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -626,7 +643,9 @@ fun DoctorSheet(
                     ) {
                         Text(
                             text = doctor.name,
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
                             color = if (doctor == selected) Color(0xFF00BCD4) else Color.Black,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
@@ -638,12 +657,11 @@ fun DoctorSheet(
     }
 }
 
-
 @Composable
 fun SlotSheet(
-    selected: String,
+    selected: Slot?,
     slots: List<Slot>,
-    onSelect: (String) -> Unit
+    onSelect: (Slot) -> Unit
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         if (slots.isEmpty()) {
@@ -661,12 +679,14 @@ fun SlotSheet(
             ) {
                 items(slots) { slot ->
                     Button(
-                        onClick = { onSelect(slot.timeFrom) },
+                        onClick = { onSelect(slot) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF00BCD4),
                             contentColor = Color.White
                         ),
-                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
                     ) {
                         Text("${slot.timeFrom} - ${slot.timeTo}", fontSize = 14.sp)
                     }
@@ -676,52 +696,48 @@ fun SlotSheet(
     }
 }
 
-
 @Composable
 fun TermsSheet(total: Double, onAccept: (Double) -> Unit) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = "Terms & Conditions", fontSize = 20.sp, fontWeight = FontWeight.Bold
-        )
+        Text(text = "Terms & Conditions", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Total Charges: $total Rs", fontSize = 16.sp, fontWeight = FontWeight.Bold
-        )
+        Text(text = "Total Charges: $total Rs", fontSize = 16.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(16.dp))
         Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
                 onClick = { onAccept(0.0) },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-            ) {
-                Text("Cancel", color = Color.White)
-            }
+            ) { Text("Cancel", color = Color.White) }
             Button(
                 onClick = { onAccept(total) },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary)
-            ) {
-                Text("Accept", color = Color.White)
-            }
+            ) { Text("Accept", color = Color.White) }
         }
     }
 }
 
 @Composable
 fun DoctorAvailabilityScreen(
-    doctorId: String, onBack: () -> Unit, viewModel: DoctorAvailabilityViewModel = koinViewModel()
+    doctorId: String,
+    onBack: () -> Unit,
+    viewModel: DoctorAvailabilityViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.fetchAvailability(doctorId)
+        viewModel.fetchDoctorAvailability(doctorId)
     }
 
     AppTheme {
         Column(
-            modifier = Modifier.fillMaxSize().padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -734,34 +750,27 @@ fun DoctorAvailabilityScreen(
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
-                TextButton(onClick = onBack) {
-                    Text("Back", color = ColorPrimary)
-                }
+                TextButton(onClick = onBack) { Text("Back", color = ColorPrimary) }
             }
             Spacer(modifier = Modifier.height(16.dp))
+
             when (state) {
-                is DoctorAvailabilityState.Loading -> CircularProgressIndicator(color = ColorPrimary)
-                is DoctorAvailabilityState.Success -> {
-                    val (availability, leaves) = (state as DoctorAvailabilityState.Success)
+                is UiState.Loading -> CircularProgressIndicator(color = ColorPrimary)
+                is UiState.Success -> {
+                    val (availability, leaves) = (state as UiState.Success<Pair<List<DoctorAvailability>, List<Leave>>>).data
                     LazyColumn {
                         items(availability) { avail ->
                             Card(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = CardDefaults.cardColors(containerColor = White),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        text = "Days: ${avail.docDays}",
-                                        color = ColorPrimary,
-                                        fontSize = 16.sp
-                                    )
-                                    Text(
-                                        text = "Time: ${avail.docTimeFrom} - ${avail.docTimeTo}",
-                                        color = ColorPrimary,
-                                        fontSize = 16.sp
-                                    )
+                                    Text(text = "Days: ${avail.docDays}", color = ColorPrimary, fontSize = 16.sp)
+                                    Text(text = "Time: ${avail.docTimeFrom} - ${avail.docTimeTo}", color = ColorPrimary, fontSize = 16.sp)
                                 }
                             }
                         }
@@ -777,38 +786,30 @@ fun DoctorAvailabilityScreen(
                             }
                             items(leaves) { leave ->
                                 Card(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
                                     shape = RoundedCornerShape(8.dp),
                                     colors = CardDefaults.cardColors(containerColor = White),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(
-                                            text = "From: ${leave.cancelDate}",
-                                            color = ColorPrimary,
-                                            fontSize = 16.sp
-                                        )
-                                        Text(
-                                            text = "To: ${leave.cancelDateTo}",
-                                            color = ColorPrimary,
-                                            fontSize = 16.sp
-                                        )
+                                        Text(text = "From: ${leave.cancelDate}", color = ColorPrimary, fontSize = 16.sp)
+                                        Text(text = "To: ${leave.cancelDateTo}", color = ColorPrimary, fontSize = 16.sp)
                                     }
                                 }
                             }
                         }
                     }
                 }
-
-                is DoctorAvailabilityState.Error -> {
+                is UiState.Error -> {
                     Text(
-                        text = (state as DoctorAvailabilityState.Error).message,
+                        text = (state as UiState.Error).message,
                         color = ErrorRed,
                         fontSize = 16.sp
                     )
                 }
-
-                is DoctorAvailabilityState.Idle -> {}
+                UiState.Idle -> {}
             }
         }
     }
