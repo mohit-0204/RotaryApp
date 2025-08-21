@@ -3,6 +3,8 @@ package com.rotary.hospital.core.ui.component
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +14,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -33,8 +37,19 @@ fun InputField(
     placeholder: String? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    maxLines: Int = 1
-) {
+    maxLines: Int = 1,
+    onClick: () -> Unit = {},
+
+    ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    // Collect interaction events
+    LaunchedEffect(interactionSource) {
+        interactionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                onClick.invoke()
+            }
+        }
+    }
     Column(modifier = modifier.padding(bottom = 8.dp)) {
         OutlinedTextField(
             value = value,
@@ -81,7 +96,8 @@ fun InputField(
             shape = RoundedCornerShape(12.dp),
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
             keyboardOptions = keyboardOptions,
-            maxLines = maxLines
+            maxLines = maxLines,
+            interactionSource = interactionSource
         )
         AnimatedVisibility(
             visible = errorMessage != null,
