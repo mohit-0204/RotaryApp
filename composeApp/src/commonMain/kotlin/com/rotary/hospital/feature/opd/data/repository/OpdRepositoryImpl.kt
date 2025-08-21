@@ -13,6 +13,13 @@ class OpdRepositoryImpl(private val service: OpdService) : OpdRepository {
         )
     }
 
+    override suspend fun getOpdDetails(opdId: String): Result<OpdDetails?> {
+        return service.getOpdDetails(opdId).fold(
+            onSuccess = { dto -> Result.success(dto?.toDomain()?.getOrNull()) },
+            onFailure = { error -> Result.failure(error) }
+        )
+    }
+
     override suspend fun getRegisteredPatients(mobileNumber: String): Result<List<Patient>> {
         return service.getRegisteredPatients(mobileNumber).fold(
             onSuccess = { dtoList -> Result.success(dtoList.mapNotNull { it.toDomain().getOrNull() }) },
@@ -60,3 +67,4 @@ class OpdRepositoryImpl(private val service: OpdService) : OpdRepository {
         )
     }
 }
+

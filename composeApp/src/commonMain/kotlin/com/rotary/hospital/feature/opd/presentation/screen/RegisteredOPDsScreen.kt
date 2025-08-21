@@ -2,6 +2,7 @@
 
 package com.rotary.hospital.feature.opd.presentation.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,8 +46,8 @@ import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.feature.opd.presentation.screen.components.OpdListItem
-import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOpdsState
-import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOpdsViewModel
+import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOPDsState
+import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOPDsViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -56,7 +57,7 @@ fun RegisteredOPDsScreen(
     onAddNew: () -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
-    viewModel: RegisteredOpdsViewModel = koinViewModel(),
+    viewModel: RegisteredOPDsViewModel = koinViewModel(),
     preferences: PreferencesManager = koinInject()
 ) {
     val state by viewModel.state.collectAsState()
@@ -66,7 +67,7 @@ fun RegisteredOPDsScreen(
         preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").collect { savedMobile ->
             if (savedMobile.isNotBlank()) {
                 mobileNumber = savedMobile
-                viewModel.fetchOpds(savedMobile)
+                viewModel.fetchOpdList(savedMobile)
             } else {
                 Logger.e("RegisteredOpdsScreen", "Mobile number not found")
             }
@@ -111,13 +112,15 @@ fun RegisteredOPDsScreen(
             }
         }, containerColor = Color.White
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(
+            modifier = Modifier.padding(paddingValues).background(Color(0xFFF9F9F9))
+        ) {
             when (val currentState = state) {
-                is RegisteredOpdsState.Loading -> {
+                is RegisteredOPDsState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
 
-                is RegisteredOpdsState.Error -> {
+                is RegisteredOPDsState.Error -> {
                     Text(
                         text = currentState.message,
                         color = ErrorRed,
@@ -125,8 +128,8 @@ fun RegisteredOPDsScreen(
                     )
                 }
 
-                is RegisteredOpdsState.Success -> {
-                    val opds = currentState.opds
+                is RegisteredOPDsState.Success -> {
+                    val opds = currentState.opdList
                     if (opds.isEmpty()) {
                         Column(
                             modifier = Modifier.fillMaxSize(),

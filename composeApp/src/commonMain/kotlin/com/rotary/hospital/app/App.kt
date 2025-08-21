@@ -298,7 +298,8 @@ fun App(paymentHandler: PaymentHandler?) {
                 val route = backStackEntry.toRoute<AppRoute.SelectedOpdDetails>()
                 SelectedOpdDetailsScreen(
                     opdId = route.opdId,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onShare = { }
                 )
             }
         }

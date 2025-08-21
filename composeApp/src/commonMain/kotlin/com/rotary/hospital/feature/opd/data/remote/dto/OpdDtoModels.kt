@@ -14,6 +14,23 @@ data class OpdDto(
 )
 
 @Serializable
+data class OpdDetailsDto(
+    @SerialName("opd_id") val opdId: String,
+    @SerialName("opd_date") val opdDate: String,
+    @SerialName("opd_token") val tokenNumber: String,
+    @SerialName("estimated_time") val estimatedTime: String,
+    @SerialName("opd_charge") val opdCharges: String,
+    @SerialName("p_id") val patientId: String,
+    @SerialName("p_name") val patientName: String,
+    @SerialName("opd_doctor") val doctor: String,
+    @SerialName("transaction_id") val transactionId: String,
+    @SerialName("order_id") val orderId: String,
+    @SerialName("payment_id") val paymentId: String,
+    @SerialName("transaction_status") val transactionStatus: String,
+    @SerialName("transaction_message") val transactionMessage: String
+)
+
+@Serializable
 data class PatientDto(
     @SerialName("pid1") val patientId: String? = null,
     @SerialName("p_name") val patientName: String? = null

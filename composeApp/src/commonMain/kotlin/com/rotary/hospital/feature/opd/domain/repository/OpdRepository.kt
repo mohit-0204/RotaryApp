@@ -4,6 +4,7 @@ import com.rotary.hospital.feature.opd.domain.model.*
 
 interface OpdRepository {
     suspend fun getBookedOpds(mobileNumber: String): Result<List<Opd>>
+    suspend fun getOpdDetails(opdId: String): Result<OpdDetails?>
     suspend fun getRegisteredPatients(mobileNumber: String): Result<List<Patient>>
     suspend fun getSpecializations(): Result<List<Specialization>>
     suspend fun getDoctors(specialization: String): Result<List<Doctor>>

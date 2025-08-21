@@ -17,6 +17,7 @@ val opdModule = module {
     single<OpdRepository> { OpdRepositoryImpl(get()) }
     single<PaymentRepository> { PaymentRepositoryImpl(get()) }
     single { GetBookedOpdsUseCase(get()) }
+    single { GetOpdDetailsUseCase(get()) }
     single { GetRegisteredPatientsUseCase(get()) }
     single { GetSpecializationsUseCase(get()) }
     single { GetDoctorsUseCase(get()) }
@@ -27,8 +28,8 @@ val opdModule = module {
     single { GetPaymentStatusUseCase(get()) }
     single { InsertOpdUseCase(get()) }
     single { InitiatePaymentFlowUseCase(get()) }
-    viewModel{ RegisteredOpdsViewModel(get()) }
-    viewModel{ OpdPatientListViewModel(get(), get()) }
+    viewModel{ RegisteredOPDsViewModel(get()) }
+    viewModel{ OpdPatientListViewModel(get()) }
     viewModel{ RegisterNewOpdViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel{ DoctorAvailabilityViewModel(get()) }
     viewModel{ OpdPaymentSuccessViewModel(get()) }

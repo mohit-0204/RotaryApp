@@ -20,6 +20,30 @@ fun OpdDto.toDomain(): Result<Opd> {
     }
 }
 
+fun OpdDetailsDto.toDomain(): Result<OpdDetails> {
+    return try {
+        Result.success(
+            OpdDetails(
+                opdId = opdId,
+                opdDate = opdDate,
+                tokenNumber = tokenNumber,
+                estimatedTime = estimatedTime,
+                opdCharges = opdCharges,
+                patientId = patientId,
+                patientName = patientName,
+                doctor = doctor,
+                transactionId = transactionId,
+                orderId = orderId,
+                paymentId = paymentId,
+                transactionStatus = transactionStatus,
+                transactionMessage = transactionMessage
+            )
+        )
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+}
+
 fun PatientDto.toDomain(): Result<Patient> {
     return try {
         Result.success(

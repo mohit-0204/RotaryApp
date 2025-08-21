@@ -101,14 +101,11 @@ fun HomeScreen(
         )
     )
 
-    LaunchedEffect(Unit) {
-        toastController.show("Welcome back!")
-    }
     AppTheme {
         Scaffold(
             topBar = { HomeTopBar() },
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = {
+            /*bottomBar = {
                 NavigationBar(containerColor = Color.White) {
                     NavigationBarItem(
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
@@ -150,14 +147,14 @@ fun HomeScreen(
                         )
                     )
                 }
-            }
+            }*/
         ) { paddingValues ->
             Column(
                 modifier = Modifier
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
                     .background(Color(0xFFF9F9F9))
-                    .padding(16.dp, vertical = 8.dp)
+                    .padding(16.dp)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 

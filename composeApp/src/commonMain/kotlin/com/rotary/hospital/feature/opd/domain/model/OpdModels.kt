@@ -11,6 +11,22 @@ data class Opd(
     val date: String
 )
 
+data class OpdDetails(
+    val opdId: String,
+    val opdDate: String,
+    val tokenNumber: String,
+    val estimatedTime: String,
+    val opdCharges: String,
+    val patientId: String,
+    val patientName: String,
+    val doctor: String,
+    val transactionId: String,
+    val orderId: String,
+    val paymentId: String,
+    val transactionStatus: String,
+    val transactionMessage: String
+)
+
 @Serializable
 data class Patient(
     val patientId: String,

@@ -10,74 +10,17 @@ import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
 import com.rotary.hospital.feature.opd.domain.model.Leave
 import com.rotary.hospital.feature.opd.domain.model.Opd
 import com.rotary.hospital.feature.opd.domain.model.Patient
-import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
 import com.rotary.hospital.feature.opd.domain.model.PaymentStatus
 import com.rotary.hospital.feature.opd.domain.model.Slot
 import com.rotary.hospital.feature.opd.domain.model.Specialization
 import com.rotary.hospital.feature.opd.domain.usecase.*
 import io.ktor.util.date.getTimeMillis
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
-
-class RegisteredOpdsViewModel(
-    private val getBookedOpdsUseCase: GetBookedOpdsUseCase
-) : ViewModel() {
-    private val _state = MutableStateFlow<RegisteredOpdsState>(RegisteredOpdsState.Idle)
-    val state: StateFlow<RegisteredOpdsState> = _state.asStateFlow()
-
-    fun fetchOpds(mobileNumber: String) {
-        viewModelScope.launch {
-            _state.value = RegisteredOpdsState.Loading
-            getBookedOpdsUseCase(mobileNumber).fold(
-                onSuccess = { opds -> _state.value = RegisteredOpdsState.Success(opds) },
-                onFailure = { error ->
-                    _state.value = RegisteredOpdsState.Error(error.message ?: "Unknown error")
-                }
-            )
-        }
-    }
-}
-
-sealed interface RegisteredOpdsState {
-    data object Idle : RegisteredOpdsState
-    data object Loading : RegisteredOpdsState
-    data class Success(val opds: List<Opd>) : RegisteredOpdsState
-    data class Error(val message: String) : RegisteredOpdsState
-}
-
-class OpdPatientListViewModel(
-    private val getRegisteredPatientsUseCase: GetRegisteredPatientsUseCase,
-    private val getBookedOpdsUseCase: GetBookedOpdsUseCase
-) : ViewModel() {
-    private val _state = MutableStateFlow<OpdPatientListState>(OpdPatientListState.Idle)
-    val state: StateFlow<OpdPatientListState> = _state.asStateFlow()
-
-    fun fetchPatients(mobileNumber: String) {
-        viewModelScope.launch {
-            _state.value = OpdPatientListState.Loading
-            getRegisteredPatientsUseCase(mobileNumber).fold(
-                onSuccess = { patients -> _state.value = OpdPatientListState.Success(patients) },
-                onFailure = { error ->
-                    _state.value = OpdPatientListState.Error(error.message ?: "Unknown error")
-                }
-            )
-        }
-    }
-}
-
-sealed interface OpdPatientListState {
-    data object Idle : OpdPatientListState
-    data object Loading : OpdPatientListState
-    data class Success(val patients: List<Patient>) : OpdPatientListState
-    data class Error(val message: String) : OpdPatientListState
-}
 
 class RegisterNewOpdViewModel(
     private val getRegisteredPatientsUseCase: GetRegisteredPatientsUseCase,
@@ -301,37 +244,4 @@ class DoctorAvailabilityViewModel(
             )
         }
     }
-}
-
-class SelectedOpdDetailsViewModel(
-    private val getBookedOpdsUseCase: GetBookedOpdsUseCase
-) : ViewModel() {
-    private val _state = MutableStateFlow<SelectedOpdDetailsState>(SelectedOpdDetailsState.Idle)
-    val state: StateFlow<SelectedOpdDetailsState> = _state.asStateFlow()
-
-    fun fetchOpdDetails(mobileNumber: String, opdId: String) {
-        viewModelScope.launch {
-            _state.value = SelectedOpdDetailsState.Loading
-            getBookedOpdsUseCase(mobileNumber).fold(
-                onSuccess = { opds ->
-                    val opd = opds.find { it.opdId == opdId }
-                    _state.value = if (opd != null) {
-                        SelectedOpdDetailsState.Success(opd)
-                    } else {
-                        SelectedOpdDetailsState.Error("OPD not found")
-                    }
-                },
-                onFailure = { error ->
-                    _state.value = SelectedOpdDetailsState.Error(error.message ?: "Unknown error")
-                }
-            )
-        }
-    }
-}
-
-sealed interface SelectedOpdDetailsState {
-    data object Idle : SelectedOpdDetailsState
-    data object Loading : SelectedOpdDetailsState
-    data class Success(val opd: Opd) : SelectedOpdDetailsState
-    data class Error(val message: String) : SelectedOpdDetailsState
 }

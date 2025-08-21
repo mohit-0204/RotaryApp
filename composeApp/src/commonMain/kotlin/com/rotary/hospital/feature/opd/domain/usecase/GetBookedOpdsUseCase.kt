@@ -11,6 +11,11 @@ class GetBookedOpdsUseCase(private val repository: OpdRepository) {
         return repository.getBookedOpds(mobileNumber)
     }
 }
+class GetOpdDetailsUseCase(private val repository: OpdRepository) {
+    suspend operator fun invoke(opdId: String): Result<OpdDetails?> {
+        return repository.getOpdDetails(opdId)
+    }
+}
 
 class GetRegisteredPatientsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(mobileNumber: String): Result<List<Patient>> {

@@ -11,6 +11,9 @@ import com.rotary.hospital.feature.opd.data.remote.dto.SlotDto
 import com.rotary.hospital.feature.opd.data.remote.dto.AvailabilityDto
 import com.rotary.hospital.feature.opd.data.remote.dto.DoctorAvailabilityDto
 import com.rotary.hospital.feature.opd.data.remote.dto.LeaveDto
+import com.rotary.hospital.feature.opd.data.remote.dto.OpdDetailsDto
+import com.rotary.hospital.feature.opd.domain.model.Opd
+import com.rotary.hospital.feature.opd.domain.model.OpdDetails
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -64,6 +67,43 @@ class OpdService {
             }
         } catch (e: Exception) {
             Logger.e("OpdService", "getBookedOpds error: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getOpdDetails(opdId: String): Result<OpdDetailsDto?> {
+        return try {
+            val response = client.post(ApiConstants.BASE_URL + ApiConstants.MANAGE_APPOINTMENTS) {
+                contentType(ContentType.Application.FormUrlEncoded)
+                setBody(
+                    buildFormBody(
+                        mapOf(
+                            "action" to "get_opd_detail",
+                            "opd_id" to opdId,
+                            "close" to "close"
+                        )
+                    )
+                )
+            }
+            val responseBody = response.bodyAsText()
+            Logger.d("OpdService", "getOpdDetails: $responseBody")
+            val jsonObject = json.decodeFromString<JsonObject>(responseBody)
+            if (
+                jsonObject["response"]?.jsonPrimitive?.boolean == true &&
+                jsonObject["message"]?.jsonPrimitive?.content == "OK"
+            ) {
+                val dtoList =
+                    json.decodeFromString<List<OpdDetailsDto>>(jsonObject["data"].toString())
+                Result.success(dtoList.firstOrNull())
+            } else {
+                Result.failure(
+                    Exception(
+                        jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Logger.e("OpdService", "getOpdDetails error: ${e.message}")
             Result.failure(e)
         }
     }
@@ -291,4 +331,6 @@ class OpdService {
             Result.failure(e)
         }
     }
+
+
 }
