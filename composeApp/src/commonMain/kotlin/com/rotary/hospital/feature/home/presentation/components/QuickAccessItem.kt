@@ -29,12 +29,17 @@ import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
 
 @Composable
-fun QuickAccessItem(label: String, icon: ImageVector,onClick: () -> Unit) {
+fun QuickAccessItem(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(1.dp),
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(90.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
@@ -47,11 +52,16 @@ fun QuickAccessItem(label: String, icon: ImageVector,onClick: () -> Unit) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(46.dp)
                     .clip(CircleShape)
                     .background(ColorPrimary.copy(alpha = 0.1f))
             ) {
-                Icon(icon, contentDescription = label, tint = ColorPrimary, modifier = Modifier.size(20.dp))
+                Icon(
+                    icon,
+                    contentDescription = label,
+                    tint = ColorPrimary,
+                    modifier = Modifier.size(30.dp)
+                )
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -61,7 +71,8 @@ fun QuickAccessItem(label: String, icon: ImageVector,onClick: () -> Unit) {
                 ),
                 fontWeight = FontWeight.Bold,
                 color = Color.DarkGray,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

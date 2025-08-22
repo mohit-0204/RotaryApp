@@ -51,18 +51,21 @@ class PatientListViewModel(
             val result = getRegisteredPatientsUseCase(phoneNumber)
             _state.value = when {
                 result.isSuccess -> PatientListState.Success(result.getOrNull()!!)
-                else -> PatientListState.Error(result.exceptionOrNull()?.message ?: "Error fetching patients")
+                else -> PatientListState.Error(
+                    result.exceptionOrNull()?.message ?: "Error fetching patients"
+                )
             }
             filterPatients()
         }
     }
 
-    fun saveSelectedPatient(patient: Patient) {
+    fun saveSelectedPatient(patient: Patient, onSaved: () -> Unit) {
         viewModelScope.launch {
+            preferences.saveBoolean(PreferenceKeys.IS_LOGGED_IN, true)
             preferences.saveString(PreferenceKeys.PATIENT_ID, patient.id)
             preferences.saveString(PreferenceKeys.PATIENT_NAME, patient.name)
             preferences.saveString(PreferenceKeys.MOBILE_NUMBER, patient.phoneNumber)
-            preferences.saveBoolean(PreferenceKeys.IS_LOGGED_IN, true)
+            onSaved()
         }
     }
 
@@ -75,7 +78,10 @@ class PatientListViewModel(
                 state.patients
             } else {
                 state.patients.filter { patient ->
-                    Logger.d("FilterPatients", "Checking patient: ${patient.name}, ID: ${patient.id}")
+                    Logger.d(
+                        "FilterPatients",
+                        "Checking patient: ${patient.name}, ID: ${patient.id}"
+                    )
                     patient.name.trim().contains(query, ignoreCase = true) ||
                             patient.id.contains(query, ignoreCase = true)
                 }.also {

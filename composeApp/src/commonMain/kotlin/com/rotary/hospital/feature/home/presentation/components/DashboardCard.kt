@@ -27,12 +27,12 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun DashboardCard(title: String, subtitle: String, iconRes: DrawableResource, onClick: () -> Unit) {
+fun DashboardCard(title: String, subtitle: String, iconRes: DrawableResource, onClick: () -> Unit,modifier: Modifier= Modifier) {
     Card(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp), // Set elevation here
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth().height(140.dp),
+        modifier = modifier.fillMaxWidth().height(140.dp),
         onClick = onClick
     ) {
         Column(modifier = Modifier.padding(16.dp).padding(start = 10.dp)) {

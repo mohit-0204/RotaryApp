@@ -14,6 +14,7 @@ import com.rotary.hospital.feature.opd.domain.model.PaymentStatus
 import com.rotary.hospital.feature.opd.domain.model.Slot
 import com.rotary.hospital.feature.opd.domain.model.Specialization
 import com.rotary.hospital.feature.opd.domain.usecase.*
+import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState
 import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,8 +40,10 @@ class RegisterNewOpdViewModel(
     private val _patientsState = MutableStateFlow<UiState<List<Patient>>>(UiState.Idle)
     val patientsState: StateFlow<UiState<List<Patient>>> = _patientsState.asStateFlow()
 
-    private val _specializationsState = MutableStateFlow<UiState<List<Specialization>>>(UiState.Idle)
-    val specializationsState: StateFlow<UiState<List<Specialization>>> = _specializationsState.asStateFlow()
+    private val _specializationsState =
+        MutableStateFlow<UiState<List<Specialization>>>(UiState.Idle)
+    val specializationsState: StateFlow<UiState<List<Specialization>>> =
+        _specializationsState.asStateFlow()
 
     private val _doctorsState = MutableStateFlow<UiState<List<Doctor>>>(UiState.Idle)
     val doctorsState: StateFlow<UiState<List<Doctor>>> = _doctorsState.asStateFlow()
@@ -61,16 +64,6 @@ class RegisterNewOpdViewModel(
     private val _selectedSlot = MutableStateFlow<Slot?>(null)
     val selectedSlot: StateFlow<Slot?> = _selectedSlot.asStateFlow()
 
-    fun fetchRegisteredPatients(mobileNumber: String) {
-        viewModelScope.launch {
-            _patientsState.value = UiState.Loading
-            getRegisteredPatientsUseCase(mobileNumber).fold(
-                onSuccess = { patients -> _patientsState.value = UiState.Success(patients) },
-                onFailure = { error -> _patientsState.value = UiState.Error(error.message ?: "Failed to fetch patients") }
-            )
-        }
-    }
-
     fun onSelectPatient(patient: Patient) {
         _selectedPatient.value = patient
     }
@@ -80,13 +73,23 @@ class RegisterNewOpdViewModel(
             _specializationsState.value = UiState.Loading
             getSpecializationsUseCase().fold(
                 onSuccess = { specs -> _specializationsState.value = UiState.Success(specs) },
-                onFailure = { error -> _specializationsState.value = UiState.Error(error.message ?: "Failed to fetch specializations") }
+                onFailure = { error ->
+                    _specializationsState.value =
+                        UiState.Error(error.message ?: "Failed to fetch specializations")
+                }
             )
         }
     }
 
     fun onSelectSpecialization(specialization: String) {
         _selectedSpecialization.value = specialization
+        // clear downstream selections and states
+        _selectedDoctor.value = null
+        _selectedSlot.value = null
+        _doctorsState.value = UiState.Idle
+        _slotsState.value = UiState.Idle
+        _availabilityState.value = UiState.Idle
+
         fetchDoctors(specialization)
     }
 
@@ -95,13 +98,20 @@ class RegisterNewOpdViewModel(
             _doctorsState.value = UiState.Loading
             getDoctorsUseCase(specialization).fold(
                 onSuccess = { doctors -> _doctorsState.value = UiState.Success(doctors) },
-                onFailure = { error -> _doctorsState.value = UiState.Error(error.message ?: "Failed to fetch doctors") }
+                onFailure = { error ->
+                    _doctorsState.value = UiState.Error(error.message ?: "Failed to fetch doctors")
+                }
             )
         }
     }
 
     fun onSelectDoctor(doctor: Doctor) {
         _selectedDoctor.value = doctor
+        // clear downstream slot selection and state
+        _selectedSlot.value = null
+        _slotsState.value = UiState.Idle
+        _availabilityState.value = UiState.Idle
+
         fetchSlots(doctor.id)
     }
 
@@ -110,13 +120,16 @@ class RegisterNewOpdViewModel(
             _slotsState.value = UiState.Loading
             getSlotsUseCase(doctorId).fold(
                 onSuccess = { slots -> _slotsState.value = UiState.Success(slots) },
-                onFailure = { error -> _slotsState.value = UiState.Error(error.message ?: "Failed to fetch slots") }
+                onFailure = { error ->
+                    _slotsState.value = UiState.Error(error.message ?: "Failed to fetch slots")
+                }
             )
         }
     }
 
     fun onSelectSlot(slot: Slot) {
         _selectedSlot.value = slot
+        _availabilityState.value = UiState.Idle
         _selectedDoctor.value?.id?.let { docId ->
             fetchAvailability(docId, slot.timeFrom)
         }
@@ -127,9 +140,13 @@ class RegisterNewOpdViewModel(
             _availabilityState.value = UiState.Loading
             getAvailabilityUseCase(doctorId, slotId).fold(
                 onSuccess = { availability ->
-                    _availabilityState.value = availability?.let { UiState.Success(it) } ?: UiState.Error("No availability found")
+                    _availabilityState.value = availability?.let { UiState.Success(it) }
+                        ?: UiState.Error("No availability found")
                 },
-                onFailure = { error -> _availabilityState.value = UiState.Error(error.message ?: "Failed to fetch availability") }
+                onFailure = { error ->
+                    _availabilityState.value =
+                        UiState.Error(error.message ?: "Failed to fetch availability")
+                }
             )
         }
     }
@@ -155,21 +172,40 @@ class RegisterNewOpdViewModel(
             ).collectLatest { result ->
                 when (result) {
                     is PaymentFlowResult.Loading -> _paymentState.value = UiState.Loading
-                    is PaymentFlowResult.Success -> _paymentState.value = UiState.Success(result.response)
-                    is PaymentFlowResult.Pending -> _paymentState.value = UiState.Error("Payment pending, please check status")
-                    is PaymentFlowResult.Error -> _paymentState.value = UiState.Error(result.message)
+                    is PaymentFlowResult.Success -> _paymentState.value =
+                        UiState.Success(result.response)
+
+                    is PaymentFlowResult.Pending -> _paymentState.value =
+                        UiState.Error("Payment pending, please check status")
+
+                    is PaymentFlowResult.Error -> _paymentState.value =
+                        UiState.Error(result.message)
                 }
             }
         }
     }
+
+    fun resetPaymentState() {
+        _paymentState.value = UiState.Idle
+        resetAvailability()
+    }
+    fun resetAvailability() {
+        _availabilityState.value = UiState.Idle
+    }
+
 }
+
 class OpdPaymentSuccessViewModel(
     private val getPaymentStatusUseCase: GetPaymentStatusUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow<UiState<PaymentStatus>>(UiState.Idle)
     val state: StateFlow<UiState<PaymentStatus>> = _state.asStateFlow()
 
-    fun checkPaymentStatus(merchantTransactionId: String, maxAttempts: Int = 5, pollIntervalMs: Long = 5000) {
+    fun checkPaymentStatus(
+        merchantTransactionId: String,
+        maxAttempts: Int = 5,
+        pollIntervalMs: Long = 5000
+    ) {
         viewModelScope.launch {
             _state.value = UiState.Loading
             repeat(maxAttempts) { attempt ->
@@ -179,7 +215,8 @@ class OpdPaymentSuccessViewModel(
                             _state.value = UiState.Success(status)
                             return@launch
                         } else if (status.isPending) {
-                            _state.value = UiState.Error("Payment still pending (attempt ${attempt + 1}/$maxAttempts)")
+                            _state.value =
+                                UiState.Error("Payment still pending (attempt ${attempt + 1}/$maxAttempts)")
                             delay(pollIntervalMs)
                         } else {
                             _state.value = UiState.Error("Payment failed: ${status.message}")
@@ -193,7 +230,8 @@ class OpdPaymentSuccessViewModel(
                 )
             }
             if (_state.value !is UiState.Success) {
-                _state.value = UiState.Error("Payment status check timed out after $maxAttempts attempts")
+                _state.value =
+                    UiState.Error("Payment status check timed out after $maxAttempts attempts")
             }
         }
     }
@@ -232,15 +270,19 @@ class OpdPaymentFailedViewModel : ViewModel() {
 class DoctorAvailabilityViewModel(
     private val getDoctorAvailabilityUseCase: GetDoctorAvailabilityUseCase
 ) : ViewModel() {
-    private val _state = MutableStateFlow<UiState<Pair<List<DoctorAvailability>, List<Leave>>>>(UiState.Idle)
-    val state: StateFlow<UiState<Pair<List<DoctorAvailability>, List<Leave>>>> = _state.asStateFlow()
+    private val _state =
+        MutableStateFlow<UiState<Pair<List<DoctorAvailability>, List<Leave>>>>(UiState.Idle)
+    val state: StateFlow<UiState<Pair<List<DoctorAvailability>, List<Leave>>>> =
+        _state.asStateFlow()
 
     fun fetchDoctorAvailability(doctorId: String) {
         viewModelScope.launch {
             _state.value = UiState.Loading
             getDoctorAvailabilityUseCase(doctorId).fold(
                 onSuccess = { data -> _state.value = UiState.Success(data) },
-                onFailure = { error -> _state.value = UiState.Error(error.message ?: "Failed to fetch availability") }
+                onFailure = { error ->
+                    _state.value = UiState.Error(error.message ?: "Failed to fetch availability")
+                }
             )
         }
     }

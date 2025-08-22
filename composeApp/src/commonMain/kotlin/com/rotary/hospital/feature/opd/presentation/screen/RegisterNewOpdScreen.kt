@@ -1,4 +1,5 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.rotary.hospital.feature.opd.presentation.screen
 
 import androidx.compose.foundation.background
@@ -39,6 +40,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -96,6 +99,7 @@ fun RegisterNewOpdScreen(
     patientId: String,
     patientName: String,
     mobileNumber: String,
+    snackbarHostState: SnackbarHostState,
     viewModel: RegisterNewOpdViewModel = koinViewModel()
 ) {
     // --- Collect VM states ---
@@ -118,8 +122,6 @@ fun RegisterNewOpdScreen(
     // Initial loads
     LaunchedEffect(Unit) {
         if (specializationsState !is UiState.Success) viewModel.fetchSpecializations()
-        // If you want to show saved patients in a picker later:
-        // viewModel.fetchRegisteredPatients(mobileNumber)
         if (selectedPatient == null) {
             // In this flow patient comes from nav args; still reflect it in VM for consistency.
             viewModel.onSelectPatient(
@@ -140,17 +142,25 @@ fun RegisterNewOpdScreen(
     LaunchedEffect(paymentState) {
         when (paymentState) {
             is UiState.Success -> {
+                Logger.d("Payment Result UI", "Payment successful")
                 onSuccess((paymentState as UiState.Success).data)
+                viewModel.resetPaymentState()
             }
 
             is UiState.Error -> {
                 toastController.show((paymentState as UiState.Error).message)
-                Logger.d("Payment Result UI","Payment failed: ${(paymentState as UiState.Error).message}")
-                onFailure() // Navigate to failed screen
+                Logger.d(
+                    "Payment Result UI",
+                    "Payment failed: ${(paymentState as UiState.Error).message}"
+                )
+                onFailure() // Navigate to failed screen for both pending/failed payment
+                viewModel.resetPaymentState()
             }
+
             is UiState.Loading -> {
-                Logger.d("Payment Result UI","Payment in progress")
+                Logger.d("Payment Result UI", "Payment in progress")
             }
+
             UiState.Idle -> {}
         }
     }
@@ -169,6 +179,7 @@ fun RegisterNewOpdScreen(
         }
 
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     title = {
@@ -303,7 +314,9 @@ fun RegisterNewOpdScreen(
                             )
                             .clickable {
                                 sheetContent = {
-                                    val list = (specializationsState as? UiState.Success<List<Specialization>>)?.data ?: emptyList()
+                                    val list =
+                                        (specializationsState as? UiState.Success<List<Specialization>>)?.data
+                                            ?: emptyList()
                                     SpecializationSheet(
                                         selected = selectedSpecialization ?: "",
                                         specializations = list
@@ -318,8 +331,11 @@ fun RegisterNewOpdScreen(
                     ) {
                         Column(modifier = Modifier.padding(end = 40.dp)) {
                             Text(
-                                text = (selectedSpecialization ?: "").ifEmpty { "Select Specialization" },
-                                color = if ((selectedSpecialization ?: "").isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                                text = (selectedSpecialization
+                                    ?: "").ifEmpty { "Select Specialization" },
+                                color = if ((selectedSpecialization
+                                        ?: "").isEmpty()
+                                ) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -348,7 +364,9 @@ fun RegisterNewOpdScreen(
                             )
                             .clickable(enabled = !selectedSpecialization.isNullOrEmpty()) {
                                 sheetContent = {
-                                    val list = (doctorsState as? UiState.Success<List<Doctor>>)?.data ?: emptyList()
+                                    val list =
+                                        (doctorsState as? UiState.Success<List<Doctor>>)?.data
+                                            ?: emptyList()
                                     DoctorSheet(
                                         selected = selectedDoctor,
                                         doctors = list
@@ -365,7 +383,9 @@ fun RegisterNewOpdScreen(
                         Column(modifier = Modifier.padding(end = 40.dp)) {
                             Text(
                                 text = selectedDoctor?.name ?: "Select Doctor",
-                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface,
+                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                ) else MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -395,7 +415,8 @@ fun RegisterNewOpdScreen(
                             )
                             .clickable(enabled = selectedDoctor != null) {
                                 sheetContent = {
-                                    val list = (slotsState as? UiState.Success<List<Slot>>)?.data ?: emptyList()
+                                    val list = (slotsState as? UiState.Success<List<Slot>>)?.data
+                                        ?: emptyList()
                                     SlotSheet(
                                         selected = selectedSlot,
                                         slots = list,
@@ -411,10 +432,13 @@ fun RegisterNewOpdScreen(
                     ) {
                         val isEnabled = selectedDoctor != null
                         Column(modifier = Modifier.padding(end = 40.dp)) {
-                            val slotLabel = selectedSlot?.let { "${it.timeFrom} - ${it.timeTo}" } ?: "Select Slot Timing"
+                            val slotLabel = selectedSlot?.let { "${it.timeFrom} - ${it.timeTo}" }
+                                ?: "Select Slot Timing"
                             Text(
                                 text = slotLabel,
-                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) else MaterialTheme.colorScheme.onSurface,
+                                color = if (!isEnabled) MaterialTheme.colorScheme.onSurface.copy(
+                                    alpha = 0.38f
+                                ) else MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -432,15 +456,21 @@ fun RegisterNewOpdScreen(
                 item {
                     when (availabilityState) {
                         is UiState.Loading -> Box(Modifier.fillMaxWidth()) {
-                            CircularProgressIndicator(Modifier.align(Alignment.Center), color = ColorPrimary)
+                            CircularProgressIndicator(
+                                Modifier.align(Alignment.Center),
+                                color = ColorPrimary
+                            )
                         }
+
                         is UiState.Error -> Text(
                             text = (availabilityState as UiState.Error).message,
                             color = Color.Red,
                             fontSize = 16.sp
                         )
+
                         is UiState.Success -> {
-                            val availability = (availabilityState as UiState.Success<Availability>).data
+                            val availability =
+                                (availabilityState as UiState.Success<Availability>).data
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -459,7 +489,11 @@ fun RegisterNewOpdScreen(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Text("Appointment Details", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            "Appointment Details",
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                         Text(
                                             text = if (availability.available) "Available" else "Slots Full",
                                             modifier = Modifier
@@ -483,15 +517,22 @@ fun RegisterNewOpdScreen(
                                     }
                                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                                         Text("Online Charges:", fontSize = 16.sp)
-                                        Text("${availability.docOnlineCharges} Rs", fontSize = 16.sp)
+                                        Text(
+                                            "${availability.docOnlineCharges} Rs",
+                                            fontSize = 16.sp
+                                        )
                                     }
                                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                                         Text("Expected Wait Time:", fontSize = 16.sp)
-                                        Text("${availability.approximateTime} minutes", fontSize = 16.sp)
+                                        Text(
+                                            "${availability.approximateTime} minutes",
+                                            fontSize = 16.sp
+                                        )
                                     }
                                 }
                             }
                         }
+
                         UiState.Idle -> {}
                     }
                 }
@@ -500,7 +541,10 @@ fun RegisterNewOpdScreen(
                 item {
                     when (paymentState) {
                         is UiState.Loading -> Box(Modifier.fillMaxWidth()) {
-                            CircularProgressIndicator(Modifier.align(Alignment.Center), color = ColorPrimary)
+                            CircularProgressIndicator(
+                                Modifier.align(Alignment.Center),
+                                color = ColorPrimary
+                            )
                             Spacer(Modifier.height(8.dp))
                             Text(
                                 text = "Processing Payment...",
@@ -509,12 +553,14 @@ fun RegisterNewOpdScreen(
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         }
+
                         is UiState.Error -> Text(
                             text = (paymentState as UiState.Error).message,
                             color = ErrorRed,
                             fontSize = 16.sp,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
+
                         else -> {}
                     }
                 }
@@ -551,7 +597,8 @@ fun SpecializationSheet(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        val filteredSpecs = specializations.filter { it.data.contains(searchQuery, ignoreCase = true) }
+        val filteredSpecs =
+            specializations.filter { it.data.contains(searchQuery, ignoreCase = true) }
 
         if (filteredSpecs.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize()) {
@@ -769,8 +816,16 @@ fun DoctorAvailabilityScreen(
                                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(text = "Days: ${avail.docDays}", color = ColorPrimary, fontSize = 16.sp)
-                                    Text(text = "Time: ${avail.docTimeFrom} - ${avail.docTimeTo}", color = ColorPrimary, fontSize = 16.sp)
+                                    Text(
+                                        text = "Days: ${avail.docDays}",
+                                        color = ColorPrimary,
+                                        fontSize = 16.sp
+                                    )
+                                    Text(
+                                        text = "Time: ${avail.docTimeFrom} - ${avail.docTimeTo}",
+                                        color = ColorPrimary,
+                                        fontSize = 16.sp
+                                    )
                                 }
                             }
                         }
@@ -794,14 +849,23 @@ fun DoctorAvailabilityScreen(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(text = "From: ${leave.cancelDate}", color = ColorPrimary, fontSize = 16.sp)
-                                        Text(text = "To: ${leave.cancelDateTo}", color = ColorPrimary, fontSize = 16.sp)
+                                        Text(
+                                            text = "From: ${leave.cancelDate}",
+                                            color = ColorPrimary,
+                                            fontSize = 16.sp
+                                        )
+                                        Text(
+                                            text = "To: ${leave.cancelDateTo}",
+                                            color = ColorPrimary,
+                                            fontSize = 16.sp
+                                        )
                                     }
                                 }
                             }
                         }
                     }
                 }
+
                 is UiState.Error -> {
                     Text(
                         text = (state as UiState.Error).message,
@@ -809,6 +873,7 @@ fun DoctorAvailabilityScreen(
                         fontSize = 16.sp
                     )
                 }
+
                 UiState.Idle -> {}
             }
         }

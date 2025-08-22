@@ -110,10 +110,10 @@ class PatientRegistrationViewModel(
                     val response = result.getOrNull()!!
                     val patient = response.data?.firstOrNull()
                     if (patient != null) {
+                        preferences.saveBoolean(PreferenceKeys.IS_LOGGED_IN, true)
                         preferences.saveString(PreferenceKeys.PATIENT_ID, patient.id)
                         preferences.saveString(PreferenceKeys.MOBILE_NUMBER, form.mobileNumber)
                         preferences.saveString(PreferenceKeys.PATIENT_NAME, patient.name)
-                        preferences.saveBoolean(PreferenceKeys.IS_LOGGED_IN, true)
                         PatientRegistrationState.Success(patient)
                     } else {
                         PatientRegistrationState.Error("No patient data received")

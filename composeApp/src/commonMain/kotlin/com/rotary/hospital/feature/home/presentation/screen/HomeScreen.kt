@@ -1,23 +1,40 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.rotary.hospital.feature.home.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -26,12 +43,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.rotary.hospital.core.common.PreferenceKeys
+import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.ui.toastController
@@ -42,8 +68,12 @@ import com.rotary.hospital.feature.home.presentation.components.WelcomeWidget
 import com.rotary.hospital.feature.home.presentation.model.DashboardItem
 import com.rotary.hospital.feature.home.presentation.model.HomeAction
 import com.rotary.hospital.feature.home.presentation.model.QuickAccessItemModel
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.calendar_icon
+import rotaryhospital.composeapp.generated.resources.logo
 import rotaryhospital.composeapp.generated.resources.pill_icon
 import rotaryhospital.composeapp.generated.resources.test_tube_icon
 import rotaryhospital.composeapp.generated.resources.user_icon
@@ -52,8 +82,13 @@ import rotaryhospital.composeapp.generated.resources.user_icon
 fun HomeScreen(
     patientName: String,
     onItemClick: (HomeAction) -> Unit,
-    snackbarHostState: SnackbarHostState
+    onLogout: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+    preferences: PreferencesManager = koinInject()
 ) {
+    val scope = rememberCoroutineScope()
+    val showLogoutDialog = remember { mutableStateOf(false) }
+
     // Define dashboard items
     val dashboardItems = listOf(
         DashboardItem(
@@ -95,7 +130,7 @@ fun HomeScreen(
             action = HomeAction.OpenSettings
         ),
         QuickAccessItemModel(
-            title = "Terms",
+            title = "Terms & Conditions",
             icon = Icons.Default.Info,
             action = HomeAction.ViewTerms
         )
@@ -103,7 +138,41 @@ fun HomeScreen(
 
     AppTheme {
         Scaffold(
-            topBar = { HomeTopBar() },
+            containerColor = Color.White,
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "Rotary Hospital",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorPrimary
+                        )
+                    }, navigationIcon = {
+                        Icon(
+                            painter = painterResource(Res.drawable.logo),
+                            contentDescription = "App Icon",
+                            tint = ColorPrimary,
+                            modifier = Modifier
+                                .size(50.dp)   // adjust logo size here
+                                .padding(start = 8.dp), // optional spacing
+                        )
+                    }, actions = {
+                        IconButton(onClick = {
+                            showLogoutDialog.value = true
+                        }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = "logout",
+                                tint = ColorPrimary
+                            )
+                        }
+                    }, colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.White, titleContentColor = Color.Black
+                    )
+                )
+
+            },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             /*bottomBar = {
                 NavigationBar(containerColor = Color.White) {
@@ -149,64 +218,138 @@ fun HomeScreen(
                 }
             }*/
         ) { paddingValues ->
-            Column(
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = paddingValues.calculateBottomPadding()
+                ),
                 modifier = Modifier
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
+                    .fillMaxSize()
                     .background(Color(0xFFF9F9F9))
-                    .padding(16.dp)
+                    .padding(top = 16.dp)
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                WelcomeWidget(patientName)
-
-                Spacer(modifier = Modifier.height(24.dp))
+                // Welcome header
+                item {
+                    WelcomeWidget(patientName = patientName)
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
 
                 // Feature Grid
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.height(320.dp)
-                ) {
-                    items(dashboardItems.size) { index ->
-                        val item = dashboardItems[index]
-                        DashboardCard(
-                            title = item.title,
-                            subtitle = item.subtitle,
-                            iconRes = item.iconRes,
-                            onClick = { onItemClick(item.action) }
-                        )
+                item {
+                    FlowRow(
+                        maxItemsInEachRow = 2, // wrap 2 items per row
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        dashboardItems.forEach { item ->
+                            DashboardCard(
+                                title = item.title,
+                                subtitle = item.subtitle,
+                                iconRes = item.iconRes,
+                                onClick = { onItemClick(item.action) },
+                                modifier = Modifier
+                                    .weight(1f) // <-- makes each item share row equally
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
 
-                Text(
-                    text = "Quick Access",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorPrimary
-                )
+                item {
+                    // Quick Access Section
+                    Text(
+                        text = "Quick Access",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorPrimary
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.height(200.dp)
-                ) {
-                    items(quickAccessItems.size) { index ->
-                        val item = quickAccessItems[index]
-                        QuickAccessItem(
-                            label = item.title,
-                            icon = item.icon,
-                            onClick = { onItemClick(item.action) }
-                        )
+                    FlowRow(
+                        maxItemsInEachRow = 4,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        quickAccessItems.forEach { item ->
+                            QuickAccessItem(
+                                label = item.title,
+                                icon = item.icon,
+                                onClick = { onItemClick(item.action) },
+                                modifier = Modifier.fillMaxWidth(0.25f)
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
                 }
+
+
             }
         }
+        if (showLogoutDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog.value = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = "logout",
+                        tint = ColorPrimary
+                    )
+                },
+                title = {
+                    Text(
+                        text = "Logout",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ColorPrimary
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Are you sure you want to logout?",
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLogoutDialog.value = false
+                            scope.launch {
+                                preferences.saveBoolean(PreferenceKeys.IS_LOGGED_IN, false)
+                                preferences.clear(PreferenceKeys.MOBILE_NUMBER)
+                                preferences.clear(PreferenceKeys.PATIENT_ID)
+                                preferences.clear(PreferenceKeys.PATIENT_NAME)
+                                onLogout()
+                            }
+                        }
+                    ) {
+                        Text(
+                            "Logout",
+                            color = ColorPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog.value = false }) {
+                        Text(
+                            "Cancel",
+                            color = Color.Gray,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                },
+                containerColor = Color.White, // background of dialog
+                shape = RoundedCornerShape(16.dp) // rounded corners
+            )
+        }
+
     }
 }

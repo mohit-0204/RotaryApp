@@ -52,17 +52,20 @@ fun App(paymentHandler: PaymentHandler?) {
         var mobileNumber by remember { mutableStateOf("") }
         var patientName by remember { mutableStateOf("") }
         var patientId by remember { mutableStateOf("") }
+        var isLoggedIn by remember { mutableStateOf(false) }
         // Global snackbar setup
         val snackbarHostState = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
 
         LaunchedEffect(Unit) {
+            isLoggedIn = preferences.getBoolean(PreferenceKeys.IS_LOGGED_IN, false).first()
             patientName = preferences.getString(PreferenceKeys.PATIENT_NAME, "").first()
             mobileNumber = preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
             patientId = preferences.getString(PreferenceKeys.PATIENT_ID, "").first()
 
             Logger.d("App", "Mobile number loaded: $mobileNumber")
             Logger.d("App", "Patient name loaded: $patientName")
+            Logger.d("App", "Patient id loaded: $patientId")
             toastController.bind(snackbarHostState, scope)
 
         }
@@ -74,7 +77,7 @@ fun App(paymentHandler: PaymentHandler?) {
         ) {
             composable<AppRoute.Splash> {
                 SplashScreen {
-                    if (patientName.isNotEmpty()) {
+                    if (isLoggedIn) {
                         navController.navigate(AppRoute.Home(patientName)) {
                             popUpTo<AppRoute.Splash> { inclusive = true }
                         }
@@ -88,6 +91,11 @@ fun App(paymentHandler: PaymentHandler?) {
                 val route = backStackEntry.toRoute<AppRoute.Home>()
                 HomeScreen(
                     route.patientName,
+                    onLogout = {
+                        navController.navigate(AppRoute.Login) {
+                            popUpTo<AppRoute.Home> { inclusive = true }
+                        }
+                    },
                     onItemClick = { action ->
                         scope.launch {
                             val currentMobile = mobileNumber.ifBlank {
@@ -250,7 +258,9 @@ fun App(paymentHandler: PaymentHandler?) {
                     onBack = { navController.popBackStack() },
                     patientId = route.patientId,
                     patientName = route.patientName,
-                    mobileNumber = route.mobileNumber
+                    mobileNumber = route.mobileNumber,
+                    snackbarHostState = snackbarHostState
+
                 )
             }
             composable<AppRoute.DoctorAvailability> { backStackEntry ->
