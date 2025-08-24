@@ -24,8 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
-import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentSuccessViewModel
 import org.koin.compose.viewmodel.koinViewModel
 

@@ -68,7 +68,6 @@ import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.opd.domain.model.Availability
@@ -556,7 +555,7 @@ fun RegisterNewOpdScreen(
 
                         is UiState.Error -> Text(
                             text = (paymentState as UiState.Error).message,
-                            color = ErrorRed,
+                            color = MaterialTheme.colorScheme.error,
                             fontSize = 16.sp,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
@@ -869,7 +868,7 @@ fun DoctorAvailabilityScreen(
                 is UiState.Error -> {
                     Text(
                         text = (state as UiState.Error).message,
-                        color = ErrorRed,
+                        color = MaterialTheme.colorScheme.error,
                         fontSize = 16.sp
                     )
                 }

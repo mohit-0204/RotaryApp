@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.ui.component.InputField
 import com.rotary.hospital.core.ui.toastController
@@ -49,9 +48,13 @@ import appicon.IconOther
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.common.appicon.IconCity
 import com.rotary.hospital.core.common.appicon.IconMap
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.ExperimentalTime
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
 @Composable
 fun PatientProfileScreen(
     onBack: () -> Unit,
@@ -75,10 +78,12 @@ fun PatientProfileScreen(
                 onSave((state as PatientProfileState.UpdateSuccess).profile.name)
                 toastController.show("Profile updated successfully")
             }
+
             is PatientProfileState.Error -> {
                 Logger.e("PatientProfileScreen", (state as PatientProfileState.Error).message)
                 toastController.show((state as PatientProfileState.Error).message)
             }
+
             else -> Unit
         }
     }
@@ -99,7 +104,7 @@ fun PatientProfileScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = ColorPrimary.copy(alpha = 0.8f)
+                            tint = ColorPrimary
                         )
                     }
                 },
@@ -130,19 +135,18 @@ fun PatientProfileScreen(
                 }
             }
         },
-        containerColor = Color.White,
     ) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(color = Color(0xFFF5F5F5))
         )
         {
-            LazyColumn (
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp,
+                    .padding(
+                        horizontal = 16.dp,
                         vertical = 2.dp
                     )
                     .padding(bottom = if (isEditing) 80.dp else 0.dp), // Add padding to avoid overlap with buttons
@@ -211,7 +215,11 @@ fun PatientProfileScreen(
                                 FilterChip(
                                     selected = formState.gender == g,
                                     onClick = {
-                                        if (isEditing) viewModel.updateFormState(formState.copy(gender = g))
+                                        if (isEditing) viewModel.updateFormState(
+                                            formState.copy(
+                                                gender = g
+                                            )
+                                        )
                                     },
                                     label = { Text(g.label, fontSize = 14.sp) },
                                     leadingIcon = {
@@ -222,7 +230,9 @@ fun PatientProfileScreen(
                                                 else -> IconOther
                                             },
                                             contentDescription = "Gender ${g.label} icon",
-                                            tint = if (formState.gender == g) ColorPrimary.copy(alpha = 0.8f) else Color.Gray
+                                            tint = if (formState.gender == g) ColorPrimary.copy(
+                                                alpha = 0.8f
+                                            ) else Color.Gray
                                         )
                                     },
                                     enabled = isEditing,
@@ -238,19 +248,37 @@ fun PatientProfileScreen(
                         Spacer(Modifier.height(12.dp))
 
                         // DOB / Age (you named it dob in form; label can be Age or Date of Birth)
+                        var showDatePicker by remember { mutableStateOf(false) }
+                        val currentYear = kotlin.time.Clock.System.now()
+                            .toLocalDateTime(TimeZone.currentSystemDefault()).year
+                        val datePickerState = rememberDatePickerState(
+                            yearRange = 1900..currentYear,
+                            selectableDates = object : SelectableDates {
+                                override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+                                    return utcTimeMillis <= kotlin.time.Clock.System.now()
+                                        .toEpochMilliseconds()
+                                }
+                            }
+                        )
                         if (isEditing) {
                             InputField(
                                 value = formState.dob,
-                                onValueChange = { viewModel.updateFormState(formState.copy(dob = it)) },
-                                label = "Age",
-                                leadingIcon = Icons.Default.DateRange, // CHANGE: if you don't have one, fallback to Icons.Default.DateRange
+                                onValueChange = {},
+                                readOnly = true,
+                                label = "Select age by Date of Birth",
+                                placeholder = "dd-mm-yyyy",
+                                leadingIcon = Icons.Default.DateRange,
                                 errorMessage = formState.fieldErrors["dob"],
-                                contentDescription = "Age icon",
-                                modifier = Modifier.fillMaxWidth(),
+                                contentDescription = "Date of birth icon",
+                                modifier = Modifier
+                                    .fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Number,
+                                    keyboardType = KeyboardType.Text,
                                     imeAction = ImeAction.Next
-                                )
+                                ),
+                                onClick = {
+                                    showDatePicker = true
+                                }
                             )
                         } else {
                             StaticField(
@@ -260,6 +288,53 @@ fun PatientProfileScreen(
                                 notProvided = notProvided
                             )
                         }
+                        if (showDatePicker) {
+                            DatePickerDialog(
+                                onDismissRequest = { showDatePicker = false },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            showDatePicker = false
+                                            datePickerState.selectedDateMillis?.let { millis ->
+                                                val selectedDate =
+                                                    kotlin.time.Instant.fromEpochMilliseconds(
+                                                        millis
+                                                    )
+                                                        .toLocalDateTime(TimeZone.UTC)
+                                                        .date
+                                                val formattedDate = "${
+                                                    selectedDate.day.toString().padStart(2, '0')
+                                                }-" +
+                                                        "${
+                                                            selectedDate.month.number.toString()
+                                                                .padStart(2, '0')
+                                                        }-" +
+                                                        "${selectedDate.year}"
+                                                val age = calculateAge(formattedDate)
+                                                age?.let {
+                                                    viewModel.updateFormState(
+                                                        formState.copy(
+                                                            dob = it
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Text("Confirm")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDatePicker = false }) {
+                                        Text("Cancel")
+                                    }
+                                }
+                            ) {
+                                DatePicker(state = datePickerState)
+                            }
+                        }
+
+
                         Spacer(Modifier.height(12.dp))
 
                         // Blood Group dropdown when editing, static when not
@@ -317,7 +392,13 @@ fun PatientProfileScreen(
                         if (isEditing) {
                             InputField(
                                 value = formState.guardianName,
-                                onValueChange = { viewModel.updateFormState(formState.copy(guardianName = it)) },
+                                onValueChange = {
+                                    viewModel.updateFormState(
+                                        formState.copy(
+                                            guardianName = it
+                                        )
+                                    )
+                                },
                                 label = "Guardian Name",
                                 leadingIcon = IconGuardian,
                                 errorMessage = formState.fieldErrors["guardianName"],
@@ -336,29 +417,41 @@ fun PatientProfileScreen(
                         Spacer(Modifier.height(12.dp))
 
                         Text(
-                            "Relation",
+                            "Relation to Guardian",
                             fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
                             color = Color.Black
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Column(
+                            modifier = Modifier.padding(vertical = 8.dp)
                         ) {
                             Relation.entries.forEach { rel ->
-                                FilterChip(
-                                    selected = formState.relation == rel,
-                                    onClick = {
-                                        if (isEditing) viewModel.updateFormState(formState.copy(relation = rel))
-                                    },
-                                    label = { Text(rel.label, fontSize = 14.sp) },
-                                    enabled = isEditing,
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = ColorPrimary.copy(alpha = 0.1f),
-                                        selectedLabelColor = ColorPrimary
-                                    ),
-                                    modifier = Modifier.weight(1f).height(40.dp)
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            viewModel.updateFormState(formState.copy(relation = rel))
+                                        }
+                                        .padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.Start
+                                ) {
+                                    RadioButton(
+                                        selected = formState.relation == rel,
+                                        onClick = {
+                                            viewModel.updateFormState(formState.copy(relation = rel))
+                                        },
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = ColorPrimary.copy(alpha = 0.8f),
+                                            unselectedColor = Color.Gray
+                                        )
+                                    )
+                                    Text(
+                                        rel.label,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -467,7 +560,7 @@ fun PatientProfileScreen(
                         if (state is PatientProfileState.Error) {
                             Text(
                                 text = (state as PatientProfileState.Error).message,
-                                color = ErrorRed,
+                                color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -493,7 +586,8 @@ fun PatientProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-            ) {
+            )
+            {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -508,7 +602,7 @@ fun PatientProfileScreen(
                             cancelButtonScale = 1f
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = ErrorRed,
+                            containerColor = MaterialTheme.colorScheme.error,
                             contentColor = White
                         ),
                         modifier = Modifier
@@ -521,7 +615,7 @@ fun PatientProfileScreen(
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
                         Icon(
-                        Icons.Default.Clear,
+                            Icons.Default.Clear,
                             contentDescription = "Cancel edit",
                             tint = White
                         )

@@ -25,6 +25,8 @@ import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.auth.presentation.screen.LoginScreen
 import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScreen
 import com.rotary.hospital.feature.home.presentation.model.HomeAction
+import com.rotary.hospital.feature.home.presentation.screen.ContactUsScreen
+import com.rotary.hospital.feature.home.presentation.screen.TermsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.DoctorAvailabilityScreen
 import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientListScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
@@ -45,7 +47,6 @@ import org.koin.compose.koinInject
 @Composable
 @Preview
 fun App(paymentHandler: PaymentHandler?) {
-    var paymentResult by remember { mutableStateOf("No payment initiated") }
     AppTheme {
         val preferences: PreferencesManager = koinInject()
         val navController = rememberNavController()
@@ -111,7 +112,7 @@ fun App(paymentHandler: PaymentHandler?) {
                                 }
 
                                 HomeAction.ContactUs -> {
-                                    // todo yet to be implemented
+                                    navController.navigate(AppRoute.ContactUs)
                                 }
 
                                 HomeAction.ManageMedicineReminders -> {
@@ -131,7 +132,7 @@ fun App(paymentHandler: PaymentHandler?) {
                                 }
 
                                 HomeAction.ViewTerms -> {
-                                    // todo yet to be implemented
+                                    navController.navigate(AppRoute.TermsAndConditions)
                                 }
                             }
                         }
@@ -148,6 +149,20 @@ fun App(paymentHandler: PaymentHandler?) {
                     },
                     onExitClick = {
                         // Platform-specific exit
+                    }
+                )
+            }
+            composable<AppRoute.ContactUs> {
+                ContactUsScreen(
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable<AppRoute.TermsAndConditions> {
+                TermsScreen(
+                    onBack = {
+                        navController.popBackStack()
                     }
                 )
             }

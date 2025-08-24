@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.GrayWhite
 
 @Composable
 fun CustomKeyboard(
@@ -81,7 +80,7 @@ fun KeyboardButton(
             .size(64.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = GrayWhite,
+            containerColor = MaterialTheme.colorScheme.background,
             contentColor = ColorPrimary
         ),
         contentPadding = PaddingValues(0.dp),

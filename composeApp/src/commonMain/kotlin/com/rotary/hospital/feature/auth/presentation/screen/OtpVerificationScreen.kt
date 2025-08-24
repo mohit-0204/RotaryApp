@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -44,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.ui.component.CustomKeyboard
 import com.rotary.hospital.feature.auth.domain.usecase.SendOtpUseCase
@@ -210,7 +210,7 @@ fun OtpVerificationScreen(
             if (otpState is OtpVerificationState.Error) {
                 Text(
                     text = (otpState as OtpVerificationState.Error).message,
-                    color = ErrorRed,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -275,7 +275,7 @@ fun OtpVerificationScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ErrorRed,
+                    containerColor = MaterialTheme.colorScheme.error,
                     contentColor = White
                 )
             ) {

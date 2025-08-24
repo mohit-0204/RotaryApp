@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.feature.auth.presentation.viewmodel.LoginState
 import com.rotary.hospital.feature.auth.presentation.viewmodel.LoginViewModel
@@ -91,7 +90,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = (loginState as LoginState.Error).message,
-            color = ErrorRed,
+            color = MaterialTheme.colorScheme.error,
             fontSize = 14.sp
         )
     }
@@ -219,7 +218,7 @@ fun LoginScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ErrorRed,
+                    containerColor = MaterialTheme.colorScheme.error,
                     contentColor = Color.White
                 ),
                 elevation = ButtonDefaults.elevatedButtonElevation(4.dp)

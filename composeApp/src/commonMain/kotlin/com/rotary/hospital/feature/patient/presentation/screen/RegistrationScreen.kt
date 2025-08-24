@@ -80,13 +80,14 @@ import appicon.IconOther
 import com.rotary.hospital.core.common.appicon.IconCity
 import com.rotary.hospital.core.common.appicon.IconMap
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.ui.component.InputField
 import com.rotary.hospital.feature.patient.presentation.viewmodel.Gender
+import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientProfileState
 import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationState
 import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationViewModel
 import com.rotary.hospital.feature.patient.presentation.viewmodel.Relation
+import com.rotary.hospital.feature.patient.presentation.viewmodel.calculateAge
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
@@ -130,7 +131,7 @@ fun RegistrationScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = ColorPrimary.copy(alpha = 0.8f)
+                            tint = ColorPrimary
                         )
                     }
                 },
@@ -140,7 +141,92 @@ fun RegistrationScreen(
                 )
             )
         },
-        containerColor = Color(0xFFF5F5F5),
+        bottomBar = {
+            // -------------------------
+            // Overlay for Update/Cancel buttons
+            // -------------------------
+            // Bottom fixed buttons for Cancel and Update when editing
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(White)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .background(White)
+                ,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            )
+            {
+                Button(
+                    onClick = {
+                        cancelButtonScale = 0.95f
+                        onCancel()
+                        cancelButtonScale = 1f
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = White
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                        .scale(cancelButtonScale),
+                    shape = RoundedCornerShape(14.dp),
+                    enabled = state !is PatientRegistrationState.Loading,
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Clear,
+                        contentDescription = "Cancel registration icon",
+                        tint = White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "Cancel",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                ElevatedButton(
+                    onClick = {
+                        saveButtonScale = 0.95f
+                        viewModel.registerPatient()
+                        saveButtonScale = 1f
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorPrimary,
+                        contentColor = White
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                        .scale(saveButtonScale),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = state !is PatientRegistrationState.Loading,
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
+                ) {
+                    if (state is PatientRegistrationState.Loading) {
+                        CircularProgressIndicator(
+                            color = White,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Save registration icon",
+                            tint = White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "Save",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        },
         content = { padding ->
             Box(
                 modifier = Modifier.fillMaxSize().padding(padding)
@@ -150,7 +236,9 @@ fun RegistrationScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
+                )
+                {
+                    Spacer(Modifier.height(16.dp))
                     // Personal Info Card
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -210,7 +298,9 @@ fun RegistrationScreen(
                                                     else -> IconOther
                                                 },
                                                 contentDescription = "Gender ${g.label} icon",
-                                                tint = if (formState.gender == g) ColorPrimary.copy(alpha = 0.8f) else Color.Gray
+                                                tint = if (formState.gender == g) ColorPrimary.copy(
+                                                    alpha = 0.8f
+                                                ) else Color.Gray
                                             )
                                         },
                                         colors = FilterChipDefaults.filterChipColors(
@@ -226,12 +316,14 @@ fun RegistrationScreen(
 
                             // DOB selector with DatePicker
                             var showDatePicker by remember { mutableStateOf(false) }
-                            val currentYear = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
+                            val currentYear = kotlin.time.Clock.System.now()
+                                .toLocalDateTime(TimeZone.currentSystemDefault()).year
                             val datePickerState = rememberDatePickerState(
                                 yearRange = 1900..currentYear,
                                 selectableDates = object : SelectableDates {
                                     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                                        return utcTimeMillis <= kotlin.time.Clock.System.now().toEpochMilliseconds()
+                                        return utcTimeMillis <= kotlin.time.Clock.System.now()
+                                            .toEpochMilliseconds()
                                     }
                                 }
                             )
@@ -264,14 +356,28 @@ fun RegistrationScreen(
                                             onClick = {
                                                 showDatePicker = false
                                                 datePickerState.selectedDateMillis?.let { millis ->
-                                                    val selectedDate = kotlin.time.Instant.fromEpochMilliseconds(millis)
-                                                        .toLocalDateTime(TimeZone.UTC)
-                                                        .date
-                                                    val formattedDate = "${selectedDate.day.toString().padStart(2, '0')}-" +
-                                                            "${selectedDate.month.number.toString().padStart(2, '0')}-" +
+                                                    val selectedDate =
+                                                        kotlin.time.Instant.fromEpochMilliseconds(
+                                                            millis
+                                                        )
+                                                            .toLocalDateTime(TimeZone.UTC)
+                                                            .date
+                                                    val formattedDate = "${
+                                                        selectedDate.day.toString().padStart(2, '0')
+                                                    }-" +
+                                                            "${
+                                                                selectedDate.month.number.toString()
+                                                                    .padStart(2, '0')
+                                                            }-" +
                                                             "${selectedDate.year}"
-                                                    val age = viewModel.calculateAge(formattedDate)
-                                                    age?.let { viewModel.updateFormState(formState.copy(dob = it)) }
+                                                    val age = calculateAge(formattedDate)
+                                                    age?.let {
+                                                        viewModel.updateFormState(
+                                                            formState.copy(
+                                                                dob = it
+                                                            )
+                                                        )
+                                                    }
                                                 }
                                             }
                                         ) {
@@ -312,7 +418,16 @@ fun RegistrationScreen(
                                     onDismissRequest = { bloodExpanded = false },
                                     modifier = Modifier.background(White)
                                 ) {
-                                    listOf("A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-").forEach { group ->
+                                    listOf(
+                                        "A+",
+                                        "A-",
+                                        "B+",
+                                        "B-",
+                                        "O+",
+                                        "O-",
+                                        "AB+",
+                                        "AB-"
+                                    ).forEach { group ->
                                         DropdownMenuItem(
                                             text = { Text(group, fontSize = 16.sp) },
                                             onClick = {
@@ -505,7 +620,7 @@ fun RegistrationScreen(
                         if (state is PatientRegistrationState.Error) {
                             Text(
                                 text = (state as PatientRegistrationState.Error).message,
-                                color = ErrorRed,
+                                color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -514,88 +629,13 @@ fun RegistrationScreen(
                         }
                     }
 
-                    Spacer(Modifier.weight(1f))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Button(
-                            onClick = {
-                                cancelButtonScale = 0.95f
-                                onCancel()
-                                cancelButtonScale = 1f
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = ErrorRed,
-                                contentColor = White
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp)
-                                .scale(cancelButtonScale)
-                                .padding(bottom = 8.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            enabled = state !is PatientRegistrationState.Loading,
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Clear,
-                                contentDescription = "Cancel registration icon",
-                                tint = White
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                "Cancel",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                        ElevatedButton(
-                            onClick = {
-                                saveButtonScale = 0.95f
-                                viewModel.registerPatient()
-                                saveButtonScale = 1f
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = ColorPrimary,
-                                contentColor = White
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp)
-                                .scale(saveButtonScale)
-                                .padding(bottom = 8.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = state !is PatientRegistrationState.Loading,
-                            elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
-                        ) {
-                            if (state is PatientRegistrationState.Loading) {
-                                CircularProgressIndicator(
-                                    color = White,
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = "Save registration icon",
-                                    tint = White
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    "Save",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
                     Spacer(Modifier.height(8.dp))
                 }
 
+
+                // -------------------------
+                // Loading overlay for progress bar icon
+                // -------------------------
                 AnimatedVisibility(
                     visible = state is PatientRegistrationState.Loading,
                     enter = fadeIn(),
@@ -604,7 +644,7 @@ fun RegistrationScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f))
+                            .background(Color.Black.copy(alpha = 0.1f))
                             .clickable(enabled = false) { },
                         contentAlignment = Alignment.Center
                     ) {

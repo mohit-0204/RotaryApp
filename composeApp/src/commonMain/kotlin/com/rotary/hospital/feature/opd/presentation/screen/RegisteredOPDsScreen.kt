@@ -44,7 +44,6 @@ import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.feature.opd.presentation.screen.components.OpdListItem
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOPDsState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOPDsViewModel
@@ -61,12 +60,10 @@ fun RegisteredOPDsScreen(
     preferences: PreferencesManager = koinInject()
 ) {
     val state by viewModel.state.collectAsState()
-    var mobileNumber by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").collect { savedMobile ->
             if (savedMobile.isNotBlank()) {
-                mobileNumber = savedMobile
                 viewModel.fetchOpdList(savedMobile)
             } else {
                 Logger.e("RegisteredOpdsScreen", "Mobile number not found")
@@ -89,7 +86,7 @@ fun RegisteredOPDsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = ColorPrimary.copy(alpha = 0.8f)
+                            tint = ColorPrimary
                         )
                     }
                 }, actions = {
@@ -110,20 +107,22 @@ fun RegisteredOPDsScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add OPD", tint = Color.White)
             }
-        }, containerColor = Color.White
+        }
     ) { paddingValues ->
         Box(
-            modifier = Modifier.padding(paddingValues).background(Color(0xFFF9F9F9))
+            modifier = Modifier.padding(paddingValues)
         ) {
             when (val currentState = state) {
                 is RegisteredOPDsState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    Box(Modifier.fillMaxSize()){
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
                 }
 
                 is RegisteredOPDsState.Error -> {
                     Text(
                         text = currentState.message,
-                        color = ErrorRed,
+                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }

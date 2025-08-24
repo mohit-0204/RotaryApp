@@ -2,33 +2,21 @@
 
 package com.rotary.hospital.feature.home.presentation.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -36,18 +24,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,9 +43,7 @@ import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.home.presentation.components.DashboardCard
-import com.rotary.hospital.feature.home.presentation.components.HomeTopBar
 import com.rotary.hospital.feature.home.presentation.components.QuickAccessItem
 import com.rotary.hospital.feature.home.presentation.components.WelcomeWidget
 import com.rotary.hospital.feature.home.presentation.model.DashboardItem
@@ -138,7 +119,6 @@ fun HomeScreen(
 
     AppTheme {
         Scaffold(
-            containerColor = Color.White,
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
@@ -171,7 +151,13 @@ fun HomeScreen(
                         containerColor = Color.White, titleContentColor = Color.Black
                     )
                 )
-
+                /* // to change color of status bar
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .windowInsetsTopHeight(WindowInsets.statusBars)
+                        .background(Color.Green.copy(alpha = 0.1f))
+                )*/
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             /*bottomBar = {
@@ -227,7 +213,6 @@ fun HomeScreen(
                 ),
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFF9F9F9))
                     .padding(top = 16.dp)
             ) {
                 // Welcome header

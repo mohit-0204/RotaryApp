@@ -71,8 +71,10 @@ fun PatientListScreen(
             PatientListItem(patient, onClick = onClick)
         },
         onItemClick     = { patient ->
-            viewModel.saveSelectedPatient(patient)
-            onPatientSelected(patient.name)
+            viewModel.saveSelectedPatient(patient, onSaved = {
+                onPatientSelected(patient.name)
+            })
+
         }
     )
 }
@@ -137,7 +139,7 @@ fun PatientListItem(patient: Patient, onClick: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(3.dp)
-                    .background(ColorPrimary.copy(alpha = 0.5f))
+                    .background(ColorPrimary)
             )
         }
     }

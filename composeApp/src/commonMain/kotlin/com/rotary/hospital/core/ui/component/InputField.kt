@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -22,7 +25,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 
 @Composable
 fun InputField(
@@ -59,7 +61,7 @@ fun InputField(
                 Icon(
                     leadingIcon,
                     contentDescription = contentDescription,
-                    tint = if (errorMessage != null) ErrorRed else ColorPrimary.copy(alpha = 0.8f)
+                    tint = if (errorMessage != null) MaterialTheme.colorScheme.error else ColorPrimary.copy(alpha = 0.8f)
                 )
             },
             trailingIcon = trailingIcon,
@@ -76,8 +78,9 @@ fun InputField(
                 cursorColor = ColorPrimary,
 
                 // Error
-                errorBorderColor = ErrorRed,
-                errorLabelColor = ErrorRed,
+                errorBorderColor = MaterialTheme.colorScheme.error,
+                errorLabelColor = MaterialTheme.colorScheme.error,
+                errorCursorColor = MaterialTheme.colorScheme.error,
 
                 // Disabled (no more purple!)
 
@@ -107,7 +110,7 @@ fun InputField(
             errorMessage?.let {
                 Text(
                     text = it,
-                    color = ErrorRed,
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier
                         .padding(start = 16.dp, top = 2.dp)

@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import appicon.IconMale
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
+import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -52,7 +52,7 @@ fun SelectedOpdDetailsScreen(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         text = "OPD Details",
@@ -86,7 +86,7 @@ fun SelectedOpdDetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = White
                 )
             )
         }
@@ -134,7 +134,7 @@ fun SelectedOpdDetailsScreen(
                         Icon(
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Error",
-                            tint = ErrorRed,
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(Modifier.height(12.dp))
@@ -147,7 +147,7 @@ fun SelectedOpdDetailsScreen(
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = (state as SelectedOpdDetailsState.Error).message,
-                            color = ErrorRed,
+                            color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
@@ -181,8 +181,7 @@ fun SelectedOpdDetailsScreen(
                                 KeyValueRow(
                                     label = "OPD ID",
                                     value = opd.opdId,
-                                    copyable = true,
-                                    clipboard = clipboard
+                                    copyable = true
                                 )
                                 KeyValueRow(label = "Date", value = opd.opdDate)
                                 KeyValueRow(label = "Token", value = opd.tokenNumber)
@@ -202,14 +201,13 @@ fun SelectedOpdDetailsScreen(
                                 KeyValueRow(
                                     label = "Name",
                                     value = opd.patientName,
-                                    isImportant = true
                                 )
                                 KeyValueRow(
                                     label = "Patient ID",
                                     value = opd.patientId,
                                     copyable = true,
-                                    clipboard = clipboard
-                                )
+
+                                    )
                             }
 
                             HorizontalDivider(
@@ -223,9 +221,7 @@ fun SelectedOpdDetailsScreen(
                                 KeyValueRow(
                                     label = "Transaction ID",
                                     value = opd.transactionId,
-                                    small = true,
                                     copyable = true,
-                                    clipboard = clipboard
                                 )
                                 KeyValueRow(label = "Message", value = opd.transactionMessage)
 //                                KeyValueRow(label = "Order ID", value = opd.orderId, small = true, copyable = true, clipboard = clipboard)
@@ -248,10 +244,7 @@ fun SelectedOpdDetailsScreen(
 fun KeyValueRow(
     label: String,
     value: String,
-    isImportant: Boolean = false,
-    small: Boolean = false,
     copyable: Boolean = false,
-    clipboard: androidx.compose.ui.platform.ClipboardManager? = null
 ) {
     Row(
         modifier = Modifier
@@ -285,20 +278,6 @@ fun KeyValueRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
-
-            if (copyable && clipboard != null) {
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "Copy",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clickable {
-                            clipboard.setText(AnnotatedString(value))
-                        }
-                        .padding(4.dp)
-                )
-            }
         }
     }
 }

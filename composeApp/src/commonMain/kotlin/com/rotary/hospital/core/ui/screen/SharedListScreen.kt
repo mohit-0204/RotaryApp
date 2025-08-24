@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.ErrorRed
 import com.rotary.hospital.core.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +63,7 @@ fun <T> SharedListScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = ColorPrimary.copy(alpha = 0.8f)
+                            tint = ColorPrimary
                         )
                     }
                 },
@@ -90,7 +89,7 @@ fun <T> SharedListScreen(
                                         Icon(
                                             Icons.Default.Clear,
                                             contentDescription = "Clear search",
-                                            tint = ColorPrimary.copy(alpha = 0.8f)
+                                            tint = ColorPrimary
                                         )
                                     }
                                 }
@@ -105,15 +104,14 @@ fun <T> SharedListScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = White,
-                    titleContentColor = ColorPrimary
+                    containerColor = White
                 ),
                 actions = {
                     if (!isSearchActive && onToggleSearch!=null) {
                         IconButton(onClick = onToggleSearch) {
                             Icon(
                                 Icons.Default.Search, contentDescription = "Search",
-                                tint = ColorPrimary.copy(alpha = 0.8f)
+                                tint = ColorPrimary
                             )
                         }
                     }
@@ -134,7 +132,7 @@ fun <T> SharedListScreen(
                 errorMessage != null -> Text(
                     errorMessage,
                     Modifier.align(Alignment.Center),
-                    color = ErrorRed
+                    color = MaterialTheme.colorScheme.error
                 )
 
                 items.isEmpty() -> Text(emptyMessage, Modifier.align(Alignment.Center))

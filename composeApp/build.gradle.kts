@@ -76,6 +76,10 @@ kotlin {
 
             // for date time
             implementation(libs.kotlinx.datetime)
+
+            // for webview in kmp
+            implementation(libs.kwebview)
+
         }
 
         iosMain.dependencies {

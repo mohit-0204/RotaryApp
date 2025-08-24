@@ -23,6 +23,7 @@ ktor = "3.2.3"                                              # for networking
 datastore = "1.1.7"                                         # for local storage(like shared_pref)
 koin = "4.1.0"                                              # for di
 phonePe = "2.4.3"                                           # for phonePe Sdk (Android)
+kwebview = "1.31.5"                                         # for webview in KMP
 
 
 
@@ -42,6 +43,7 @@ androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", nam
 androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kwebview = { module = "io.github.shadmanadman:kwebview", version.ref = "kwebview" }
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler" }

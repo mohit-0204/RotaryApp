@@ -19,6 +19,27 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 
+fun calculateAge(dob: String): String? {
+    // Parse "dd-mm-yyyy" format
+    return try {
+        val parts = dob.split("-")
+        if (parts.size != 3) return null
+        val day = parts[0].toIntOrNull() ?: return null
+        val month = parts[1].toIntOrNull() ?: return null
+        val year = parts[2].toIntOrNull() ?: return null
+        val birthDate = LocalDate(year, month, day)
+        val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        var age = today.year - birthDate.year
+        if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
+            age--
+        }
+        age.toString()
+    } catch (e: Exception) {
+        Logger.e("DOB SELECTOR", "Error calculating age: ${e.message}")
+        null
+    }
+}
+
 sealed class PatientRegistrationState {
     object Idle : PatientRegistrationState()
     object Loading : PatientRegistrationState()
@@ -121,29 +142,6 @@ class PatientRegistrationViewModel(
                 }
                 else -> PatientRegistrationState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
             }
-        }
-    }
-
-
-
-    fun calculateAge(dob: String): String? {
-        // Parse "dd-mm-yyyy" format
-        return try {
-            val parts = dob.split("-")
-            if (parts.size != 3) return null
-            val day = parts[0].toIntOrNull() ?: return null
-            val month = parts[1].toIntOrNull() ?: return null
-            val year = parts[2].toIntOrNull() ?: return null
-            val birthDate = LocalDate(year, month, day)
-            val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-            var age = today.year - birthDate.year
-            if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
-                age--
-            }
-            age.toString()
-        } catch (e: Exception) {
-            Logger.e("PatientRegistrationViewModel", "Error calculating age: ${e.message}")
-            null
         }
     }
     private fun validateInputs(

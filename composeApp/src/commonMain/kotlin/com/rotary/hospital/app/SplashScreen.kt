@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
+import com.rotary.hospital.core.utils.BarIcons
+import com.rotary.hospital.core.utils.SetSystemBars
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 import rotaryhospital.composeapp.generated.resources.Res
@@ -37,6 +42,7 @@ import rotaryhospital.composeapp.generated.resources.logo
 
 @Composable
 fun SplashScreen(onFinished: () -> Unit = {}) {
+
     var startAnimation by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -61,10 +67,6 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
         modifier = Modifier
             .fillMaxSize()
             .background(
-//                Brush.radialGradient(
-//                    colors = listOf(ColorPrimary, ColorPrimaryDark),
-//                    radius = 600f
-//                )
                 White
             ),
         contentAlignment = Alignment.Center
