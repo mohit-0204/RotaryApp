@@ -40,6 +40,9 @@ sealed class AppRoute {
     data class OpdPatientList(val mobileNumber: String) : AppRoute()
 
     @Serializable
+    data class OpdPatientRegistration(val phoneNumber: String) : AppRoute()
+
+    @Serializable
     data class RegisterNewOpd(
         val mobileNumber: String,
         val patientId: String,

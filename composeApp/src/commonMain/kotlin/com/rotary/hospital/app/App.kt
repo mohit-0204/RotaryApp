@@ -29,6 +29,7 @@ import com.rotary.hospital.feature.home.presentation.screen.ContactUsScreen
 import com.rotary.hospital.feature.home.presentation.screen.TermsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.DoctorAvailabilityScreen
 import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientListScreen
+import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientRegistrationScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOPDsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
@@ -178,6 +179,24 @@ fun App(paymentHandler: PaymentHandler?) {
                     }
                 )
             }
+
+
+            composable<AppRoute.OpdPatientRegistration> { backStackEntry ->
+                OpdPatientRegistrationScreen(
+                    onBack = { navController.popBackStack() },
+                    onCancel = { navController.popBackStack() },
+                    onSave = { patientId, patientName ->
+                        navController.navigate(
+                            AppRoute.RegisterNewOpd(
+                                mobileNumber,
+                                patientId,
+                                patientName
+                            )
+                        )
+                    }
+                )
+            }
+
             composable<AppRoute.PatientProfile> { backStackEntry ->
                 PatientProfileScreen(
                     onBack = { navController.popBackStack() },
@@ -253,6 +272,9 @@ fun App(paymentHandler: PaymentHandler?) {
                                 patientName
                             )
                         )
+                    },
+                    onAddPatient = {
+                        navController.navigate(AppRoute.OpdPatientRegistration(route.mobileNumber))
                     },
                     onBack = { navController.popBackStack() }
                 )

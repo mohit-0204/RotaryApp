@@ -29,6 +29,7 @@ val opdModule = module {
     single { InsertOpdUseCase(get()) }
     single { InitiatePaymentFlowUseCase(get()) }
     viewModel{ RegisteredOPDsViewModel(get()) }
+    viewModel{ OpdPatientRegistrationViewModel(get(), get()) }
     viewModel{ OpdPatientListViewModel(get()) }
     viewModel{ RegisterNewOpdViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel{ DoctorAvailabilityViewModel(get()) }

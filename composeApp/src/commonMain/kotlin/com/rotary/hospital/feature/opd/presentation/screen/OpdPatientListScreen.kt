@@ -16,6 +16,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun OpdPatientListScreen(
     onPatientClick: (String, String) -> Unit,
+    onAddPatient: () -> Unit,
     onBack: () -> Unit,
     viewModel: OpdPatientListViewModel = koinViewModel(),
     preferences: PreferencesManager = koinInject()
@@ -41,7 +42,7 @@ fun OpdPatientListScreen(
         isSearchActive = false,
         onToggleSearch = null,
         onBack = onBack,
-        onAdd = null,       // no FAB here
+        onAdd = onAddPatient,       // FAB here(pass null if don't want FAB)
         itemContent = { opdPatient, onClick ->
             PatientListItem(
                 patient = com.rotary.hospital.core.data.model.Patient(

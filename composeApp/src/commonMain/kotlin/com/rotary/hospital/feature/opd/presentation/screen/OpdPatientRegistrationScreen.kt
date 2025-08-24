@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package com.rotary.hospital.feature.patient.presentation.screen
+package com.rotary.hospital.feature.opd.presentation.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -67,7 +67,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -84,26 +83,27 @@ import com.rotary.hospital.core.common.appicon.IconMap
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.ui.component.InputField
-import com.rotary.hospital.feature.patient.presentation.viewmodel.Gender
-import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientProfileState
-import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationState
-import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationViewModel
-import com.rotary.hospital.feature.patient.presentation.viewmodel.Relation
+import com.rotary.hospital.feature.opd.presentation.viewmodel.Gender
+import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientRegistrationState
+import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientRegistrationViewModel
+import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdRegistrationFormState
+import com.rotary.hospital.feature.opd.presentation.viewmodel.Relation
 import com.rotary.hospital.feature.patient.presentation.viewmodel.calculateAge
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrationScreen(
+fun OpdPatientRegistrationScreen(
     onBack: () -> Unit,
     onCancel: () -> Unit,
-    onSave: (String) -> Unit,
-    viewModel: PatientRegistrationViewModel = koinViewModel()
+    onSave: (String, String) -> Unit,
+    viewModel: OpdPatientRegistrationViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val formState by viewModel.formState.collectAsState()
@@ -112,8 +112,9 @@ fun RegistrationScreen(
     var saveButtonScale by remember { mutableStateOf(1f) }
 
     LaunchedEffect(state) {
-        if (state is PatientRegistrationState.Success) {
-            onSave((state as PatientRegistrationState.Success).patient.name)
+        if (state is OpdPatientRegistrationState.Success) {
+            val patient = (state as OpdPatientRegistrationState.Success).patient
+            onSave(patient.id, patient.name)
         }
     }
 
@@ -122,7 +123,7 @@ fun RegistrationScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Register New Patient",
+                        "Register New Patient for OPD",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = ColorPrimary
@@ -144,11 +145,6 @@ fun RegistrationScreen(
             )
         },
         bottomBar = {
-            // -------------------------
-            // Overlay for Update/Cancel buttons
-            // -------------------------
-            // Bottom fixed buttons for Cancel and Update when editing
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -156,8 +152,7 @@ fun RegistrationScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .navigationBarsPadding(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
-            )
-            {
+            ) {
                 Button(
                     onClick = {
                         cancelButtonScale = 0.95f
@@ -173,7 +168,7 @@ fun RegistrationScreen(
                         .height(56.dp)
                         .scale(cancelButtonScale),
                     shape = RoundedCornerShape(14.dp),
-                    enabled = state !is PatientRegistrationState.Loading,
+                    enabled = state !is OpdPatientRegistrationState.Loading,
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 ) {
                     Icon(
@@ -203,10 +198,10 @@ fun RegistrationScreen(
                         .height(56.dp)
                         .scale(saveButtonScale),
                     shape = RoundedCornerShape(12.dp),
-                    enabled = state !is PatientRegistrationState.Loading,
+                    enabled = state !is OpdPatientRegistrationState.Loading,
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                 ) {
-                    if (state is PatientRegistrationState.Loading) {
+                    if (state is OpdPatientRegistrationState.Loading) {
                         CircularProgressIndicator(
                             color = White,
                             modifier = Modifier.size(24.dp),
@@ -237,8 +232,7 @@ fun RegistrationScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                {
+                ) {
                     Spacer(Modifier.height(16.dp))
                     // Personal Info Card
                     Card(
@@ -296,26 +290,24 @@ fun RegistrationScreen(
                                                 imageVector = when (g) {
                                                     Gender.Male -> IconMale
                                                     Gender.Female -> IconFemale
-                                                    else -> IconOther
+                                                    Gender.Other -> IconOther
                                                 },
-                                                contentDescription = "Gender ${g.label} icon",
-                                                tint = if (formState.gender == g) ColorPrimary.copy(
-                                                    alpha = 0.8f
-                                                ) else Color.Gray
+                                                contentDescription = "${g.label} gender icon",
+                                                tint = if (formState.gender == g) ColorPrimary else Color.Gray
                                             )
                                         },
                                         colors = FilterChipDefaults.filterChipColors(
                                             selectedContainerColor = ColorPrimary.copy(alpha = 0.1f),
                                             selectedLabelColor = ColorPrimary,
-                                            selectedLeadingIconColor = ColorPrimary.copy(alpha = 0.8f)
+                                            selectedLeadingIconColor = ColorPrimary
                                         ),
-                                        modifier = Modifier.weight(1f).height(40.dp)
+                                        modifier = Modifier.weight(1f)
                                     )
                                 }
                             }
                             Spacer(Modifier.height(12.dp))
 
-                            // DOB selector with DatePicker
+                            // DOB Field with Date Picker
                             var showDatePicker by remember { mutableStateOf(false) }
                             val currentYear = kotlin.time.Clock.System.now()
                                 .toLocalDateTime(TimeZone.currentSystemDefault()).year
@@ -323,7 +315,7 @@ fun RegistrationScreen(
                                 yearRange = 1900..currentYear,
                                 selectableDates = object : SelectableDates {
                                     override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-                                        return utcTimeMillis <= kotlin.time.Clock.System.now()
+                                        return utcTimeMillis <= Clock.System.now()
                                             .toEpochMilliseconds()
                                     }
                                 }
@@ -394,12 +386,12 @@ fun RegistrationScreen(
                                     DatePicker(state = datePickerState)
                                 }
                             }
-
                             Spacer(Modifier.height(12.dp))
 
                             ExposedDropdownMenuBox(
                                 expanded = bloodExpanded,
-                                onExpandedChange = { bloodExpanded = !bloodExpanded }
+                                onExpandedChange = { bloodExpanded = !bloodExpanded },
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 InputField(
                                     value = formState.bloodGroup,
@@ -614,13 +606,13 @@ fun RegistrationScreen(
                     Spacer(Modifier.height(24.dp))
 
                     AnimatedVisibility(
-                        visible = state is PatientRegistrationState.Error,
+                        visible = state is OpdPatientRegistrationState.Error,
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
-                        if (state is PatientRegistrationState.Error) {
+                        if (state is OpdPatientRegistrationState.Error) {
                             Text(
-                                text = (state as PatientRegistrationState.Error).message,
+                                text = (state as OpdPatientRegistrationState.Error).message,
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier
@@ -638,7 +630,7 @@ fun RegistrationScreen(
                 // Loading overlay for progress bar icon
                 // -------------------------
                 AnimatedVisibility(
-                    visible = state is PatientRegistrationState.Loading,
+                    visible = state is OpdPatientRegistrationState.Loading,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
