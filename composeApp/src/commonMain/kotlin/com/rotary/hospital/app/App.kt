@@ -47,7 +47,7 @@ import org.koin.compose.koinInject
 
 @Composable
 @Preview
-fun App(paymentHandler: PaymentHandler?) {
+fun App(paymentHandler: PaymentHandler) {
     AppTheme {
         val preferences: PreferencesManager = koinInject()
         val navController = rememberNavController()
@@ -282,7 +282,7 @@ fun App(paymentHandler: PaymentHandler?) {
             composable<AppRoute.RegisterNewOpd> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
                 RegisterNewOpdScreen(
-                    paymentHandler = paymentHandler ?: error("Payment handler is null"),
+                    paymentHandler = paymentHandler,
                     onSuccess = { response ->
                         navController.navigate(AppRoute.OpdPaymentSuccess(response.opdId ?: ""))
                     },

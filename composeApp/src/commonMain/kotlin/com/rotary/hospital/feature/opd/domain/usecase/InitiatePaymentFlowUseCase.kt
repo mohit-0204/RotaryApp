@@ -109,7 +109,7 @@ class InitiatePaymentFlowUseCase(
 
             PaymentResult.Cancelled -> {
                 Logger.e("PaymentFlow", "Payment cancelled")
-                emit(PaymentFlowResult.Error("Payment cancelled by user"))
+                emit(PaymentFlowResult.Cancelled)
             }
         }
     }
@@ -120,4 +120,5 @@ sealed interface PaymentFlowResult {
     data class Success(val response: InsertOpdResponse) : PaymentFlowResult
     data class Pending(val status: PaymentStatus) : PaymentFlowResult
     data class Error(val message: String) : PaymentFlowResult
+    object Cancelled : PaymentFlowResult // New state for user cancellation
 }

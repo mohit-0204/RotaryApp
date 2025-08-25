@@ -15,6 +15,7 @@ import com.rotary.hospital.feature.opd.domain.model.Slot
 import com.rotary.hospital.feature.opd.domain.model.Specialization
 import com.rotary.hospital.feature.opd.domain.usecase.*
 import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState
+import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState.*
 import io.ktor.util.date.getTimeMillis
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -173,13 +174,15 @@ class RegisterNewOpdViewModel(
                 when (result) {
                     is PaymentFlowResult.Loading -> _paymentState.value = UiState.Loading
                     is PaymentFlowResult.Success -> _paymentState.value =
-                        UiState.Success(result.response)
+                        Success(result.response)
 
                     is PaymentFlowResult.Pending -> _paymentState.value =
-                        UiState.Error("Payment pending, please check status")
+                        Error("Payment pending, please check status")
 
                     is PaymentFlowResult.Error -> _paymentState.value =
-                        UiState.Error(result.message)
+                        Error(result.message)
+
+                    is PaymentFlowResult.Cancelled -> _paymentState.value = UiState.Idle
                 }
             }
         }

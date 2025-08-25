@@ -56,7 +56,10 @@ actual class PaymentHandler(
             Activity.RESULT_OK -> {
                 PaymentResult.Success
             }
-            Activity.RESULT_CANCELED -> PaymentResult.Cancelled
+            Activity.RESULT_CANCELED -> {
+                Logger.d("PaymentHandler", "User clicked back or cancelled the payment")
+                PaymentResult.Cancelled
+            }
             else -> PaymentResult.Failure("Unknown result code: $resultCode")
         }
 

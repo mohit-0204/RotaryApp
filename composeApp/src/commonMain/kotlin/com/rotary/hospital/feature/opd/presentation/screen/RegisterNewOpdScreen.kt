@@ -90,7 +90,7 @@ import org.koin.compose.viewmodel.koinViewModel
  */
 @Composable
 fun RegisterNewOpdScreen(
-    paymentHandler: PaymentHandler?,
+    paymentHandler: PaymentHandler,
     onSuccess: (InsertOpdResponse) -> Unit,
     onPending: () -> Unit,
     onFailure: () -> Unit,
@@ -220,12 +220,6 @@ fun RegisterNewOpdScreen(
                             sheetContent = {
                                 TermsSheet(total = total, onAccept = { amount ->
                                     if (amount <= 0.0) {
-                                        scope.launch { sheetState.hide() }
-                                        return@TermsSheet
-                                    }
-
-                                    if (paymentHandler == null) {
-                                        toastController.show("Payment configuration missing")
                                         scope.launch { sheetState.hide() }
                                         return@TermsSheet
                                     }
