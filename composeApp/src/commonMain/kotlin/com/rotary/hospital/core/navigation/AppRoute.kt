@@ -53,13 +53,7 @@ sealed class AppRoute {
     data class DoctorAvailability(val doctorId: String) : AppRoute()
 
     @Serializable
-    data class OpdPaymentSuccess(val merchantTransactionId: String) : AppRoute()
-
-    @Serializable
-    data class OpdPaymentPending(val message: String) : AppRoute()
-
-    @Serializable
-    data class OpdPaymentFailed(val message: String) : AppRoute()
+    data class OpdPaymentResult(val paymentStatus: String) : AppRoute()
 
     @Serializable
     data class SelectedOpdDetails(val mobileNumber: String, val opdId: String) : AppRoute()

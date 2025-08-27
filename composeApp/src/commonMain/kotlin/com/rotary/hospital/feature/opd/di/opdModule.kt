@@ -31,10 +31,7 @@ val opdModule = module {
     viewModel{ RegisteredOPDsViewModel(get()) }
     viewModel{ OpdPatientRegistrationViewModel(get(), get()) }
     viewModel{ OpdPatientListViewModel(get()) }
-    viewModel{ RegisterNewOpdViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel{ RegisterNewOpdViewModel(get(), get(), get(), get(), get()) }
     viewModel{ DoctorAvailabilityViewModel(get()) }
-    viewModel{ OpdPaymentSuccessViewModel(get()) }
-    viewModel{ OpdPaymentPendingViewModel() }
-    viewModel{ OpdPaymentFailedViewModel() }
     viewModel{ SelectedOpdDetailsViewModel(get()) }
 }

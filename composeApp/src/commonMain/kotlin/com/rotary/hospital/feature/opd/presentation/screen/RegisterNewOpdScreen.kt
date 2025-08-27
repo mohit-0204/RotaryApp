@@ -69,31 +69,24 @@ import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.opd.domain.model.Availability
 import com.rotary.hospital.feature.opd.domain.model.Doctor
 import com.rotary.hospital.feature.opd.domain.model.DoctorAvailability
-import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
 import com.rotary.hospital.feature.opd.domain.model.Leave
-import com.rotary.hospital.feature.opd.domain.model.Patient
 import com.rotary.hospital.feature.opd.domain.model.Slot
 import com.rotary.hospital.feature.opd.domain.model.Specialization
+import com.rotary.hospital.feature.opd.domain.usecase.PaymentFlowResult
+import com.rotary.hospital.feature.opd.presentation.model.TransactionDetails
 import com.rotary.hospital.feature.opd.presentation.viewmodel.DoctorAvailabilityViewModel
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisterNewOpdViewModel
 import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
-/**
- * Updated to match the new ViewModels (split UiState sources).
- * Keeps the original look & UX while modernizing state handling and improving robustness.
- */
 @Composable
 fun RegisterNewOpdScreen(
     paymentHandler: PaymentHandler,
-    onSuccess: (InsertOpdResponse) -> Unit,
-    onPending: () -> Unit,
-    onFailure: () -> Unit,
+    onPaymentResult: (TransactionDetails) -> Unit,
     onBack: () -> Unit,
     patientId: String,
     patientName: String,
@@ -108,12 +101,11 @@ fun RegisterNewOpdScreen(
     val doctorsState by viewModel.doctorsState.collectAsState()
     val slotsState by viewModel.slotsState.collectAsState()
 
-    val selectedPatient by viewModel.selectedPatient.collectAsState()
     val selectedSpecialization by viewModel.selectedSpecialization.collectAsState()
     val selectedDoctor by viewModel.selectedDoctor.collectAsState()
     val selectedSlot by viewModel.selectedSlot.collectAsState()
 
-    // --- Local bottom sheet plumbing (kept same UX) ---
+    // --- Local bottom sheet state ---
     var sheetContent by remember { mutableStateOf<@Composable () -> Unit>({}) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -121,15 +113,6 @@ fun RegisterNewOpdScreen(
     // Initial loads
     LaunchedEffect(Unit) {
         if (specializationsState !is UiState.Success) viewModel.fetchSpecializations()
-        if (selectedPatient == null) {
-            // In this flow patient comes from nav args; still reflect it in VM for consistency.
-            viewModel.onSelectPatient(
-                patient = Patient(
-                    patientId = patientId,
-                    patientName = patientName
-                )
-            )
-        }
     }
 
     // Keep slots in sync with doctor selection (ViewModel also exposes helper methods)
@@ -140,28 +123,26 @@ fun RegisterNewOpdScreen(
     // Handle payment result -> success handoff
     LaunchedEffect(paymentState) {
         when (paymentState) {
+            is UiState.Idle -> { /* show nothing */
+            }
+
+            is UiState.Loading -> { /* show loading state */
+            }
+
             is UiState.Success -> {
-                Logger.d("Payment Result UI", "Payment successful")
-                onSuccess((paymentState as UiState.Success).data)
-                viewModel.resetPaymentState()
+                when (val flowResult = (paymentState as UiState.Success<PaymentFlowResult>).data) {
+                    is PaymentFlowResult.Success -> onPaymentResult(flowResult.successResponse)
+                    is PaymentFlowResult.Pending -> onPaymentResult(flowResult.pendingResponse)
+                    is PaymentFlowResult.Failed -> onPaymentResult(flowResult.failedResponse)
+                    else -> {} // Cancelled/Error are handled separately
+                }
             }
 
             is UiState.Error -> {
-                toastController.show((paymentState as UiState.Error).message)
-                Logger.d(
-                    "Payment Result UI",
-                    "Payment failed: ${(paymentState as UiState.Error).message}"
-                )
-                onFailure() // Navigate to failed screen for both pending/failed payment
-                viewModel.resetPaymentState()
+                Logger.e("PaymentError", (paymentState as UiState.Error).message)
             }
-
-            is UiState.Loading -> {
-                Logger.d("Payment Result UI", "Payment in progress")
-            }
-
-            UiState.Idle -> {}
         }
+
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -231,6 +212,8 @@ fun RegisterNewOpdScreen(
                                         patientId = patientId,
                                         patientName = patientName,
                                         doctorName = selectedDoctor?.name ?: "",
+                                        roomNumber = selectedDoctor?.opdRoom ?: "",
+                                        specialization = selectedSpecialization ?: "",
                                         doctorId = selectedDoctor?.id ?: "",
                                         durationPerPatient = a.docDurationPerPatient,
                                         docTimeFrom = a.docTimeFrom,

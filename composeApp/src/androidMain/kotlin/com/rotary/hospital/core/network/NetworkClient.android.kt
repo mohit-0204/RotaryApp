@@ -9,6 +9,7 @@ import java.net.InetAddress
 private class CustomDns : Dns {
     private val hostMap = mapOf(
         "dev.erp.mdi" to "192.51.11.206",
+        "dev.erp.hospital" to "192.51.11.206",
         "localerp.mdi" to "192.51.99.216"
     )
 

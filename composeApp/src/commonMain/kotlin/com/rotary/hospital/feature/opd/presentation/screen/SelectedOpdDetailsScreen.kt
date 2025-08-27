@@ -9,7 +9,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
@@ -19,12 +21,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,7 +48,6 @@ fun SelectedOpdDetailsScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
-    val clipboard = LocalClipboardManager.current
 
     LaunchedEffect(opdId) {
         viewModel.fetchOpdDetails(opdId)
@@ -164,72 +167,304 @@ fun SelectedOpdDetailsScreen(
                 is SelectedOpdDetailsState.Success -> {
                     val opd = (state as SelectedOpdDetailsState.Success).opd
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                    // palette taken from your HTML
+                    val primaryColor = Color(0xFF0D9488)
+                    val primaryLight = Color(0xFFF0FDFA)
+                    val textPrimary = Color(0xFF1E293B)
+                    val textSecondary = Color(0xFF475569)
+                    val childColor = Color(0xFF1D4ED8)
+                    val successGreen = Color(0xFF16A34A)
 
-                            // ---------- Appointment Section ----------
-                            DetailsSection(
-                                title = "Appointment Details",
-                                icon = Icons.Default.DateRange
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(18.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                    ) {
+                        Column {
+
+                            // ---------- Top green header ----------
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
+                                    .background(primaryColor)
+                                    .padding(horizontal = 20.dp, vertical = 18.dp)
                             ) {
-                                KeyValueRow(
-                                    label = "OPD ID",
-                                    value = opd.opdId,
-                                    copyable = true
-                                )
-                                KeyValueRow(label = "Date", value = opd.opdDate)
-                                KeyValueRow(label = "Token", value = opd.tokenNumber)
-                                KeyValueRow(label = "Estimated Time", value = opd.estimatedTime)
-                                KeyValueRow(label = "Doctor", value = opd.doctor)
-                                KeyValueRow(label = "Charges", value = opd.opdCharges)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Column {
+                                        // small label (like the HTML "OPD ID")
+                                        Text(
+                                            text = "OPD ID",
+                                            fontSize = 12.sp,
+                                            color = Color.White.copy(alpha = 0.92f)
+                                        )
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(
+                                            text = opd.opdId,
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            text = "Date",
+                                            fontSize = 12.sp,
+                                            color = Color.White.copy(alpha = 0.92f)
+                                        )
+                                        Spacer(Modifier.height(6.dp))
+                                        Text(
+                                            text = opd.opdDate,
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
                             }
 
-                            HorizontalDivider(
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                thickness = 2.dp,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-                            )
-
-                            // ---------- Patient Section ----------
-                            DetailsSection(title = "Patient Details", icon = Icons.Default.Person) {
-                                KeyValueRow(
-                                    label = "Name",
-                                    value = opd.patientName,
+                            // ---------- main white body ----------
+                            Column(
+                                modifier = Modifier.padding(
+                                    horizontal = 20.dp,
+                                    vertical = 16.dp
                                 )
-                                KeyValueRow(
-                                    label = "Patient ID",
-                                    value = opd.patientId,
-                                    copyable = true,
+                            ) {
+
+                                // Doctor row + capsule on right
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "Doctor",
+                                            fontSize = 13.sp,
+                                            color = textSecondary
+                                        )
+                                        Spacer(Modifier.height(4.dp))
+                                        Text(
+                                            text = opd.doctor,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = textPrimary
+                                        )
+                                    }
+
+                                    // Child capsule
+                                    Box(
+                                        modifier = Modifier
+                                            .background(childColor, shape = RoundedCornerShape(50))
+                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    ) {
+                                        Text(
+                                            text = "CHILD",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+
+                                Spacer(Modifier.height(16.dp))
+
+                                // Token / Est. Time / Charges (3 columns)
+                                Row(modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween) {
+                                    StatItem(
+                                        label = "Token",
+                                        value = opd.tokenNumber,
+                                        modifier = Modifier.weight(1f),
+                                        alignment = Alignment.Start
+                                    )
+                                    StatItem(
+                                        label = "Est. Time",
+                                        value = opd.estimatedTime,
+                                        modifier = Modifier.weight(1f),
+                                        alignment = Alignment.CenterHorizontally
 
                                     )
+                                    StatItem(
+                                        label = "Charges",
+                                        value = "₹${opd.opdCharges}",
+                                        modifier = Modifier.weight(1f),
+                                        alignment = Alignment.End
+
+                                    )
+                                }
                             }
 
+                            // divider
                             HorizontalDivider(
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                thickness = 2.dp,
+                                modifier = Modifier.padding(horizontal = 20.dp),
+                                thickness = 1.dp,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                             )
 
-                            // ---------- Payment Section ----------
-                            DetailsSection(title = "Payment Details", icon = Icons.Default.Info) {
-                                KeyValueRow(
-                                    label = "Transaction ID",
-                                    value = opd.transactionId,
-                                    copyable = true,
+                            // ---------- Patient Details section ----------
+                            Column(
+                                modifier = Modifier.padding(
+                                    horizontal = 20.dp,
+                                    vertical = 14.dp
                                 )
-                                KeyValueRow(label = "Message", value = opd.transactionMessage)
-//                                KeyValueRow(label = "Order ID", value = opd.orderId, small = true, copyable = true, clipboard = clipboard)
-//                                KeyValueRow(label = "Payment ID", value = opd.paymentId ?: "—", small = true, copyable = true, clipboard = clipboard)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(
+                                                primaryLight,
+                                                shape = RoundedCornerShape(50)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AccountCircle,
+                                            contentDescription = null,
+                                            tint = primaryColor,
+                                            modifier = Modifier.size(26.dp)
+                                        )
+                                    }
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        text = "Patient Details",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textPrimary
+                                    )
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+
+                                Column {
+                                    KeyRow(
+                                        label = "Name",
+                                        value = opd.patientName,
+                                        labelColor = textSecondary,
+                                        valueColor = textPrimary
+                                    )
+                                    KeyRow(
+                                        label = "Patient ID",
+                                        value = opd.patientId,
+                                        labelColor = textSecondary,
+                                        valueColor = textPrimary
+                                    )
+                                }
                             }
+
+                            // divider
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 20.dp),
+                                thickness = 1.dp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                            )
+
+                            // ---------- Payment Details section ----------
+                            Column(
+                                modifier = Modifier.padding(
+                                    horizontal = 20.dp,
+                                    vertical = 14.dp
+                                )
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(
+                                                primaryLight,
+                                                shape = RoundedCornerShape(50)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Info,
+                                            contentDescription = null,
+                                            tint = primaryColor,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        text = "Payment Details",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = textPrimary
+                                    )
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+
+                                // Transaction ID (wraps with zero-width spaces to emulate break-all)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Text(
+                                        text = "Transaction ID",
+                                        fontSize = 14.sp,
+                                        color = textSecondary,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Text(
+                                        text = opd.transactionId.insertZeroWidthSpacesEvery(20),
+                                        fontSize = 14.sp,
+                                        color = textPrimary,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(start = 8.dp),
+                                        textAlign = TextAlign.End
+                                    )
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+
+                                // Status row (green icon + Successful)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Status",
+                                        fontSize = 14.sp,
+                                        color = textSecondary,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    Row(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalArrangement = Arrangement.End,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = null,
+                                            tint = successGreen,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = "Successful",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = successGreen
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
                 }
+
 
                 is SelectedOpdDetailsState.Idle -> {
                     // No-op
@@ -239,76 +474,40 @@ fun SelectedOpdDetailsScreen(
     }
 }
 
-/** Key-value row that adapts to screen width (no fixed label width) and supports copy action. */
 @Composable
-fun KeyValueRow(
-    label: String,
-    value: String,
-    copyable: Boolean = false,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .semantics { contentDescription = "$label: $value" },
-        verticalAlignment = Alignment.Top
+private fun StatItem(label: String, value: String, modifier: Modifier = Modifier,alignment: Alignment.Horizontal) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = alignment
     ) {
-        // label column (flexible)
+        Text(text = label, fontSize = 13.sp, color = Color(0xFF475569))
+        Spacer(Modifier.height(6.dp))
         Text(
-            text = "${label.uppercase()} :",
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(0.36f)
+            text = value,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF1E293B)
         )
-
-        Spacer(Modifier.width(8.dp))
-
-        // value column (flexible)
-        Row(
-            modifier = Modifier.weight(0.64f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = ColorPrimary
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-        }
     }
 }
 
-/** Section header with optional icon. (No divider inside — divider is handled between sections) */
 @Composable
-fun DetailsSection(
-    title: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Column {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 8.dp)
-        ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = ColorPrimary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-            }
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = ColorPrimary
-            )
-        }
-        content()
+private fun KeyRow(label: String, value: String, labelColor: Color, valueColor: Color) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(text = label, fontSize = 14.sp, color = labelColor, modifier = Modifier.weight(1f))
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            color = valueColor,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.End
+        )
     }
+}
+
+/** Inserts zero-width spaces every n chars so very-long tokens can wrap  */
+private fun String.insertZeroWidthSpacesEvery(n: Int): String {
+    if (this.length <= n) return this
+    return this.chunked(n).joinToString("\u200B")
 }

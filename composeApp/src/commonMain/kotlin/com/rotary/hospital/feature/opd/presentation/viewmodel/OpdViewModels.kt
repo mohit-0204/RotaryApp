@@ -25,21 +25,17 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class RegisterNewOpdViewModel(
-    private val getRegisteredPatientsUseCase: GetRegisteredPatientsUseCase,
     private val getSpecializationsUseCase: GetSpecializationsUseCase,
     private val getDoctorsUseCase: GetDoctorsUseCase,
     private val getSlotsUseCase: GetSlotsUseCase,
     private val getAvailabilityUseCase: GetAvailabilityUseCase,
     private val initiatePaymentFlowUseCase: InitiatePaymentFlowUseCase
 ) : ViewModel() {
-    private val _paymentState = MutableStateFlow<UiState<InsertOpdResponse>>(UiState.Idle)
-    val paymentState: StateFlow<UiState<InsertOpdResponse>> = _paymentState.asStateFlow()
+    private val _paymentState = MutableStateFlow<UiState<PaymentFlowResult>>(UiState.Idle)
+    val paymentState: StateFlow<UiState<PaymentFlowResult>> = _paymentState.asStateFlow()
 
     private val _availabilityState = MutableStateFlow<UiState<Availability>>(UiState.Idle)
     val availabilityState: StateFlow<UiState<Availability>> = _availabilityState.asStateFlow()
-
-    private val _patientsState = MutableStateFlow<UiState<List<Patient>>>(UiState.Idle)
-    val patientsState: StateFlow<UiState<List<Patient>>> = _patientsState.asStateFlow()
 
     private val _specializationsState =
         MutableStateFlow<UiState<List<Specialization>>>(UiState.Idle)
@@ -53,8 +49,6 @@ class RegisterNewOpdViewModel(
     val slotsState: StateFlow<UiState<List<Slot>>> = _slotsState.asStateFlow()
 
     // Additional state for selections (to preserve existing functionality)
-    private val _selectedPatient = MutableStateFlow<Patient?>(null)
-    val selectedPatient: StateFlow<Patient?> = _selectedPatient.asStateFlow()
 
     private val _selectedSpecialization = MutableStateFlow<String?>(null)
     val selectedSpecialization: StateFlow<String?> = _selectedSpecialization.asStateFlow()
@@ -64,10 +58,6 @@ class RegisterNewOpdViewModel(
 
     private val _selectedSlot = MutableStateFlow<Slot?>(null)
     val selectedSlot: StateFlow<Slot?> = _selectedSlot.asStateFlow()
-
-    fun onSelectPatient(patient: Patient) {
-        _selectedPatient.value = patient
-    }
 
     fun fetchSpecializations() {
         viewModelScope.launch {
@@ -159,6 +149,8 @@ class RegisterNewOpdViewModel(
         patientId: String,
         patientName: String,
         doctorName: String,
+        roomNumber: String,
+        specialization: String,
         doctorId: String,
         durationPerPatient: String,
         docTimeFrom: String,
@@ -168,21 +160,16 @@ class RegisterNewOpdViewModel(
             _paymentState.value = UiState.Loading
             initiatePaymentFlowUseCase(
                 paymentHandler,
-                mobileNumber, amount, patientId, patientName, doctorName,
-                doctorId, durationPerPatient, docTimeFrom, opdType
+                mobileNumber, amount, patientId, patientName, doctorName, roomNumber,
+                specialization, doctorId, durationPerPatient, docTimeFrom, opdType
             ).collectLatest { result ->
                 when (result) {
-                    is PaymentFlowResult.Loading -> _paymentState.value = UiState.Loading
-                    is PaymentFlowResult.Success -> _paymentState.value =
-                        Success(result.response)
-
-                    is PaymentFlowResult.Pending -> _paymentState.value =
-                        Error("Payment pending, please check status")
-
-                    is PaymentFlowResult.Error -> _paymentState.value =
-                        Error(result.message)
-
-                    is PaymentFlowResult.Cancelled -> _paymentState.value = UiState.Idle
+                    is PaymentFlowResult.Loading -> _paymentState.value = Loading
+                    is PaymentFlowResult.Success -> _paymentState.value = Success(result)
+                    is PaymentFlowResult.Pending -> _paymentState.value = Success(result)
+                    is PaymentFlowResult.Failed -> _paymentState.value = Success(result)
+                    is PaymentFlowResult.Cancelled -> _paymentState.value = Idle
+                    is PaymentFlowResult.Error -> _paymentState.value = Error(result.message)
                 }
             }
         }
@@ -192,81 +179,10 @@ class RegisterNewOpdViewModel(
         _paymentState.value = UiState.Idle
         resetAvailability()
     }
+
     fun resetAvailability() {
         _availabilityState.value = UiState.Idle
-    }
 
-}
-
-class OpdPaymentSuccessViewModel(
-    private val getPaymentStatusUseCase: GetPaymentStatusUseCase
-) : ViewModel() {
-    private val _state = MutableStateFlow<UiState<PaymentStatus>>(UiState.Idle)
-    val state: StateFlow<UiState<PaymentStatus>> = _state.asStateFlow()
-
-    fun checkPaymentStatus(
-        merchantTransactionId: String,
-        maxAttempts: Int = 5,
-        pollIntervalMs: Long = 5000
-    ) {
-        viewModelScope.launch {
-            _state.value = UiState.Loading
-            repeat(maxAttempts) { attempt ->
-                getPaymentStatusUseCase(merchantTransactionId).fold(
-                    onSuccess = { status ->
-                        if (status.isSuccess) {
-                            _state.value = UiState.Success(status)
-                            return@launch
-                        } else if (status.isPending) {
-                            _state.value =
-                                UiState.Error("Payment still pending (attempt ${attempt + 1}/$maxAttempts)")
-                            delay(pollIntervalMs)
-                        } else {
-                            _state.value = UiState.Error("Payment failed: ${status.message}")
-                            return@launch
-                        }
-                    },
-                    onFailure = { error ->
-                        _state.value = UiState.Error("Status check failed: ${error.message}")
-                        return@launch
-                    }
-                )
-            }
-            if (_state.value !is UiState.Success) {
-                _state.value =
-                    UiState.Error("Payment status check timed out after $maxAttempts attempts")
-            }
-        }
-    }
-}
-
-class OpdPaymentPendingViewModel : ViewModel() {
-    data class PendingState(
-        val message: String,
-        val retryCount: Int = 0,
-        val lastUpdated: Long = getTimeMillis()
-    )
-
-    private val _state = MutableStateFlow<UiState<PendingState>>(UiState.Idle)
-    val state: StateFlow<UiState<PendingState>> = _state.asStateFlow()
-
-    fun updatePendingState(message: String, retryCount: Int) {
-        _state.value = UiState.Success(PendingState(message, retryCount))
-    }
-}
-
-class OpdPaymentFailedViewModel : ViewModel() {
-    data class FailedState(
-        val message: String,
-        val canRetry: Boolean = true,
-        val lastUpdated: Long = getTimeMillis()
-    )
-
-    private val _state = MutableStateFlow<UiState<FailedState>>(UiState.Idle)
-    val state: StateFlow<UiState<FailedState>> = _state.asStateFlow()
-
-    fun updateFailedState(message: String, canRetry: Boolean = true) {
-        _state.value = UiState.Success(FailedState(message, canRetry))
     }
 }
 

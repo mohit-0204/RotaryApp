@@ -59,15 +59,25 @@ class PaymentService {
         }
     }
 
-    suspend fun getPaymentStatus(merchantTransactionId: String): Result<PaymentStatusDto> {
+    suspend fun getPaymentStatus(
+        merchantTransactionId: String,
+        doctorName: String, doctorId: String, docTime: String,
+        durationPerPatient: String, opdType: String, orderId: String
+    ): Result<PaymentStatusDto> {
         return try {
             val response = client.post(ApiConstants.BASE_URL + ApiConstants.PAYMENT_API) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
                     buildFormBody(
                         mapOf(
-                            "action" to "payment_status",
-                            "merchantTransactionId" to merchantTransactionId
+                            "action" to "new_payment_status",
+                            "merchantTransactionId" to merchantTransactionId,
+                            "doc_name" to doctorName,
+                            "doc_id" to doctorId,
+                            "doc_time_from" to docTime,
+                            "duration_per_patient" to durationPerPatient,
+                            "opd_type" to opdType,
+                            "order_id" to orderId
                         )
                     )
                 )

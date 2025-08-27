@@ -33,9 +33,7 @@ import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientRegistratio
 import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOPDsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
-import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentFailedScreen
-import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentPendingScreen
-import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentSuccessScreen
+import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentResultScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientProfileScreen
 import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
@@ -283,14 +281,8 @@ fun App(paymentHandler: PaymentHandler) {
                 val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
                 RegisterNewOpdScreen(
                     paymentHandler = paymentHandler,
-                    onSuccess = { response ->
-                        navController.navigate(AppRoute.OpdPaymentSuccess(response.opdId ?: ""))
-                    },
-                    onPending = {
-                        navController.navigate(AppRoute.OpdPaymentPending("Payment in progress"))
-                    },
-                    onFailure = {
-                        navController.navigate(AppRoute.OpdPaymentFailed("Payment failed"))
+                    onPaymentResult = { transactionDetails ->
+                        navController.navigate(AppRoute.OpdPaymentResult(transactionDetails.paymentStatus))
                     },
                     onBack = { navController.popBackStack() },
                     patientId = route.patientId,
@@ -307,38 +299,18 @@ fun App(paymentHandler: PaymentHandler) {
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable<AppRoute.OpdPaymentSuccess> { backStackEntry ->
-                val route = backStackEntry.toRoute<AppRoute.OpdPaymentSuccess>()
-                OpdPaymentSuccessScreen(
-                    merchantTransactionId = route.merchantTransactionId,
+            composable<AppRoute.OpdPaymentResult> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.OpdPaymentResult>()
+                OpdPaymentResultScreen(
+                    paymentResult = route.paymentStatus,
                     onShareScreenshot = {
                         // TODO: Implement platform-specific screenshot sharing
                     },
                     onBack = {
                         navController.navigate(AppRoute.RegisteredOpds(mobileNumber)) {
-                            popUpTo<AppRoute.OpdPaymentSuccess> { inclusive = true }
+                            popUpTo<AppRoute.OpdPaymentResult> { inclusive = true }
                         }
                     }
-                )
-            }
-            composable<AppRoute.OpdPaymentPending> { backStackEntry ->
-                val route = backStackEntry.toRoute<AppRoute.OpdPaymentPending>()
-                OpdPaymentPendingScreen(
-                    message = route.message,
-                    onRetry = {
-                        // TODO: Retry payment logic
-                    },
-                    onBack = { navController.popBackStack() }
-                )
-            }
-            composable<AppRoute.OpdPaymentFailed> { backStackEntry ->
-                val route = backStackEntry.toRoute<AppRoute.OpdPaymentFailed>()
-                OpdPaymentFailedScreen(
-                    message = route.message,
-                    onRetry = {
-                        // TODO: Retry payment logic
-                    },
-                    onBack = { navController.popBackStack() }
                 )
             }
             composable<AppRoute.SelectedOpdDetails> { backStackEntry ->

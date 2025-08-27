@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,22 +21,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
-import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPaymentFailedViewModel
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun OpdPaymentFailedScreen(
-    message: String,
-    onRetry: () -> Unit,
-    onBack: () -> Unit,
-    viewModel: OpdPaymentFailedViewModel = koinViewModel()
+fun OpdPaymentResultScreen(
+    paymentResult: String,
+    onShareScreenshot: () -> Unit,
+    onBack: () -> Unit
 ) {
-    val state by viewModel.state.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.updateFailedState(message)
-    }
 
     AppTheme {
         Column(
@@ -52,7 +41,7 @@ fun OpdPaymentFailedScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Payment Failed",
+                    text = paymentResult,
                     color = ColorPrimary,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
@@ -63,11 +52,12 @@ fun OpdPaymentFailedScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(
-                        text = "Payment failed",
-                        color = MaterialTheme.colorScheme.error,
-                        fontSize = 16.sp
-                    )
+            Text(
+                text = "Thank you for your payment!",
+                color = ColorPrimary,
+                fontSize = 16.sp
+            )
         }
+
     }
 }

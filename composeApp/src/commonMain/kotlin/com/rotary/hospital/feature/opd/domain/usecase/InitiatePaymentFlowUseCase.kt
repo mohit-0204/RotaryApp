@@ -3,9 +3,9 @@ package com.rotary.hospital.feature.opd.domain.usecase
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.payment.PaymentResult
-import com.rotary.hospital.feature.opd.domain.model.InsertOpdResponse
 import com.rotary.hospital.feature.opd.domain.model.PaymentStatus
 import com.rotary.hospital.feature.opd.domain.repository.PaymentRepository
+import com.rotary.hospital.feature.opd.presentation.model.TransactionDetails
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlin.coroutines.suspendCoroutine
@@ -20,6 +20,8 @@ class InitiatePaymentFlowUseCase(
         patientId: String,
         patientName: String,
         doctorName: String,
+        roomNumber: String,
+        specialization: String,
         doctorId: String,
         durationPerPatient: String,
         docTimeFrom: String,
@@ -42,7 +44,7 @@ class InitiatePaymentFlowUseCase(
         }
 
         // Step 2: Start payment using suspendCoroutine to bridge callback
-        val paymentResult = suspendCoroutine<PaymentResult> { continuation ->
+        val paymentResult: PaymentResult = suspendCoroutine { continuation ->
             Logger.d(
                 "PaymentFlow",
                 "Starting payment with reference: ${paymentRequest.merchantTransactionId}"
@@ -60,40 +62,55 @@ class InitiatePaymentFlowUseCase(
         when (paymentResult) {
             is PaymentResult.Success -> {
                 // Step 4: Verify payment status
-                val statusResult =
-                    paymentRepository.getPaymentStatus(paymentRequest.merchantTransactionId)
+                val statusResult: Result<PaymentStatus> =
+                    paymentRepository.getPaymentStatus(
+                        paymentRequest.merchantTransactionId,
+                        doctorName, doctorId, docTimeFrom, durationPerPatient, opdType,
+                        paymentRequest.merchantTransactionId
+                    )
                 statusResult.fold(
-                    onSuccess = { status ->
-                        if (status.isSuccess) {
-                            // Step 5: Insert OPD
-                            val insertResult = paymentRepository.insertOpd(
+                    onSuccess = { status -> // this is payment result object carrying status(pass/fail/pending etc)
+                        var transactionDetails =
+                            TransactionDetails(
+                                mobileNumber = mobileNumber,
                                 patientId = patientId,
                                 patientName = patientName,
-                                mobileNumber = mobileNumber,
-                                doctorName = doctorName,
                                 doctorId = doctorId,
-                                opdAmount = amount,
-                                durationPerPatient = durationPerPatient,
-                                docTimeFrom = docTimeFrom,
-                                opdType = opdType,
-                                transactionId = paymentRequest.merchantTransactionId,
-                                paymentId = paymentRequest.merchantTransactionId, // As per your instruction
+                                doctorName = doctorName,
+                                roomNumber = roomNumber,
+                                specialization = specialization,
+                                opdCharges = amount,
+                                opdDuration = durationPerPatient,
+                                startTime = docTimeFrom,
+                                paymentStatus = status.messageCode,
+                                cancelReason = null,
+                                statusMessage = status.message,
                                 orderId = paymentRequest.merchantTransactionId,
-                                status = status.messageCode,
-                                message = status.message
+                                transactionId = status.transactionId,
+                                paymentId = paymentRequest.merchantTransactionId,
+                                opdId = null,
+                                tokenNumber = null,
+                                registrationDate = null,
+                                estimatedTime = null
                             )
-                            insertResult.fold(
-                                onSuccess = { response ->
-                                    emit(PaymentFlowResult.Success(response))
-                                },
-                                onFailure = { error ->
-                                    emit(PaymentFlowResult.Error("Failed to book appointment: ${error.message}"))
-                                }
+                        if (status.isSuccess) { // if payment is success, opd will be inserted
+                            transactionDetails = transactionDetails.copy(
+                                opdId = "12345",
+                                tokenNumber = "123",
+                                registrationDate = "2023-09-09",
+                                estimatedTime = "10:00"
                             )
+                            emit(PaymentFlowResult.Success(transactionDetails))
                         } else if (status.isPending) {
-                            emit(PaymentFlowResult.Pending(status))
+                            transactionDetails = transactionDetails.copy(
+                                cancelReason = "Payment pending"
+                            )
+                            emit(PaymentFlowResult.Pending(transactionDetails))
                         } else {
-                            emit(PaymentFlowResult.Error("Payment failed: ${status.message}"))
+                            transactionDetails = transactionDetails.copy(
+                                cancelReason = "Payment failed"
+                            )
+                            emit(PaymentFlowResult.Failed(transactionDetails))
                         }
                     },
                     onFailure = { error ->
@@ -117,8 +134,15 @@ class InitiatePaymentFlowUseCase(
 
 sealed interface PaymentFlowResult {
     object Loading : PaymentFlowResult
-    data class Success(val response: InsertOpdResponse) : PaymentFlowResult
-    data class Pending(val status: PaymentStatus) : PaymentFlowResult
+    data class Success(val successResponse: TransactionDetails) :
+        PaymentFlowResult
+
+    data class Pending(val pendingResponse: TransactionDetails) :
+        PaymentFlowResult
+
+    data class Failed(val failedResponse: TransactionDetails) :
+        PaymentFlowResult
+
     data class Error(val message: String) : PaymentFlowResult
     object Cancelled : PaymentFlowResult // New state for user cancellation
 }

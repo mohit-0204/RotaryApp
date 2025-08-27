@@ -80,8 +80,11 @@ class GetPaymentStatusUseCase(private val repository: PaymentRepository) {
         if (merchantTransactionId.isBlank()) {
             return Result.failure(Exception("Invalid transaction ID"))
         }
-        return repository.getPaymentStatus(merchantTransactionId)
+//        return repository.getPaymentStatus(merchantTransactionId)
+        //todo remove this line after testing
+        return Result.success(PaymentStatus("success", "success", "success", "success"))
     }
+
 }
 
 class InsertOpdUseCase(private val repository: PaymentRepository) {

@@ -13,14 +13,20 @@ class PaymentRepositoryImpl(private val service: PaymentService) : PaymentReposi
         patientName: String,
         doctorName: String
     ): Result<PaymentRequest?> {
-        return service.getPaymentReference(mobileNumber, amount, patientId, patientName, doctorName).fold(
-            onSuccess = { dto -> Result.success(dto.toDomain().getOrNull()) },
-            onFailure = { error -> Result.failure(error) }
-        )
+        return service.getPaymentReference(mobileNumber, amount, patientId, patientName, doctorName)
+            .fold(
+                onSuccess = { dto -> Result.success(dto.toDomain().getOrNull()) },
+                onFailure = { error -> Result.failure(error) }
+            )
     }
 
-    override suspend fun getPaymentStatus(merchantTransactionId: String): Result<PaymentStatus> {
-        return service.getPaymentStatus(merchantTransactionId).fold(
+    override suspend fun getPaymentStatus(
+        merchantTransactionId: String,
+        doctorName: String, doctorId: String, docTime: String,
+        durationPerPatient: String, opdType: String, orderId: String
+    ): Result<PaymentStatus> {
+        return service.getPaymentStatus(merchantTransactionId, doctorName, doctorId, docTime,
+            durationPerPatient, opdType, orderId).fold(
             onSuccess = { dto -> dto.toDomain() },
             onFailure = { error -> Result.failure(error) }
         )
