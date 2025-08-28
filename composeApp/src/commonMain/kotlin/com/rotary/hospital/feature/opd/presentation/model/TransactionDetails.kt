@@ -1,5 +1,8 @@
 package com.rotary.hospital.feature.opd.presentation.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class TransactionDetails(
     val mobileNumber: String,
     val patientId: String,

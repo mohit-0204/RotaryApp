@@ -16,20 +16,4 @@ interface PaymentRepository {
         durationPerPatient: String, opdType: String, orderId: String
     ): Result<PaymentStatus>
 
-    suspend fun insertOpd(
-        patientId: String,
-        patientName: String,
-        mobileNumber: String,
-        doctorName: String,
-        doctorId: String,
-        opdAmount: String,
-        durationPerPatient: String,
-        docTimeFrom: String,
-        opdType: String,
-        transactionId: String,
-        paymentId: String,
-        orderId: String,
-        status: String,
-        message: String
-    ): Result<InsertOpdResponse>
 }

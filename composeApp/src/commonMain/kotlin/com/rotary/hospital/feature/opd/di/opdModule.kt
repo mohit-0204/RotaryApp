@@ -24,9 +24,6 @@ val opdModule = module {
     single { GetSlotsUseCase(get()) }
     single { GetAvailabilityUseCase(get()) }
     single { GetDoctorAvailabilityUseCase(get()) }
-    single { GetPaymentReferenceUseCase(get()) }
-    single { GetPaymentStatusUseCase(get()) }
-    single { InsertOpdUseCase(get()) }
     single { InitiatePaymentFlowUseCase(get()) }
     viewModel{ RegisteredOPDsViewModel(get()) }
     viewModel{ OpdPatientRegistrationViewModel(get(), get()) }

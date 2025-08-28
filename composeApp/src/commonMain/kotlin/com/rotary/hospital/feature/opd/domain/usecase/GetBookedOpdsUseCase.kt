@@ -11,6 +11,7 @@ class GetBookedOpdsUseCase(private val repository: OpdRepository) {
         return repository.getBookedOpds(mobileNumber)
     }
 }
+
 class GetOpdDetailsUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(opdId: String): Result<OpdDetails?> {
         return repository.getOpdDetails(opdId)
@@ -51,79 +52,4 @@ class GetDoctorAvailabilityUseCase(private val repository: OpdRepository) {
     suspend operator fun invoke(doctorId: String): Result<Pair<List<DoctorAvailability>, List<Leave>>> {
         return repository.getDoctorAvailability(doctorId)
     }
-}
-
-class GetPaymentReferenceUseCase(private val repository: PaymentRepository) {
-    suspend operator fun invoke(
-        mobileNumber: String,
-        amount: String,
-        patientId: String,
-        patientName: String,
-        doctorName: String
-    ): Result<PaymentRequest?> {
-        if (amount.toDoubleOrNull()?.let { it <= 0 } == true) {
-            return Result.failure(Exception("Invalid amount: must be positive"))
-        }
-
-        return repository.getPaymentReference(
-            mobileNumber,
-            formatAmount(amount.toDoubleOrNull() ?: 0.0),
-            patientId,
-            patientName,
-            doctorName
-        )
-    }
-}
-
-class GetPaymentStatusUseCase(private val repository: PaymentRepository) {
-    suspend operator fun invoke(merchantTransactionId: String): Result<PaymentStatus> {
-        if (merchantTransactionId.isBlank()) {
-            return Result.failure(Exception("Invalid transaction ID"))
-        }
-//        return repository.getPaymentStatus(merchantTransactionId)
-        //todo remove this line after testing
-        return Result.success(PaymentStatus("success", "success", "success", "success"))
-    }
-
-}
-
-class InsertOpdUseCase(private val repository: PaymentRepository) {
-    enum class Status { SUCCESS, FAILURE }
-
-    suspend operator fun invoke(
-        patientId: String,
-        patientName: String,
-        mobileNumber: String,
-        doctorName: String,
-        doctorId: String,
-        opdAmount: String,
-        durationPerPatient: String,
-        docTimeFrom: String,
-        opdType: String,
-        transactionId: String,
-        paymentId: String,
-        orderId: String,
-        status: String,
-        message: String
-    ): Result<InsertOpdResponse> {
-        val response = repository.insertOpd(
-            patientId, patientName, mobileNumber, doctorName, doctorId, opdAmount,
-            durationPerPatient, docTimeFrom, opdType, transactionId, paymentId,
-            orderId, status, message
-        )
-        return response.fold(
-            onSuccess = { dto ->
-                if (dto.response && dto.message == Status.SUCCESS.name.lowercase()) {
-                    Result.success(dto)
-                } else {
-                    Result.failure(Exception(dto.message))
-                }
-            },
-            onFailure = { error -> Result.failure(error) }
-        )
-    }
-}
-
-private fun formatAmount(value: Double): String {
-    return (round(value * 100) / 100).toString()
 }

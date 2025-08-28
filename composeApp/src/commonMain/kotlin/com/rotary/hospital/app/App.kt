@@ -27,18 +27,22 @@ import com.rotary.hospital.feature.auth.presentation.screen.OtpVerificationScree
 import com.rotary.hospital.feature.home.presentation.model.HomeAction
 import com.rotary.hospital.feature.home.presentation.screen.ContactUsScreen
 import com.rotary.hospital.feature.home.presentation.screen.TermsScreen
+import com.rotary.hospital.feature.opd.presentation.model.TransactionDetails
 import com.rotary.hospital.feature.opd.presentation.screen.DoctorAvailabilityScreen
 import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientListScreen
 import com.rotary.hospital.feature.opd.presentation.screen.OpdPatientRegistrationScreen
+import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentResultScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOPDsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
-import com.rotary.hospital.feature.opd.presentation.screen.payment_result_screens.OpdPaymentResultScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientProfileScreen
 import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import okio.ByteString.Companion.decodeBase64
+import okio.ByteString.Companion.encodeUtf8
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
@@ -81,89 +85,80 @@ fun App(paymentHandler: PaymentHandler) {
                         navController.navigate(AppRoute.Home(patientName)) {
                             popUpTo<AppRoute.Splash> { inclusive = true }
                         }
-                    } else
-                        navController.navigate(AppRoute.Login) {
-                            popUpTo<AppRoute.Splash> { inclusive = true }
-                        }
+                    } else navController.navigate(AppRoute.Login) {
+                        popUpTo<AppRoute.Splash> { inclusive = true }
+                    }
                 }
             }
             composable<AppRoute.Home> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.Home>()
                 HomeScreen(
-                    route.patientName,
-                    onLogout = {
-                        navController.navigate(AppRoute.Login) {
-                            popUpTo<AppRoute.Home> { inclusive = true }
+                    route.patientName, onLogout = {
+                    navController.navigate(AppRoute.Login) {
+                        popUpTo<AppRoute.Home> { inclusive = true }
+                    }
+                }, onItemClick = { action ->
+                    scope.launch {
+                        val currentMobile = mobileNumber.ifBlank {
+                            preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
                         }
-                    },
-                    onItemClick = { action ->
-                        scope.launch {
-                            val currentMobile = mobileNumber.ifBlank {
-                                preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
-                            }
-                            when (action) {
-                                HomeAction.BookOPD -> {
-                                    if (currentMobile.isNotBlank()) {
-                                        navController.navigate(AppRoute.RegisteredOpds(currentMobile))
-                                    } else {
-                                        Logger.e("HomeScreen", "Mobile number not available")
-                                    }
-                                }
-
-                                HomeAction.ContactUs -> {
-                                    navController.navigate(AppRoute.ContactUs)
-                                }
-
-                                HomeAction.ManageMedicineReminders -> {
-                                    // todo yet to be implemented
-                                }
-
-                                HomeAction.OpenSettings -> {
-                                    // todo yet to be implemented
-                                }
-
-                                HomeAction.ViewLabTests -> {
-                                    // todo yet to be implemented
-                                }
-
-                                HomeAction.ViewPatientProfile -> {
-                                    navController.navigate(AppRoute.PatientProfile)
-                                }
-
-                                HomeAction.ViewTerms -> {
-                                    navController.navigate(AppRoute.TermsAndConditions)
+                        when (action) {
+                            HomeAction.BookOPD -> {
+                                if (currentMobile.isNotBlank()) {
+                                    navController.navigate(AppRoute.RegisteredOpds(currentMobile))
+                                } else {
+                                    Logger.e("HomeScreen", "Mobile number not available")
                                 }
                             }
-                        }
 
-                    },
-                    snackbarHostState = snackbarHostState
+                            HomeAction.ContactUs -> {
+                                navController.navigate(AppRoute.ContactUs)
+                            }
+
+                            HomeAction.ManageMedicineReminders -> {
+                                // todo yet to be implemented
+                            }
+
+                            HomeAction.OpenSettings -> {
+                                // todo yet to be implemented
+                            }
+
+                            HomeAction.ViewLabTests -> {
+                                // todo yet to be implemented
+                            }
+
+                            HomeAction.ViewPatientProfile -> {
+                                navController.navigate(AppRoute.PatientProfile)
+                            }
+
+                            HomeAction.ViewTerms -> {
+                                navController.navigate(AppRoute.TermsAndConditions)
+                            }
+                        }
+                    }
+
+                }, snackbarHostState = snackbarHostState
 
                 )
             }
             composable<AppRoute.Login> {
-                LoginScreen(
-                    onNextClick = { phoneNumber ->
-                        navController.navigate(AppRoute.OtpVerification(phoneNumber))
-                    },
-                    onExitClick = {
-                        // Platform-specific exit
-                    }
-                )
+                LoginScreen(onNextClick = { phoneNumber ->
+                    navController.navigate(AppRoute.OtpVerification(phoneNumber))
+                }, onExitClick = {
+                    // Platform-specific exit
+                })
             }
             composable<AppRoute.ContactUs> {
                 ContactUsScreen(
                     onBack = {
                         navController.popBackStack()
-                    }
-                )
+                    })
             }
             composable<AppRoute.TermsAndConditions> {
                 TermsScreen(
                     onBack = {
                         navController.popBackStack()
-                    }
-                )
+                    })
             }
 
             composable<AppRoute.PatientRegistration> { backStackEntry ->
@@ -174,8 +169,7 @@ fun App(paymentHandler: PaymentHandler) {
                         navController.navigate(AppRoute.Home(patientName)) {
                             popUpTo<AppRoute.PatientRegistration> { inclusive = true }
                         }
-                    }
-                )
+                    })
             }
 
 
@@ -186,13 +180,10 @@ fun App(paymentHandler: PaymentHandler) {
                     onSave = { patientId, patientName ->
                         navController.navigate(
                             AppRoute.RegisterNewOpd(
-                                mobileNumber,
-                                patientId,
-                                patientName
+                                mobileNumber, patientId, patientName
                             )
                         )
-                    }
-                )
+                    })
             }
 
             composable<AppRoute.PatientProfile> { backStackEntry ->
@@ -202,8 +193,7 @@ fun App(paymentHandler: PaymentHandler) {
                         navController.navigate(AppRoute.Home(patientName)) {
                             popUpTo<AppRoute.PatientProfile> { inclusive = true }
                         }
-                    }
-                )
+                    })
             }
             composable<AppRoute.OtpVerification> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.OtpVerification>()
@@ -211,10 +201,12 @@ fun App(paymentHandler: PaymentHandler) {
                     phoneNumber = route.phoneNumber,
                     onVerified = { patientCount ->
                         Logger.d("TAG", "PatientCount: $patientCount")
-                        if (patientCount > 0)
-                            navController.navigate(AppRoute.ProfilePatientSelection(route.phoneNumber))
-                        else
-                            navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
+                        if (patientCount > 0) navController.navigate(
+                            AppRoute.ProfilePatientSelection(
+                                route.phoneNumber
+                            )
+                        )
+                        else navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
                     },
                     onResend = {
                         //Resend OTP logic
@@ -222,67 +214,62 @@ fun App(paymentHandler: PaymentHandler) {
                     onBack = {
                         Logger.d("TAG", "Navigating back from OtpVerification to Login")
                         navController.popBackStack<AppRoute.Login>(inclusive = false)
-                    }
-                )
+                    })
             }
 
             composable<AppRoute.RegisteredOpds> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.RegisteredOpds>()
-                RegisteredOPDsScreen(
-                    onOpdClick = { opdId ->
-                        navController.navigate(
-                            AppRoute.SelectedOpdDetails(
-                                route.mobileNumber,
-                                opdId
-                            )
+                RegisteredOPDsScreen(onOpdClick = { opdId ->
+                    navController.navigate(
+                        AppRoute.SelectedOpdDetails(
+                            route.mobileNumber, opdId
                         )
-                    },
-                    onAddNew = {
-                        navController.navigate(AppRoute.OpdPatientList(route.mobileNumber))
-                    },
-                    onBackClick = { navController.popBackStack() },
-                    onSearchClick = {}
-                )
+                    )
+                }, onAddNew = {
+                    navController.navigate(AppRoute.OpdPatientList(route.mobileNumber))
+                }, onBackClick = { navController.popBackStack() }, onSearchClick = {})
             }
 
             composable<AppRoute.ProfilePatientSelection> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.ProfilePatientSelection>()
-                PatientListScreen(
-                    phoneNumber = route.phoneNumber,
-                    onAddPatient = {
-                        navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
-                    },
-                    onPatientSelected = { patientName ->
-                        navController.navigate(AppRoute.Home(patientName)) {
-                            popUpTo<AppRoute.ProfilePatientSelection> { inclusive = true }
-                        }
-                    },
-                    onBackClick = { navController.popBackStack() })
+                PatientListScreen(phoneNumber = route.phoneNumber, onAddPatient = {
+                    navController.navigate(AppRoute.PatientRegistration(route.phoneNumber))
+                }, onPatientSelected = { patientName ->
+                    navController.navigate(AppRoute.Home(patientName)) {
+                        popUpTo<AppRoute.ProfilePatientSelection> { inclusive = true }
+                    }
+                }, onBackClick = { navController.popBackStack() })
             }
             composable<AppRoute.OpdPatientList> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.OpdPatientList>()
-                OpdPatientListScreen(
-                    onPatientClick = { patientId, patientName ->
-                        navController.navigate(
-                            AppRoute.RegisterNewOpd(
-                                route.mobileNumber,
-                                patientId,
-                                patientName
-                            )
+                OpdPatientListScreen(onPatientClick = { patientId, patientName ->
+                    navController.navigate(
+                        AppRoute.RegisterNewOpd(
+                            route.mobileNumber, patientId, patientName
                         )
-                    },
-                    onAddPatient = {
-                        navController.navigate(AppRoute.OpdPatientRegistration(route.mobileNumber))
-                    },
-                    onBack = { navController.popBackStack() }
-                )
+                    )
+                }, onAddPatient = {
+                    navController.navigate(AppRoute.OpdPatientRegistration(route.mobileNumber))
+                }, onBack = { navController.popBackStack() })
+            }
+            composable<AppRoute.DoctorAvailability> { backStackEntry ->
+                val route = backStackEntry.toRoute<AppRoute.DoctorAvailability>()
+                DoctorAvailabilityScreen(
+                    doctorId = route.doctorId, onBack = { navController.popBackStack() })
             }
             composable<AppRoute.RegisterNewOpd> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
                 RegisterNewOpdScreen(
                     paymentHandler = paymentHandler,
-                    onPaymentResult = { transactionDetails ->
-                        navController.navigate(AppRoute.OpdPaymentResult(transactionDetails.paymentStatus))
+                    onPaymentResult = { transactionDetails: TransactionDetails ->
+                        val transactionDetailsJson = Json.encodeToString(transactionDetails)
+                        val encodedTransactionDetailsJson =
+                            transactionDetailsJson.encodeUtf8().base64()
+                        navController.navigate(
+                            AppRoute.OpdPaymentResult(
+                                encodedTransactionDetailsJson
+                            )
+                        )
                     },
                     onBack = { navController.popBackStack() },
                     patientId = route.patientId,
@@ -292,17 +279,15 @@ fun App(paymentHandler: PaymentHandler) {
 
                 )
             }
-            composable<AppRoute.DoctorAvailability> { backStackEntry ->
-                val route = backStackEntry.toRoute<AppRoute.DoctorAvailability>()
-                DoctorAvailabilityScreen(
-                    doctorId = route.doctorId,
-                    onBack = { navController.popBackStack() }
-                )
-            }
+
             composable<AppRoute.OpdPaymentResult> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.OpdPaymentResult>()
+                val encodedTransactionDetails = route.transactionDetails
+                val transactionDetailsJson = encodedTransactionDetails.decodeBase64()?.utf8()
+                val transactionDetails =
+                    Json.decodeFromString<TransactionDetails>(transactionDetailsJson!!)
                 OpdPaymentResultScreen(
-                    paymentResult = route.paymentStatus,
+                    transactionDetails = transactionDetails,
                     onShareScreenshot = {
                         // TODO: Implement platform-specific screenshot sharing
                     },
@@ -310,16 +295,14 @@ fun App(paymentHandler: PaymentHandler) {
                         navController.navigate(AppRoute.RegisteredOpds(mobileNumber)) {
                             popUpTo<AppRoute.OpdPaymentResult> { inclusive = true }
                         }
-                    }
-                )
+                    })
             }
             composable<AppRoute.SelectedOpdDetails> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.SelectedOpdDetails>()
                 SelectedOpdDetailsScreen(
                     opdId = route.opdId,
                     onBack = { navController.popBackStack() },
-                    onShare = { }
-                )
+                    onShare = { })
             }
         }
 

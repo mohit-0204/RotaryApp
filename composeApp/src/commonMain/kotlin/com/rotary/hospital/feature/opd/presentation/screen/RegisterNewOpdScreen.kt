@@ -69,6 +69,8 @@ import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
+import com.rotary.hospital.core.ui.ToastController
+import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.opd.domain.model.Availability
 import com.rotary.hospital.feature.opd.domain.model.Doctor
 import com.rotary.hospital.feature.opd.domain.model.DoctorAvailability
@@ -134,7 +136,15 @@ fun RegisterNewOpdScreen(
                     is PaymentFlowResult.Success -> onPaymentResult(flowResult.successResponse)
                     is PaymentFlowResult.Pending -> onPaymentResult(flowResult.pendingResponse)
                     is PaymentFlowResult.Failed -> onPaymentResult(flowResult.failedResponse)
-                    else -> {} // Cancelled/Error are handled separately
+                    is PaymentFlowResult.Cancelled -> {
+                        viewModel.resetPaymentState()
+                        toastController.show("Payment Cancelled by User")
+                    }
+                    is PaymentFlowResult.Error -> {
+                        viewModel.resetPaymentState()
+                        toastController.show(flowResult.message)
+                    }
+                    is PaymentFlowResult.Loading -> TODO()
                 }
             }
 
