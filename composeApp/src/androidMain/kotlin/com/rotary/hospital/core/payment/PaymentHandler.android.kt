@@ -32,26 +32,31 @@ actual class PaymentHandler(
         }
     }
 
-    fun logIntentData(data: Intent?) {
-        if (data == null) {
-            Logger.d("PaymentHandler", "Intent data = null")
+    fun logPhonePeResult(intent: Intent?) {
+        if (intent == null) {
+            Logger.d("PhonePeResult", "Received intent = null")
             return
         }
 
-        val extras = data.extras
-        if (extras == null) {
-            Logger.d("PaymentHandler", "Intent has no extras")
-            return
+        Logger.d("PhonePeResult", "Intent action = ${intent.action}")
+        Logger.d("PhonePeResult", "Intent data URI = ${intent.data}")
+
+        val extras = intent.extras
+        if (extras == null || extras.isEmpty) {
+            Logger.d("PhonePeResult", "No extras in intent")
+        } else {
+            for (key in extras.keySet()) {
+                val value = extras.get(key)
+                Logger.d("PhonePeResult", "Extra → $key = $value")
+            }
         }
 
-        for (key in extras.keySet()) {
-            val value = extras.get(key)
-            Logger.d("PaymentHandler", "Intent extra → $key = $value")
-        }
+        Logger.d("PhonePeResult", "Flags = ${intent.flags}")
+        Logger.d("PhonePeResult", "Categories = ${intent.categories}")
     }
 
-    fun handleActivityResult(resultCode: Int, data: Intent?) {
-        logIntentData(data)
+    fun handleActivityResult(resultCode: Int, intent: Intent?) {
+        logPhonePeResult(intent)
         val result = when (resultCode) {
             Activity.RESULT_OK -> {
                 PaymentResult.Success

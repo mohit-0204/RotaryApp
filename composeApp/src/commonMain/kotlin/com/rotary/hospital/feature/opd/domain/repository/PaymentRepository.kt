@@ -8,12 +8,22 @@ interface PaymentRepository {
         amount: String,
         patientId: String,
         patientName: String,
-        doctorName: String
+        doctorName: String,
+        doctorId: String,
+        docTime: String,
+        durationPerPatient: String,
+        opdType: String,
+        orderId: String
     ): Result<PaymentRequest?>
 
     suspend fun getPaymentStatus(
-        merchantTransactionId: String, doctorName: String, doctorId: String, docTime: String,
-        durationPerPatient: String, opdType: String, orderId: String
+        merchantTransactionId: String,
+        doctorName: String,
+        doctorId: String,
+        docTime: String,
+        durationPerPatient: String,
+        opdType: String,
+        orderId: String
     ): Result<PaymentStatus>
 
 }

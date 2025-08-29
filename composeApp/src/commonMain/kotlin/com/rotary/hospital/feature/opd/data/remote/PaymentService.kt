@@ -3,7 +3,6 @@ package com.rotary.hospital.feature.opd.data.remote
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.network.ApiConstants
 import com.rotary.hospital.core.network.NetworkClient
-import com.rotary.hospital.feature.opd.data.remote.dto.InsertOpdResponseDto
 import com.rotary.hospital.feature.opd.data.remote.dto.PaymentRequestDto
 import com.rotary.hospital.feature.opd.data.remote.dto.PaymentStatusDto
 import io.ktor.client.request.post
@@ -40,7 +39,12 @@ class PaymentService {
         amount: String,
         patientId: String,
         patientName: String,
-        doctorName: String
+        doctorName: String,
+        doctorId: String,
+        docTime: String,
+        durationPerPatient: String,
+        opdType: String,
+        orderId: String
     ): Result<PaymentRequestDto> {
         return try {
             val url = ApiConstants.BASE_URL + ApiConstants.PAYMENT_API
@@ -50,7 +54,12 @@ class PaymentService {
                 "amount" to amount,
                 "p_id" to patientId,
                 "name" to patientName,
-                "doc_name" to doctorName
+                "doc_name" to doctorName,
+                "doc_id" to doctorId,
+                "doc_time_from" to docTime,
+                "duration_per_patient" to durationPerPatient,
+                "opd_type" to opdType,
+                "order_id" to orderId
             )
             Logger.d("PaymentService", "getPaymentReference url : ${buildLogUrl(url, params)}")
             val response = client.post(url) {
@@ -97,15 +106,9 @@ class PaymentService {
             }
             val responseBody = response.bodyAsText()
             Logger.d("PaymentService", "getPaymentStatus: $responseBody")
-            val jsonObject = json.decodeFromString<JsonObject>(responseBody)
-            val responseSuccess = jsonObject["response"]?.jsonPrimitive?.boolean ?: false
-            val message = jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown error"
-            if (responseSuccess) {
-                val dto = json.decodeFromString<PaymentStatusDto>(responseBody)
-                Result.success(dto)
-            } else {
-                Result.failure(Exception(message))
-            }
+            val dto = json.decodeFromString<PaymentStatusDto>(responseBody)
+            Result.success(dto)
+
         } catch (e: Exception) {
             Logger.e("PaymentService", "getPaymentStatus error: ${e.message}")
             Result.failure(e)

@@ -11,9 +11,25 @@ class PaymentRepositoryImpl(private val service: PaymentService) : PaymentReposi
         amount: String,
         patientId: String,
         patientName: String,
-        doctorName: String
+        doctorName: String,
+        doctorId: String,
+        docTime: String,
+        durationPerPatient: String,
+        opdType: String,
+        orderId: String
     ): Result<PaymentRequest?> {
-        return service.getPaymentReference(mobileNumber, amount, patientId, patientName, doctorName)
+        return service.getPaymentReference(
+            mobileNumber,
+            amount,
+            patientId,
+            patientName,
+            doctorName,
+            doctorId,
+            docTime,
+            durationPerPatient,
+            opdType,
+            orderId
+        )
             .fold(
                 onSuccess = { dto -> Result.success(dto.toDomain().getOrNull()) },
                 onFailure = { error -> Result.failure(error) }
@@ -22,8 +38,12 @@ class PaymentRepositoryImpl(private val service: PaymentService) : PaymentReposi
 
     override suspend fun getPaymentStatus(
         merchantTransactionId: String,
-        doctorName: String, doctorId: String, docTime: String,
-        durationPerPatient: String, opdType: String, orderId: String
+        doctorName: String,
+        doctorId: String,
+        docTime: String,
+        durationPerPatient: String,
+        opdType: String,
+        orderId: String
     ): Result<PaymentStatus> {
         return service.getPaymentStatus(merchantTransactionId, doctorName, doctorId, docTime,
             durationPerPatient, opdType, orderId).fold(

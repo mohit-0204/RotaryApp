@@ -31,7 +31,8 @@ class InitiatePaymentFlowUseCase(
 
         // Step 1: Get payment reference
         val referenceResult = paymentRepository.getPaymentReference(
-            mobileNumber, amount, patientId, patientName, doctorName
+            mobileNumber, amount, patientId, patientName, doctorName,
+            doctorId, docTimeFrom, durationPerPatient, opdType, patientId
         )
         val paymentRequest = referenceResult.getOrElse {
             emit(PaymentFlowResult.Error("Failed to get payment reference: ${it.message}"))
@@ -63,6 +64,12 @@ class InitiatePaymentFlowUseCase(
             is PaymentResult.Success -> {
                 // Step 4: Verify payment status
                 val statusResult: Result<PaymentStatus> =
+                    /*Result.success(PaymentStatus(
+                        "true",
+                        "PAYMENT_SUCCESS",
+                        "success",
+                        "T2508291141105345404867"
+                    ))*/
                     paymentRepository.getPaymentStatus(
                         paymentRequest.merchantTransactionId,
                         doctorName, doctorId, docTimeFrom, durationPerPatient, opdType,
@@ -95,10 +102,10 @@ class InitiatePaymentFlowUseCase(
                             )
                         if (status.isSuccess) { // if payment is success, opd will be inserted
                             transactionDetails = transactionDetails.copy(
-                                opdId = "12345",
-                                tokenNumber = "123",
-                                registrationDate = "2023-09-09",
-                                estimatedTime = "10:00"
+                                opdId = status.opdId,
+                                tokenNumber = status.tokenNumber,
+                                registrationDate = status.registrationDate,
+                                estimatedTime = status.estimatedTime
                             )
                             emit(PaymentFlowResult.Success(transactionDetails))
                         } else if (status.isPending) {

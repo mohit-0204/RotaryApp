@@ -94,50 +94,50 @@ fun App(paymentHandler: PaymentHandler) {
                 val route = backStackEntry.toRoute<AppRoute.Home>()
                 HomeScreen(
                     route.patientName, onLogout = {
-                    navController.navigate(AppRoute.Login) {
-                        popUpTo<AppRoute.Home> { inclusive = true }
-                    }
-                }, onItemClick = { action ->
-                    scope.launch {
-                        val currentMobile = mobileNumber.ifBlank {
-                            preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
+                        navController.navigate(AppRoute.Login) {
+                            popUpTo<AppRoute.Home> { inclusive = true }
                         }
-                        when (action) {
-                            HomeAction.BookOPD -> {
-                                if (currentMobile.isNotBlank()) {
-                                    navController.navigate(AppRoute.RegisteredOpds(currentMobile))
-                                } else {
-                                    Logger.e("HomeScreen", "Mobile number not available")
+                    }, onItemClick = { action ->
+                        scope.launch {
+                            val currentMobile = mobileNumber.ifBlank {
+                                preferences.getString(PreferenceKeys.MOBILE_NUMBER, "").first()
+                            }
+                            when (action) {
+                                HomeAction.BookOPD -> {
+                                    if (currentMobile.isNotBlank()) {
+                                        navController.navigate(AppRoute.RegisteredOpds(currentMobile))
+                                    } else {
+                                        Logger.e("HomeScreen", "Mobile number not available")
+                                    }
+                                }
+
+                                HomeAction.ContactUs -> {
+                                    navController.navigate(AppRoute.ContactUs)
+                                }
+
+                                HomeAction.ManageMedicineReminders -> {
+                                    // todo yet to be implemented
+                                }
+
+                                HomeAction.OpenSettings -> {
+                                    // todo yet to be implemented
+                                }
+
+                                HomeAction.ViewLabTests -> {
+                                    // todo yet to be implemented
+                                }
+
+                                HomeAction.ViewPatientProfile -> {
+                                    navController.navigate(AppRoute.PatientProfile)
+                                }
+
+                                HomeAction.ViewTerms -> {
+                                    navController.navigate(AppRoute.TermsAndConditions)
                                 }
                             }
-
-                            HomeAction.ContactUs -> {
-                                navController.navigate(AppRoute.ContactUs)
-                            }
-
-                            HomeAction.ManageMedicineReminders -> {
-                                // todo yet to be implemented
-                            }
-
-                            HomeAction.OpenSettings -> {
-                                // todo yet to be implemented
-                            }
-
-                            HomeAction.ViewLabTests -> {
-                                // todo yet to be implemented
-                            }
-
-                            HomeAction.ViewPatientProfile -> {
-                                navController.navigate(AppRoute.PatientProfile)
-                            }
-
-                            HomeAction.ViewTerms -> {
-                                navController.navigate(AppRoute.TermsAndConditions)
-                            }
                         }
-                    }
 
-                }, snackbarHostState = snackbarHostState
+                    }, snackbarHostState = snackbarHostState
 
                 )
             }
@@ -287,15 +287,14 @@ fun App(paymentHandler: PaymentHandler) {
                 val transactionDetails =
                     Json.decodeFromString<TransactionDetails>(transactionDetailsJson!!)
                 OpdPaymentResultScreen(
-                    transactionDetails = transactionDetails,
-                    onShareScreenshot = {
-                        // TODO: Implement platform-specific screenshot sharing
-                    },
+                    transaction = transactionDetails,
                     onBack = {
                         navController.navigate(AppRoute.RegisteredOpds(mobileNumber)) {
                             popUpTo<AppRoute.OpdPaymentResult> { inclusive = true }
                         }
-                    })
+                    },
+                    onShare = {},
+                    onRetry = {})
             }
             composable<AppRoute.SelectedOpdDetails> { backStackEntry ->
                 val route = backStackEntry.toRoute<AppRoute.SelectedOpdDetails>()
