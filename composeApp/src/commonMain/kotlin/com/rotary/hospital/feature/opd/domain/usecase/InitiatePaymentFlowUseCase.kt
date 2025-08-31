@@ -3,6 +3,7 @@ package com.rotary.hospital.feature.opd.domain.usecase
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.payment.PaymentResult
+import com.rotary.hospital.feature.opd.domain.model.PaymentRequest
 import com.rotary.hospital.feature.opd.domain.model.PaymentStatus
 import com.rotary.hospital.feature.opd.domain.repository.PaymentRepository
 import com.rotary.hospital.feature.opd.presentation.model.TransactionDetails
@@ -30,7 +31,7 @@ class InitiatePaymentFlowUseCase(
         emit(PaymentFlowResult.Loading)
 
         // Step 1: Get payment reference
-        val referenceResult = paymentRepository.getPaymentReference(
+        val referenceResult: Result<PaymentRequest?> = paymentRepository.getPaymentReference(
             mobileNumber, amount, patientId, patientName, doctorName,
             doctorId, docTimeFrom, durationPerPatient, opdType, patientId
         )

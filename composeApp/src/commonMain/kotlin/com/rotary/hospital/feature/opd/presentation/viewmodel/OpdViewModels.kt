@@ -16,6 +16,7 @@ import com.rotary.hospital.feature.opd.domain.usecase.GetSlotsUseCase
 import com.rotary.hospital.feature.opd.domain.usecase.GetSpecializationsUseCase
 import com.rotary.hospital.feature.opd.domain.usecase.InitiatePaymentFlowUseCase
 import com.rotary.hospital.feature.opd.domain.usecase.PaymentFlowResult
+import com.rotary.hospital.feature.opd.domain.usecase.testing.InitiateDummyPaymentUseCase
 import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState.Error
 import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState.Idle
 import com.rotary.hospital.feature.opd.presentation.viewmodel.UiState.Loading
@@ -31,7 +32,8 @@ class RegisterNewOpdViewModel(
     private val getDoctorsUseCase: GetDoctorsUseCase,
     private val getSlotsUseCase: GetSlotsUseCase,
     private val getAvailabilityUseCase: GetAvailabilityUseCase,
-    private val initiatePaymentFlowUseCase: InitiatePaymentFlowUseCase
+//    private val initiatePaymentFlowUseCase: InitiatePaymentFlowUseCase
+    private val initiatePaymentFlowUseCase: InitiateDummyPaymentUseCase //todo remove after testing
 ) : ViewModel() {
     private val _paymentState = MutableStateFlow<UiState<PaymentFlowResult>>(UiState.Idle)
     val paymentState: StateFlow<UiState<PaymentFlowResult>> = _paymentState.asStateFlow()

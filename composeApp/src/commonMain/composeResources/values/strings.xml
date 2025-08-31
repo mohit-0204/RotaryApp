@@ -1,4 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
-    <string name="login_screen_message">WELCOME TO ROTARY HOSPITAL</string>
+
+    <!-- for login screen -->
+    <string name="welcome_to">Welcome to</string>
+    <string name="rotary_hospital">Rotary Hospital</string>
+    <string name="your_health_priority">Your health is our priority</string>
+    <string name="enter_mobile_number">Enter your mobile number</string>
+    <string name="logo">Logo</string>
+    <string name="tap_next_to_get_otp">🔒 Tap NEXT to get OTP for verification</string>
+    <string name="next">NEXT</string>
+    <string name="exit">EXIT</string>
+
+
+    <!-- for settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="back">Back</string>
+    <string name="theme_settings">Theme Settings</string>
+    <string name="theme">Theme</string>
+    <string name="light_mode">Light Mode</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="system_mode">System Mode</string>
+    <string name="language_settings">Language Settings</string>
+    <string name="language">Language</string>
+    <string name="english">English</string>
+    <string name="hindi">Hindi</string>
 </resources>

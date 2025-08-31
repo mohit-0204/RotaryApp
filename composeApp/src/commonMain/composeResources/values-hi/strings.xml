@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+
+    <!-- for login screen -->
+    <string name="welcome_to">स्वागत है</string>
+    <string name="rotary_hospital">रोटरी अस्पताल</string>
+    <string name="your_health_priority">आपका स्वास्थ्य हमारी प्राथमिकता है</string>
+    <string name="enter_mobile_number">अपना मोबाइल नंबर दर्ज करें</string>
+    <string name="logo">लोगो</string>
+    <string name="tap_next_to_get_otp">🔒 ओटीपी प्राप्त करने के लिए NEXT दबाएँ</string>
+    <string name="next">आगे</string>
+    <string name="exit">बाहर निकलें</string>
+
+
+    <!-- for settings screen -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="back">वापस</string>
+    <string name="theme_settings">थीम सेटिंग्स</string>
+    <string name="theme">थीम</string>
+    <string name="light_mode">लाइट मोड</string>
+    <string name="dark_mode">डार्क मोड</string>
+    <string name="system_mode">सिस्टम मोड</string>
+    <string name="language_settings">भाषा सेटिंग्स</string>
+    <string name="language">भाषा</string>
+    <string name="english">अंग्रेज़ी</string>
+    <string name="hindi">हिंदी</string>
+</resources>

@@ -6,5 +6,7 @@ object PreferenceKeys {
     const val PATIENT_ID = "patient_id"
     const val PATIENT_NAME = "patient_name"
     const val IS_LOGGED_IN = "is_logged_in"
+    const val LANGUAGE_ISO = "language_iso"
+
 
 }

@@ -8,6 +8,7 @@ import com.rotary.hospital.feature.opd.data.repository.PaymentRepositoryImpl
 import com.rotary.hospital.feature.opd.domain.repository.OpdRepository
 import com.rotary.hospital.feature.opd.domain.repository.PaymentRepository
 import com.rotary.hospital.feature.opd.domain.usecase.*
+import com.rotary.hospital.feature.opd.domain.usecase.testing.InitiateDummyPaymentUseCase
 import com.rotary.hospital.feature.opd.presentation.viewmodel.*
 import org.koin.dsl.module
 
@@ -25,10 +26,11 @@ val opdModule = module {
     single { GetAvailabilityUseCase(get()) }
     single { GetDoctorAvailabilityUseCase(get()) }
     single { InitiatePaymentFlowUseCase(get()) }
-    viewModel{ RegisteredOPDsViewModel(get()) }
-    viewModel{ OpdPatientRegistrationViewModel(get(), get()) }
-    viewModel{ OpdPatientListViewModel(get()) }
-    viewModel{ RegisterNewOpdViewModel(get(), get(), get(), get(), get()) }
-    viewModel{ DoctorAvailabilityViewModel(get()) }
-    viewModel{ SelectedOpdDetailsViewModel(get()) }
+    single { InitiateDummyPaymentUseCase(get()) }
+    viewModel { RegisteredOPDsViewModel(get()) }
+    viewModel { OpdPatientRegistrationViewModel(get(), get()) }
+    viewModel { OpdPatientListViewModel(get()) }
+    viewModel { RegisterNewOpdViewModel(get(), get(), get(), get(), get()) }
+    viewModel { DoctorAvailabilityViewModel(get()) }
+    viewModel { SelectedOpdDetailsViewModel(get()) }
 }

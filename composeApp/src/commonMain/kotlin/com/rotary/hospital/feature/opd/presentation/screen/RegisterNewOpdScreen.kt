@@ -140,10 +140,12 @@ fun RegisterNewOpdScreen(
                         viewModel.resetPaymentState()
                         toastController.show("Payment Cancelled by User")
                     }
+
                     is PaymentFlowResult.Error -> {
                         viewModel.resetPaymentState()
                         toastController.show(flowResult.message)
                     }
+
                     is PaymentFlowResult.Loading -> TODO()
                 }
             }
@@ -200,6 +202,7 @@ fun RegisterNewOpdScreen(
                 val canBook = availability?.available == true
 
                 Column {
+                    /* // uncomment to work on real data
                     ElevatedButton(
                         onClick = {
                             val a = availability ?: return@ElevatedButton
@@ -246,6 +249,46 @@ fun RegisterNewOpdScreen(
                         shape = RoundedCornerShape(14.dp),
                         elevation = ButtonDefaults.elevatedButtonElevation(2.dp),
                         enabled = canBook
+                    ) {
+                        Text("Book Appointment")
+                    }*/
+                    // uncomment to work with test paymentFlowUseCase
+                    ElevatedButton(
+                        onClick = {
+                            sheetContent = {
+                                TermsSheet(total = 32.0, onAccept = { amount ->
+                                    viewModel.initiatePayment(
+                                        paymentHandler = paymentHandler,
+                                        mobileNumber = "",
+                                        amount = "",
+                                        patientId = "",
+                                        patientName = "",
+                                        doctorName = "",
+                                        roomNumber = "",
+                                        specialization = "",
+                                        doctorId = "",
+                                        durationPerPatient = "",
+                                        docTimeFrom = "",
+                                        opdType = ""
+                                    )
+                                    scope.launch { sheetState.hide() }
+                                })
+                            }
+                            scope.launch { sheetState.show() }
+                        },
+
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(WindowInsets.navigationBars.asPaddingValues())
+                            .padding(horizontal = 8.dp)
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ColorPrimary,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        elevation = ButtonDefaults.elevatedButtonElevation(2.dp),
+                        enabled = true
                     ) {
                         Text("Book Appointment")
                     }

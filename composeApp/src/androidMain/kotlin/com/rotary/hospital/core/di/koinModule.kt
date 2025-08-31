@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.data.preferences.PreferencesManagerImpl
+import com.rotary.hospital.core.domain.Localization
 import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.createDataStore
 import org.koin.dsl.module
@@ -19,4 +20,6 @@ val androidModule = module {
     factory { (activity: ComponentActivity, launcher: ActivityResultLauncher<Intent>) ->
         PaymentHandler(activity, launcher)
     }
+
+    single<Localization> { Localization(context = androidContext()) }
 }

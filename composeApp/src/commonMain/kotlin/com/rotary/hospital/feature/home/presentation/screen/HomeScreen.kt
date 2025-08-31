@@ -111,7 +111,7 @@ fun HomeScreen(
             action = HomeAction.OpenSettings
         ),
         QuickAccessItemModel(
-            title = "Terms & Conditions",
+            title = "Terms & Cond.",
             icon = Icons.Default.Info,
             action = HomeAction.ViewTerms
         )
@@ -255,7 +255,7 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     FlowRow(
-                        maxItemsInEachRow = 4,
+                        maxItemsInEachRow = 3,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -265,7 +265,7 @@ fun HomeScreen(
                                 label = item.title,
                                 icon = item.icon,
                                 onClick = { onItemClick(item.action) },
-                                modifier = Modifier.fillMaxWidth(0.25f)
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }

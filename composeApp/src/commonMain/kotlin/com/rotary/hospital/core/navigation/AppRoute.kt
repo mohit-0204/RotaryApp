@@ -34,6 +34,9 @@ sealed class AppRoute {
     data object TermsAndConditions : AppRoute()
 
     @Serializable
+    data object Settings : AppRoute()
+
+    @Serializable
     data class RegisteredOpds(val mobileNumber: String) : AppRoute()
 
     @Serializable

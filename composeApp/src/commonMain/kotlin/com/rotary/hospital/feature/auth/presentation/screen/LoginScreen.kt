@@ -27,9 +27,11 @@ import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.feature.auth.presentation.viewmodel.LoginState
 import com.rotary.hospital.feature.auth.presentation.viewmodel.LoginViewModel
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import rotaryhospital.composeapp.generated.resources.Res
 import rotaryhospital.composeapp.generated.resources.logo
+import rotaryhospital.composeapp.generated.resources.welcome_to
 
 
 @Composable
@@ -55,7 +57,7 @@ fun WelcomeTextLoginScreen() {
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Welcome to",
+                text = stringResource(Res.string.welcome_to),
                 color = ColorPrimary,
                 fontSize = smallSize,
                 fontWeight = FontWeight.Bold,

@@ -54,6 +54,9 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            // added for extended icons
+            implementation(compose.materialIconsExtended)
+
             // added for type safe navigation
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
