@@ -42,7 +42,7 @@ import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOPDsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientProfileScreen
-import com.rotary.hospital.feature.patient.presentation.screen.RegistrationScreen
+import com.rotary.hospital.feature.patient.presentation.screen.PatientRegistrationScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -50,7 +50,6 @@ import okio.ByteString.Companion.decodeBase64
 import okio.ByteString.Companion.encodeUtf8
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
-import org.koin.compose.scope.KoinScope
 
 
 @Composable
@@ -196,7 +195,7 @@ fun App(paymentHandler: PaymentHandler? = null) {
                 }
 
                 composable<AppRoute.PatientRegistration> { backStackEntry ->
-                    RegistrationScreen(
+                    PatientRegistrationScreen(
                         onBack = { navController.popBackStack() },
                         onCancel = { navController.popBackStack() },
                         onSave = { patientName ->

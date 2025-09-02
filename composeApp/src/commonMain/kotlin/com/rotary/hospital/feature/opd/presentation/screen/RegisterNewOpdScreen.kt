@@ -202,7 +202,7 @@ fun RegisterNewOpdScreen(
                 val canBook = availability?.available == true
 
                 Column {
-                    /* // uncomment to work on real data
+                     // todo: uncomment to work on real data
                     ElevatedButton(
                         onClick = {
                             val a = availability ?: return@ElevatedButton
@@ -251,8 +251,8 @@ fun RegisterNewOpdScreen(
                         enabled = canBook
                     ) {
                         Text("Book Appointment")
-                    }*/
-                    // uncomment to work with test paymentFlowUseCase
+                    }
+                    /* // todo: uncomment to work with test paymentFlowUseCase
                     ElevatedButton(
                         onClick = {
                             sheetContent = {
@@ -291,7 +291,7 @@ fun RegisterNewOpdScreen(
                         enabled = true
                     ) {
                         Text("Book Appointment")
-                    }
+                    }*/
                 }
             }
         ) { innerPadding ->

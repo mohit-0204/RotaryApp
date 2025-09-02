@@ -84,7 +84,7 @@ class PatientListViewModel(
                     )
                     patient.name.trim().contains(query, ignoreCase = true) ||
                             patient.id.contains(query, ignoreCase = true)
-                }.also {
+                }.also { it ->
                     Logger.d("FilterPatients", "Filtered patients: ${it.map { it.name }}")
                 }
             }

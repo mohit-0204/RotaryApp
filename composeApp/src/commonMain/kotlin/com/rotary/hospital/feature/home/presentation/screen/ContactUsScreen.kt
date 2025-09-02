@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
+import com.rotary.hospital.core.theme.ColorPrimaryContainerDark
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.utils.BarIcons
 import com.rotary.hospital.core.utils.SetSystemBars
@@ -64,7 +65,7 @@ fun ContactUsScreen(
     onBack: () -> Unit
 ) {
 
-    SetSystemBars(iconStyle = BarIcons.Light)
+//    SetSystemBars(iconStyle = BarIcons.Light)
 
 
     val context = rememberPlatformContext()
@@ -79,7 +80,7 @@ fun ContactUsScreen(
                         "Contact Us",
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = Color.White
+                        color = ColorPrimary
                     )
                 },
                 navigationIcon = {
@@ -87,7 +88,7 @@ fun ContactUsScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = ColorPrimary
 //                                ColorPrimary.copy(alpha = 0.8f)
                         )
                     }
@@ -95,7 +96,7 @@ fun ContactUsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
 //                    containerColor = White,
 //                    titleContentColor = Color.Black
-                    containerColor = ColorPrimary,
+                    containerColor = White,
                     titleContentColor = Color.White
                 )
             )
@@ -127,7 +128,7 @@ fun ContactUsScreen(
                             Image(
                                 painter = painterResource(Res.drawable.rotary_bg),
                                 contentDescription = null,
-                                modifier = Modifier.fillMaxWidth().height(140.dp),
+                                modifier = Modifier.fillMaxWidth().height(180.dp),
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -153,7 +154,7 @@ private fun SectionCard(
             section.title,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.ExtraBold
         )
         Spacer(Modifier.height(8.dp))
         section.items.forEach { contact ->
@@ -180,9 +181,10 @@ private fun ContactRow(contact: Contact, onDial: (String) -> Unit) {
         }
         Column(Modifier.weight(1f)) {
             Text(
-                contact.label,
+                color = ColorPrimaryContainerDark,
+                text = contact.label,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold
             )
             contact.description?.let {
                 Text(
@@ -201,5 +203,5 @@ private fun ContactRow(contact: Contact, onDial: (String) -> Unit) {
             }
         }
     }
-    HorizontalDivider(Modifier, 2.dp, DividerDefaults.color)
+    HorizontalDivider(Modifier, 1.dp, DividerDefaults.color)
 }

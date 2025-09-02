@@ -31,6 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
+import org.jetbrains.compose.resources.stringResource
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.add
+import rotaryhospital.composeapp.generated.resources.back
+import rotaryhospital.composeapp.generated.resources.clear_search
+import rotaryhospital.composeapp.generated.resources.search
+import rotaryhospital.composeapp.generated.resources.search_placeholder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +69,7 @@ fun <T> SharedListScreen(
                     }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.back),
                             tint = ColorPrimary
                         )
                     }
@@ -73,7 +80,7 @@ fun <T> SharedListScreen(
                             value = searchQuery,
                             onValueChange = onSearchQueryChange,
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("Search...") },
+                            placeholder = { Text(stringResource(Res.string.search_placeholder)) },
                             singleLine = true,
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.White,
@@ -88,7 +95,7 @@ fun <T> SharedListScreen(
                                     IconButton(onClick = { onSearchQueryChange("") }) {
                                         Icon(
                                             Icons.Default.Clear,
-                                            contentDescription = "Clear search",
+                                            contentDescription = stringResource(Res.string.clear_search),
                                             tint = ColorPrimary
                                         )
                                     }
@@ -107,10 +114,11 @@ fun <T> SharedListScreen(
                     containerColor = White
                 ),
                 actions = {
-                    if (!isSearchActive && onToggleSearch!=null) {
+                    if (!isSearchActive && onToggleSearch != null) {
                         IconButton(onClick = onToggleSearch) {
                             Icon(
-                                Icons.Default.Search, contentDescription = "Search",
+                                Icons.Default.Search,
+                                contentDescription = stringResource(Res.string.search),
                                 tint = ColorPrimary
                             )
                         }
@@ -121,7 +129,11 @@ fun <T> SharedListScreen(
         floatingActionButton = {
             onAdd?.let {
                 FloatingActionButton(onClick = it, containerColor = ColorPrimary) {
-                    Icon(Icons.Default.Add, contentDescription = "Add", tint = White)
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(Res.string.add),
+                        tint = White
+                    )
                 }
             }
         }

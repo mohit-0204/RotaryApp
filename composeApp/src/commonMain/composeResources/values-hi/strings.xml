@@ -1,20 +1,83 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
 
+    <!-- common strings -->
+    <string name="rotary_hospital">रोटरी अस्पताल</string>
+    <string name="location_name">अंबाला कैंट</string>
+    <string name="logo_desc">लोगो</string>
+    <string name="back">वापस जाएँ</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="save">जमा करें</string>
+    <string name="search_placeholder">खोजें...</string>
+    <string name="clear_search">खोज हटाएँ</string>
+    <string name="search">खोजें</string>
+    <string name="add">जोड़ें</string>
+
+    <!-- for otp verification screen -->
+    <string name="otp_verification">ओटीपी पुष्टिकरण</string>
+    <string name="otp_enter_instruction">+91 %1$s पर भेजा गया 4-अंकों का ओटीपी दर्ज करें</string>
+    <string name="resend_otp">दोबारा ओटीपी भेजें</string>
+    <string name="resend_in">%1$d सेकंड में दोबारा भेजें</string>
+    <string name="verify">पुष्टि करें</string>
+
+    <!-- for Patient registration & profile screen-->
+    <string name="register_new_patient">नया मरीज जोड़ें</string>
+    <string name="personal_info">व्यक्तिगत जानकारी</string>
+    <string name="full_name">पूरा नाम</string>
+    <string name="select_gender">लिंग चुनें</string>
+    <string name="gender_male">पुरुष</string>
+    <string name="gender_female">महिला</string>
+    <string name="gender_other">अन्य</string>
+    <string name="gender_icon_description">लिंग %1$s</string>
+    <string name="select_dob">जन्मतिथि से आयु चुनें</string>
+    <string name="confirm">पुष्टि करें</string>
+    <string name="blood_group">रक्त समूह</string>
+    <string name="guardian_info">अभिभावक की जानकारी</string>
+    <string name="guardian_name">अभिभावक का नाम</string>
+    <string name="relation_guardian">अभिभावक से संबंध</string>
+    <string name="relation_son_of">पुत्र</string>
+    <string name="relation_daughter_of">पुत्री</string>
+    <string name="relation_wife_of">पत्नी</string>
+    <string name="relation_other">अन्य</string>
+    <string name="contact_info">संपर्क जानकारी</string>
+    <string name="email">ईमेल</string>
+    <string name="address">पता</string>
+    <string name="city">शहर</string>
+    <string name="state">राज्य</string>
+    <string name="error">त्रुटि</string>
+    <string name="error_name_required">कृपया सही नाम दर्ज करें</string>
+    <string name="error_guardian_required">कृपया अभिभावक का नाम दर्ज करें</string>
+    <string name="error_dob_required">कृपया सही जन्मतिथि दर्ज करें</string>
+    <string name="error_blood_group_required">कृपया रक्त समूह चुनें</string>
+    <string name="error_email_required">कृपया सही ईमेल दर्ज करें</string>
+    <string name="error_address_required">कृपया सही पता दर्ज करें</string>
+    <string name="error_city_required">कृपया सही शहर दर्ज करें</string>
+    <string name="error_state_required">कृपया सही राज्य दर्ज करें</string>
+    <string name="error_no_patient_data">कोई मरीज डेटा प्राप्त नहीं हुआ</string>
+    <string name="error_registration_failed">पंजीकरण असफल रहा</string>
+
+    <string name="patient_profile">मरीज प्रोफ़ाइल</string>
+    <string name="edit_profile">प्रोफ़ाइल संपादित करें</string>
+    <string name="not_provided">भरा नहीं गया</string>
+    <string name="patient_id">मरीज आईडी</string>
+    <string name="mobile_number">मोबाइल नंबर</string>
+    <string name="age">उम्र</string>
+    <string name="update">अपडेट करें</string>
+    <string name="update_profile_icon">प्रोफ़ाइल अपडेट आइकन</string>
+    <string name="profile_updated">प्रोफ़ाइल सफलतापूर्वक अपडेट हुई</string>
+    <string name="edit">संपादित करें</string>
+
     <!-- for login screen -->
     <string name="welcome_to">स्वागत है</string>
-    <string name="rotary_hospital">रोटरी अस्पताल</string>
-    <string name="your_health_priority">आपका स्वास्थ्य हमारी प्राथमिकता है</string>
-    <string name="enter_mobile_number">अपना मोबाइल नंबर दर्ज करें</string>
-    <string name="logo">लोगो</string>
-    <string name="tap_next_to_get_otp">🔒 ओटीपी प्राप्त करने के लिए NEXT दबाएँ</string>
+    <string name="tagline">आपका स्वास्थ्य हमारी प्राथमिकता है</string>
+    <string name="hint_mobile_number">अपना मोबाइल नंबर दर्ज करें</string>
+    <string name="otp_instruction">🔒 ओटीपी प्राप्त करने के लिए आगे दबाएँ</string>
     <string name="next">आगे</string>
     <string name="exit">बाहर निकलें</string>
 
 
     <!-- for settings screen -->
     <string name="settings_title">सेटिंग्स</string>
-    <string name="back">वापस</string>
     <string name="theme_settings">थीम सेटिंग्स</string>
     <string name="theme">थीम</string>
     <string name="light_mode">लाइट मोड</string>
@@ -24,4 +87,30 @@
     <string name="language">भाषा</string>
     <string name="english">अंग्रेज़ी</string>
     <string name="hindi">हिंदी</string>
+
+    <!-- Patient List Screen -->
+    <string name="registered_patients">पंजीकृत मरीज</string>
+    <string name="no_patients_found">कोई मरीज नहीं मिला।</string>
+    <string name="no_match_for">"%1$s" के लिए कोई परिणाम नहीं</string>
+    <string name="p_id">आईडी: %1$s</string>
+    <string name="select_patient">मरीज चुनें</string>
+
+    <!-- Home Screen -->
+    <string name="app_icon">रोटरी ऐप आइकन</string>
+    <string name="welcome_back">स्वागत है,</string>
+    <string name="search_hint">सेवाएँ, मरीज खोजें...</string>
+    <string name="patient_profile_sub">प्रोफ़ाइल देखें और बदलें</string>
+    <string name="opd_booking">ओपीडी बुकिंग</string>
+    <string name="opd_booking_sub">अपॉइंटमेंट शेड्यूल करें</string>
+    <string name="lab_tests">लैब टेस्ट</string>
+    <string name="lab_tests_sub">टेस्ट ऑर्डर करें और रिज़ल्ट देखें</string>
+    <string name="med_reminders">दवा रिमाइंडर</string>
+    <string name="med_reminders_sub">अलर्ट सेट और मैनेज करें</string>
+    <string name="quick_access">क्विक एक्सेस</string>
+    <string name="contact_us">संपर्क करें</string>
+    <string name="settings">सेटिंग्स</string>
+    <string name="terms_conditions">नियम और शर्तें</string>
+    <string name="logout">लॉगआउट</string>
+    <string name="logout_desc">क्या आप वाकई लॉगआउट करना चाहते हैं?</string>
+
 </resources>

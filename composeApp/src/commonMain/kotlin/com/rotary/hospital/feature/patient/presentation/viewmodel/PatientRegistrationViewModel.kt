@@ -18,6 +18,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
+import org.jetbrains.compose.resources.getString
+
 
 fun calculateAge(dob: String): String? {
     // Parse "dd-mm-yyyy" format
@@ -67,13 +69,12 @@ enum class Gender(val label: String) {
 }
 
 enum class Relation(val label: String) {
-    SonOf("Son of"), DaughterOf("Daughter of"), WifeOf("Wife of"), Other("Other");
+    SonOf("Son of"), DaughterOf("Daughter of"), WifeOf("Wife of");
 
     fun toApiString(): String = when (this) {
         SonOf -> "S/O"
         DaughterOf -> "D/O"
         WifeOf -> "W/O"
-        Other -> "Other"
     }
 }
 
@@ -163,7 +164,7 @@ class PatientRegistrationViewModel(
         if (address.isEmpty()) errors["address"] = "Please enter a valid address"
         if (city.isEmpty()) errors["city"] = "Please enter a valid city"
         if (state.isEmpty()) errors["state"] = "Please enter a valid state"
-        return if (errors.isEmpty()) null else errors
+        return errors.ifEmpty { null }
     }
 
     private fun isValidEmail(email: String): Boolean {

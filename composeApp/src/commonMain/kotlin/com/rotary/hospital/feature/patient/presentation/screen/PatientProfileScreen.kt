@@ -51,6 +51,38 @@ import com.rotary.hospital.core.common.appicon.IconMap
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.address
+import rotaryhospital.composeapp.generated.resources.age
+import rotaryhospital.composeapp.generated.resources.back
+import rotaryhospital.composeapp.generated.resources.blood_group
+import rotaryhospital.composeapp.generated.resources.cancel
+import rotaryhospital.composeapp.generated.resources.city
+import rotaryhospital.composeapp.generated.resources.confirm
+import rotaryhospital.composeapp.generated.resources.contact_info
+import rotaryhospital.composeapp.generated.resources.edit_profile
+import rotaryhospital.composeapp.generated.resources.email
+import rotaryhospital.composeapp.generated.resources.full_name
+import rotaryhospital.composeapp.generated.resources.gender_female
+import rotaryhospital.composeapp.generated.resources.gender_icon_description
+import rotaryhospital.composeapp.generated.resources.gender_male
+import rotaryhospital.composeapp.generated.resources.gender_other
+import rotaryhospital.composeapp.generated.resources.guardian_info
+import rotaryhospital.composeapp.generated.resources.guardian_name
+import rotaryhospital.composeapp.generated.resources.mobile_number
+import rotaryhospital.composeapp.generated.resources.not_provided
+import rotaryhospital.composeapp.generated.resources.patient_id
+import rotaryhospital.composeapp.generated.resources.patient_profile
+import rotaryhospital.composeapp.generated.resources.personal_info
+import rotaryhospital.composeapp.generated.resources.relation_daughter_of
+import rotaryhospital.composeapp.generated.resources.relation_guardian
+import rotaryhospital.composeapp.generated.resources.relation_son_of
+import rotaryhospital.composeapp.generated.resources.relation_wife_of
+import rotaryhospital.composeapp.generated.resources.select_dob
+import rotaryhospital.composeapp.generated.resources.select_gender
+import rotaryhospital.composeapp.generated.resources.state
+import rotaryhospital.composeapp.generated.resources.update
 import kotlin.time.ExperimentalTime
 
 
@@ -70,7 +102,7 @@ fun PatientProfileScreen(
     var saveButtonScale by remember { mutableStateOf(1f) }
     var cancelButtonScale by remember { mutableStateOf(1f) }
 
-    val notProvided = "Not provided"
+    val notProvided = stringResource(Res.string.not_provided)
 
     LaunchedEffect(state) {
         when (state) {
@@ -93,7 +125,7 @@ fun PatientProfileScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Patient Profile",
+                        stringResource(Res.string.patient_profile),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = ColorPrimary
@@ -103,7 +135,7 @@ fun PatientProfileScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.back),
                             tint = ColorPrimary
                         )
                     }
@@ -129,7 +161,7 @@ fun PatientProfileScreen(
                 ) {
                     Icon(
                         Icons.Default.Edit,
-                        contentDescription = "Edit Profile",
+                        contentDescription = stringResource(Res.string.edit_profile),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -161,17 +193,17 @@ fun PatientProfileScreen(
                 // Personal Info Card
                 // -------------------------
                 item {
-                    SectionCard(title = "Personal Info") {
+                    SectionCard(title = stringResource(Res.string.personal_info)) {
                         // Always read-only fields
                         StaticField(
-                            label = "Patient ID",
+                            label = stringResource(Res.string.patient_id),
                             value = formState.patientId,
                             leadingIcon = Icons.Default.Info,
                             notProvided = notProvided
                         )
                         Spacer(Modifier.height(12.dp))
                         StaticField(
-                            label = "Mobile Number",
+                            label = stringResource(Res.string.mobile_number),
                             value = formState.mobileNumber,
                             leadingIcon = Icons.Default.Info,
                             notProvided = notProvided
@@ -183,16 +215,16 @@ fun PatientProfileScreen(
                             InputField(
                                 value = formState.fullName,
                                 onValueChange = { viewModel.updateFormState(formState.copy(fullName = it)) },
-                                label = "Full Name",
+                                label = stringResource(Res.string.full_name),
                                 leadingIcon = Icons.Default.Person,
                                 errorMessage = formState.fieldErrors["fullName"],
-                                contentDescription = "Full name icon",
+                                contentDescription = stringResource(Res.string.full_name),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                             )
                         } else {
                             StaticField(
-                                label = "Full Name",
+                                label = stringResource(Res.string.full_name),
                                 value = formState.fullName,
                                 leadingIcon = Icons.Default.Person,
                                 notProvided = notProvided
@@ -202,7 +234,7 @@ fun PatientProfileScreen(
 
                         // Gender chips — disabled when not editing
                         Text(
-                            "Select Gender",
+                            stringResource(Res.string.select_gender),
                             fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
                             color = Color.Black
@@ -211,26 +243,33 @@ fun PatientProfileScreen(
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Gender.entries.forEach { g ->
+                            Gender.entries.forEach { gender ->
                                 FilterChip(
-                                    selected = formState.gender == g,
+                                    selected = formState.gender == gender,
                                     onClick = {
                                         if (isEditing) viewModel.updateFormState(
                                             formState.copy(
-                                                gender = g
+                                                gender = gender
                                             )
                                         )
                                     },
-                                    label = { Text(g.label, fontSize = 14.sp) },
+                                    label = {
+                                        Text(
+                                            getGenderLabel(gender), fontSize = 14.sp
+                                        )
+                                    },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = when (g) {
+                                            imageVector = when (gender) {
                                                 Gender.Male -> IconMale
                                                 Gender.Female -> IconFemale
                                                 else -> IconOther
                                             },
-                                            contentDescription = "Gender ${g.label} icon",
-                                            tint = if (formState.gender == g) ColorPrimary.copy(
+                                            contentDescription = stringResource(
+                                                Res.string.gender_icon_description,
+                                                getGenderLabel(gender)
+                                            ),
+                                            tint = if (formState.gender == gender) ColorPrimary.copy(
                                                 alpha = 0.8f
                                             ) else Color.Gray
                                         )
@@ -265,11 +304,11 @@ fun PatientProfileScreen(
                                 value = formState.dob,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = "Select age by Date of Birth",
+                                label = stringResource(Res.string.select_dob),
                                 placeholder = "dd-mm-yyyy",
                                 leadingIcon = Icons.Default.DateRange,
                                 errorMessage = formState.fieldErrors["dob"],
-                                contentDescription = "Date of birth icon",
+                                contentDescription = stringResource(Res.string.select_dob),
                                 modifier = Modifier
                                     .fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
@@ -282,7 +321,7 @@ fun PatientProfileScreen(
                             )
                         } else {
                             StaticField(
-                                label = "Age",
+                                label = stringResource(Res.string.age),
                                 value = formState.dob,
                                 leadingIcon = Icons.Default.DateRange, // or Icons.Default.DateRange
                                 notProvided = notProvided
@@ -321,12 +360,12 @@ fun PatientProfileScreen(
                                             }
                                         }
                                     ) {
-                                        Text("Confirm")
+                                        Text(stringResource(Res.string.confirm))
                                     }
                                 },
                                 dismissButton = {
                                     TextButton(onClick = { showDatePicker = false }) {
-                                        Text("Cancel")
+                                        Text(stringResource(Res.string.cancel))
                                     }
                                 }
                             ) {
@@ -348,13 +387,13 @@ fun PatientProfileScreen(
                                     value = formState.bloodGroup,
                                     onValueChange = {},
                                     readOnly = true,
-                                    label = "Blood Group",
+                                    label = stringResource(Res.string.blood_group),
                                     leadingIcon = IconDrop,
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = bloodExpanded)
                                     },
                                     errorMessage = formState.fieldErrors["bloodGroup"],
-                                    contentDescription = "Blood group icon",
+                                    contentDescription = stringResource(Res.string.blood_group),
                                     modifier = Modifier.fillMaxWidth().menuAnchor()
                                 )
                                 ExposedDropdownMenu(
@@ -376,7 +415,7 @@ fun PatientProfileScreen(
                             }
                         } else {
                             StaticField(
-                                label = "Blood Group",
+                                label = stringResource(Res.string.blood_group),
                                 value = formState.bloodGroup,
                                 leadingIcon = IconDrop,
                                 notProvided = notProvided
@@ -388,7 +427,7 @@ fun PatientProfileScreen(
                 // Guardian Info Card
                 // -------------------------
                 item {
-                    SectionCard(title = "Guardian Info") {
+                    SectionCard(title = stringResource(Res.string.guardian_info)) {
                         if (isEditing) {
                             InputField(
                                 value = formState.guardianName,
@@ -399,16 +438,16 @@ fun PatientProfileScreen(
                                         )
                                     )
                                 },
-                                label = "Guardian Name",
+                                label = stringResource(Res.string.guardian_name),
                                 leadingIcon = IconGuardian,
                                 errorMessage = formState.fieldErrors["guardianName"],
-                                contentDescription = "Guardian name icon",
+                                contentDescription = stringResource(Res.string.guardian_name),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                             )
                         } else {
                             StaticField(
-                                label = "Guardian Name",
+                                label = stringResource(Res.string.guardian_name),
                                 value = formState.guardianName,
                                 leadingIcon = IconGuardian,
                                 notProvided = notProvided
@@ -417,7 +456,7 @@ fun PatientProfileScreen(
                         Spacer(Modifier.height(12.dp))
 
                         Text(
-                            "Relation to Guardian",
+                            stringResource(Res.string.relation_guardian),
                             fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
                             color = Color.Black
@@ -425,21 +464,21 @@ fun PatientProfileScreen(
                         Column(
                             modifier = Modifier.padding(vertical = 8.dp)
                         ) {
-                            Relation.entries.forEach { rel ->
+                            Relation.entries.forEach { relation ->
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            viewModel.updateFormState(formState.copy(relation = rel))
+                                            viewModel.updateFormState(formState.copy(relation = relation))
                                         }
                                         .padding(vertical = 4.dp),
                                     horizontalArrangement = Arrangement.Start
                                 ) {
                                     RadioButton(
-                                        selected = formState.relation == rel,
+                                        selected = formState.relation == relation,
                                         onClick = {
-                                            viewModel.updateFormState(formState.copy(relation = rel))
+                                            viewModel.updateFormState(formState.copy(relation = relation))
                                         },
                                         colors = RadioButtonDefaults.colors(
                                             selectedColor = ColorPrimary.copy(alpha = 0.8f),
@@ -447,7 +486,7 @@ fun PatientProfileScreen(
                                         )
                                     )
                                     Text(
-                                        rel.label,
+                                        getRelationLabel(relation),
                                         fontSize = 16.sp,
                                         modifier = Modifier.padding(start = 8.dp)
                                     )
@@ -460,15 +499,15 @@ fun PatientProfileScreen(
                 // Contact Info Card
                 // -------------------------
                 item {
-                    SectionCard(title = "Contact Info") {
+                    SectionCard(title = stringResource(Res.string.contact_info)) {
                         if (isEditing) {
                             InputField(
                                 value = formState.email,
                                 onValueChange = { viewModel.updateFormState(formState.copy(email = it)) },
-                                label = "Email",
+                                label = stringResource(Res.string.email),
                                 leadingIcon = Icons.Default.Email,
                                 errorMessage = formState.fieldErrors["email"],
-                                contentDescription = "Email icon",
+                                contentDescription = stringResource(Res.string.email),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Email,
@@ -477,7 +516,7 @@ fun PatientProfileScreen(
                             )
                         } else {
                             StaticField(
-                                label = "Email",
+                                label = stringResource(Res.string.email),
                                 value = formState.email,
                                 leadingIcon = Icons.Default.Email,
                                 notProvided = notProvided
@@ -489,17 +528,17 @@ fun PatientProfileScreen(
                             InputField(
                                 value = formState.address,
                                 onValueChange = { viewModel.updateFormState(formState.copy(address = it)) },
-                                label = "Address",
+                                label = stringResource(Res.string.address),
                                 leadingIcon = Icons.Default.Home,
                                 errorMessage = formState.fieldErrors["address"],
-                                contentDescription = "Address icon",
+                                contentDescription = stringResource(Res.string.address),
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 3,
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                             )
                         } else {
                             StaticField(
-                                label = "Address",
+                                label = stringResource(Res.string.address),
                                 value = formState.address,
                                 leadingIcon = Icons.Default.Home,
                                 notProvided = notProvided
@@ -512,33 +551,33 @@ fun PatientProfileScreen(
                                 InputField(
                                     value = formState.city,
                                     onValueChange = { viewModel.updateFormState(formState.copy(city = it)) },
-                                    label = "City",
+                                    label = stringResource(Res.string.city),
                                     leadingIcon = IconCity,
                                     errorMessage = formState.fieldErrors["city"],
-                                    contentDescription = "City icon",
+                                    contentDescription = stringResource(Res.string.city),
                                     modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
                                 )
                                 InputField(
                                     value = formState.state,
                                     onValueChange = { viewModel.updateFormState(formState.copy(state = it)) },
-                                    label = "State",
+                                    label = stringResource(Res.string.state),
                                     leadingIcon = IconMap,
                                     errorMessage = formState.fieldErrors["state"],
-                                    contentDescription = "State icon",
+                                    contentDescription = stringResource(Res.string.state),
                                     modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
                                 )
                             } else {
                                 StaticField(
-                                    label = "City",
+                                    label = stringResource(Res.string.city),
                                     value = formState.city,
                                     leadingIcon = IconCity,
                                     notProvided = notProvided,
                                     modifier = Modifier.weight(1f)
                                 )
                                 StaticField(
-                                    label = "State",
+                                    label = stringResource(Res.string.state),
                                     value = formState.state,
                                     leadingIcon = IconMap,
                                     notProvided = notProvided,
@@ -616,12 +655,12 @@ fun PatientProfileScreen(
                     ) {
                         Icon(
                             Icons.Default.Clear,
-                            contentDescription = "Cancel edit",
+                            contentDescription = stringResource(Res.string.cancel),
                             tint = White
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            "Cancel",
+                            stringResource(Res.string.cancel),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -654,12 +693,12 @@ fun PatientProfileScreen(
                         } else {
                             Icon(
                                 Icons.Default.Check,
-                                contentDescription = "Update profile icon",
+                                contentDescription = stringResource(Res.string.update),
                                 tint = White
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Update",
+                                stringResource(Res.string.update),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -694,9 +733,20 @@ fun PatientProfileScreen(
     }
 }
 
-/**
- * CHANGE: Section wrapper to match RegistrationScreen card look
- */
+@Composable
+private fun getGenderLabel(gender: Gender) = when (gender) {
+    Gender.Male -> stringResource(Res.string.gender_male)
+    Gender.Female -> stringResource(Res.string.gender_female)
+    Gender.Other -> stringResource(Res.string.gender_other)
+}
+
+@Composable
+private fun getRelationLabel(relation: Relation) = when (relation) {
+    Relation.SonOf -> stringResource(Res.string.relation_son_of)
+    Relation.DaughterOf -> stringResource(Res.string.relation_daughter_of)
+    Relation.WifeOf -> stringResource(Res.string.relation_wife_of)
+}
+
 @Composable
 private fun SectionCard(
     title: String,

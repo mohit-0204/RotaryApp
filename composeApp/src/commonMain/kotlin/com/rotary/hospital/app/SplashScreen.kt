@@ -37,8 +37,11 @@ import com.rotary.hospital.core.utils.BarIcons
 import com.rotary.hospital.core.utils.SetSystemBars
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.location_name
 import rotaryhospital.composeapp.generated.resources.logo
+import rotaryhospital.composeapp.generated.resources.rotary_hospital
 
 @Composable
 fun SplashScreen(onFinished: () -> Unit = {}) {
@@ -88,13 +91,13 @@ fun SplashScreen(onFinished: () -> Unit = {}) {
                 modifier = Modifier.alpha(alpha)
             ) {
                 Text(
-                    text = "Rotary Hospital",
+                    text = stringResource(Res.string.rotary_hospital),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorPrimary
                 )
                 Text(
-                    text = "Ambala Cantt",
+                    text = stringResource(Res.string.location_name),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorPrimary

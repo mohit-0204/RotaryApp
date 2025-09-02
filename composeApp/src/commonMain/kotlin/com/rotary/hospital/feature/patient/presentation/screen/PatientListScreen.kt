@@ -36,7 +36,14 @@ import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.ui.screen.SharedListScreen
 import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientListState
 import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientListViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.no_match_for
+import rotaryhospital.composeapp.generated.resources.no_patients_found
+import rotaryhospital.composeapp.generated.resources.p_id
+import rotaryhospital.composeapp.generated.resources.registered_patients
+import rotaryhospital.composeapp.generated.resources.select_patient
 
 @Composable
 fun PatientListScreen(
@@ -56,11 +63,12 @@ fun PatientListScreen(
     LaunchedEffect(phoneNumber) { viewModel.fetchPatients(phoneNumber) }
 
     SharedListScreen(
-        title           = "Registered Patients",
+        title           = stringResource(Res.string.registered_patients),
         items           = patients,
         isLoading       = isLoading,
         errorMessage    = error,
-        emptyMessage    = if (searchQuery.isEmpty()) "No patients found." else "No match for \"$searchQuery\"",
+        emptyMessage    = if (searchQuery.isEmpty()) stringResource(Res.string.no_patients_found)
+                            else stringResource(Res.string.no_match_for, searchQuery),
         onSearchQueryChange = viewModel::setSearchQuery,
         searchQuery     = searchQuery,
         isSearchActive  = isSearchActive,
@@ -123,14 +131,14 @@ fun PatientListItem(patient: Patient, onClick: () -> Unit) {
                         color = Color.Black
                     )
                     Text(
-                        text = "ID: ${patient.id}",
+                        text = stringResource(Res.string.p_id, patient.id),
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 14.sp),
                         color = Color.Gray
                     )
                 }
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Select patient",
+                    contentDescription = stringResource(Res.string.select_patient),
                     tint = Color.Gray,
                     modifier = Modifier.size(24.dp)
                 )

@@ -19,6 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
+import org.jetbrains.compose.resources.stringResource
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.search_hint
+import rotaryhospital.composeapp.generated.resources.welcome_back
 
 @Composable
 fun WelcomeWidget(
@@ -26,7 +30,7 @@ fun WelcomeWidget(
 ) {
     Column(modifier = Modifier) {
         Text(
-            text = "Welcome back,",
+            text = stringResource(Res.string.welcome_back),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -45,7 +49,7 @@ fun WelcomeWidget(
         OutlinedTextField(
             value = "",
             onValueChange = {},
-            placeholder = { Text("Search for services, patients...") },
+            placeholder = { Text(stringResource(Res.string.search_hint)) },
             leadingIcon = {
                 Icon(Icons.Default.Search, contentDescription = "Search")
             },

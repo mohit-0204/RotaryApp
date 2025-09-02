@@ -1,5 +1,6 @@
 package com.rotary.hospital.feature.auth.presentation.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -54,10 +55,19 @@ import com.rotary.hospital.feature.auth.presentation.viewmodel.OtpViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.back
 import rotaryhospital.composeapp.generated.resources.logo
+import rotaryhospital.composeapp.generated.resources.logo_desc
+import rotaryhospital.composeapp.generated.resources.otp_enter_instruction
+import rotaryhospital.composeapp.generated.resources.otp_instruction
+import rotaryhospital.composeapp.generated.resources.otp_verification
+import rotaryhospital.composeapp.generated.resources.resend_in
+import rotaryhospital.composeapp.generated.resources.resend_otp
+import rotaryhospital.composeapp.generated.resources.verify
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,52 +139,41 @@ fun OtpVerificationScreen(
             ) {
                 CustomKeyboard(
                     onNumberClick = { digit ->
-                        state.focusedIndex?.let { idx ->
-                            viewModel.onAction(OtpAction.OnEnterNumber(digit, idx))
-                        }
-                    },
-                    onBackspaceClick = {
-                        viewModel.onAction(OtpAction.OnKeyBoardBack)
-                    },
-                    onDoneClick = {
-                        coroutineScope.launch { sheetState.hide() }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .systemBarsPadding()
-                        .height(300.dp)
+                    state.focusedIndex?.let { idx ->
+                        viewModel.onAction(OtpAction.OnEnterNumber(digit, idx))
+                    }
+                }, onBackspaceClick = {
+                    viewModel.onAction(OtpAction.OnKeyBoardBack)
+                }, onDoneClick = {
+                    coroutineScope.launch { sheetState.hide() }
+                }, modifier = Modifier.fillMaxWidth().systemBarsPadding().height(300.dp)
                 )
             }
         }
 
         // main content
         Column(
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Logo & Title
-            androidx.compose.foundation.Image(
+            Image(
                 painter = painterResource(Res.drawable.logo),
-                contentDescription = "Logo",
+                contentDescription = stringResource(Res.string.logo_desc),
                 colorFilter = ColorFilter.tint(ColorPrimary),
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(200.dp)
-                    .padding(10.dp)
+                modifier = Modifier.width(200.dp).height(200.dp).padding(10.dp)
             )
 
             Text(
-                text = "OTP Verification",
+                text = stringResource(Res.string.otp_verification),
                 color = ColorPrimary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold
             )
 
             Text(
-                text = "Enter the 4-digit OTP sent to +91 $phoneNumber",
+                text = stringResource(Res.string.otp_enter_instruction, phoneNumber),
                 color = Color.DarkGray,
                 modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             )
@@ -183,24 +182,18 @@ fun OtpVerificationScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 state.code.forEachIndexed { index, digit ->
                     Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .background(White, RoundedCornerShape(8.dp))
+                        modifier = Modifier.size(56.dp).background(White, RoundedCornerShape(8.dp))
                             .border(
                                 2.dp,
                                 if (state.focusedIndex == index) ColorPrimary else Color.Gray,
                                 RoundedCornerShape(8.dp)
-                            )
-                            .clickable {
+                            ).clickable {
                                 viewModel.onAction(OtpAction.OnChangeFieldFocus(index))
                                 coroutineScope.launch { sheetState.show() }
-                            },
-                        contentAlignment = Alignment.Center
+                            }, contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = digit?.toString() ?: "-",
-                            fontSize = 32.sp,
-                            color = ColorPrimary
+                            text = digit?.toString() ?: "-", fontSize = 32.sp, color = ColorPrimary
                         )
                     }
                 }
@@ -229,12 +222,11 @@ fun OtpVerificationScreen(
                             onResend()
                         }
                     }
-                },
-                enabled = resendEnabled && otpState !is OtpVerificationState.Loading
+                }, enabled = resendEnabled && otpState !is OtpVerificationState.Loading
             ) {
                 Text(
-                    text = if (resendEnabled) "Resend OTP" else "Resend in $countdown sec",
-                    color = ColorPrimary
+                    text = if (resendEnabled) stringResource(Res.string.resend_otp)
+                    else stringResource(Res.string.resend_in, countdown), color = ColorPrimary
                 )
             }
 
@@ -244,24 +236,24 @@ fun OtpVerificationScreen(
             Button(
                 onClick = { viewModel.verifyOtp() },
                 enabled = state.code.all { it != null } && otpState !is OtpVerificationState.Loading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = ColorPrimary,
                     contentColor = White,
                     disabledContainerColor = Color.LightGray,
                     disabledContentColor = White
-                )
-            ) {
+                )) {
                 if (otpState is OtpVerificationState.Loading) {
                     CircularProgressIndicator(
-                        color = White,
-                        modifier = Modifier.size(24.dp)
+                        color = White, modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("Verify", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(Res.string.verify),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -270,16 +262,17 @@ fun OtpVerificationScreen(
             // Back Button
             Button(
                 onClick = onBack,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = White
+                    containerColor = MaterialTheme.colorScheme.error, contentColor = White
                 )
             ) {
-                Text("Back", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = stringResource(Res.string.back),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

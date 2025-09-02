@@ -51,11 +51,29 @@ import com.rotary.hospital.feature.home.presentation.model.HomeAction
 import com.rotary.hospital.feature.home.presentation.model.QuickAccessItemModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.app_icon
 import rotaryhospital.composeapp.generated.resources.calendar_icon
+import rotaryhospital.composeapp.generated.resources.cancel
+import rotaryhospital.composeapp.generated.resources.contact_us
+import rotaryhospital.composeapp.generated.resources.lab_tests
+import rotaryhospital.composeapp.generated.resources.lab_tests_sub
 import rotaryhospital.composeapp.generated.resources.logo
+import rotaryhospital.composeapp.generated.resources.logout
+import rotaryhospital.composeapp.generated.resources.logout_desc
+import rotaryhospital.composeapp.generated.resources.med_reminders
+import rotaryhospital.composeapp.generated.resources.med_reminders_sub
+import rotaryhospital.composeapp.generated.resources.opd_booking
+import rotaryhospital.composeapp.generated.resources.opd_booking_sub
+import rotaryhospital.composeapp.generated.resources.patient_profile
+import rotaryhospital.composeapp.generated.resources.patient_profile_sub
 import rotaryhospital.composeapp.generated.resources.pill_icon
+import rotaryhospital.composeapp.generated.resources.quick_access
+import rotaryhospital.composeapp.generated.resources.rotary_hospital
+import rotaryhospital.composeapp.generated.resources.settings
+import rotaryhospital.composeapp.generated.resources.terms_conditions
 import rotaryhospital.composeapp.generated.resources.test_tube_icon
 import rotaryhospital.composeapp.generated.resources.user_icon
 
@@ -73,26 +91,26 @@ fun HomeScreen(
     // Define dashboard items
     val dashboardItems = listOf(
         DashboardItem(
-            title = "Patient Profile",
-            subtitle = "View & manage profiles",
+            title = stringResource(Res.string.patient_profile),
+            subtitle = stringResource(Res.string.patient_profile_sub),
             iconRes = Res.drawable.user_icon,
             action = HomeAction.ViewPatientProfile
         ),
         DashboardItem(
-            title = "OPD Booking",
-            subtitle = "Schedule appointments",
+            title = stringResource(Res.string.opd_booking),
+            subtitle = stringResource(Res.string.opd_booking_sub),
             iconRes = Res.drawable.calendar_icon,
             action = HomeAction.BookOPD
         ),
         DashboardItem(
-            title = "Lab Tests",
-            subtitle = "Order & view results",
+            title = stringResource(Res.string.lab_tests),
+            subtitle = stringResource(Res.string.lab_tests_sub),
             iconRes = Res.drawable.test_tube_icon,
             action = HomeAction.ViewLabTests
         ),
         DashboardItem(
-            title = "Med Reminders",
-            subtitle = "Set & manage alerts",
+            title = stringResource(Res.string.med_reminders),
+            subtitle = stringResource(Res.string.med_reminders_sub),
             iconRes = Res.drawable.pill_icon,
             action = HomeAction.ManageMedicineReminders
         )
@@ -101,17 +119,17 @@ fun HomeScreen(
     // Define quick-access items
     val quickAccessItems = listOf(
         QuickAccessItemModel(
-            title = "Contact Us",
+            title = stringResource(Res.string.contact_us),
             icon = Icons.Default.Phone,
             action = HomeAction.ContactUs
         ),
         QuickAccessItemModel(
-            title = "Settings",
+            title = stringResource(Res.string.settings),
             icon = Icons.Default.Settings,
             action = HomeAction.OpenSettings
         ),
         QuickAccessItemModel(
-            title = "Terms & Cond.",
+            title = stringResource(Res.string.terms_conditions),
             icon = Icons.Default.Info,
             action = HomeAction.ViewTerms
         )
@@ -123,7 +141,7 @@ fun HomeScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "Rotary Hospital",
+                            text = stringResource(Res.string.rotary_hospital),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = ColorPrimary
@@ -131,7 +149,7 @@ fun HomeScreen(
                     }, navigationIcon = {
                         Icon(
                             painter = painterResource(Res.drawable.logo),
-                            contentDescription = "App Icon",
+                            contentDescription = stringResource(Res.string.app_icon),
                             tint = ColorPrimary,
                             modifier = Modifier
                                 .size(50.dp)   // adjust logo size here
@@ -143,7 +161,7 @@ fun HomeScreen(
                         }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                contentDescription = "logout",
+                                contentDescription = stringResource(Res.string.logout),
                                 tint = ColorPrimary
                             )
                         }
@@ -247,7 +265,7 @@ fun HomeScreen(
                 item {
                     // Quick Access Section
                     Text(
-                        text = "Quick Access",
+                        text = stringResource(Res.string.quick_access),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = ColorPrimary
@@ -283,13 +301,13 @@ fun HomeScreen(
                 icon = {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = "logout",
+                        contentDescription = stringResource(Res.string.logout),
                         tint = ColorPrimary
                     )
                 },
                 title = {
                     Text(
-                        text = "Logout",
+                        text = stringResource(Res.string.logout),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = ColorPrimary
@@ -297,7 +315,7 @@ fun HomeScreen(
                 },
                 text = {
                     Text(
-                        text = "Are you sure you want to logout?",
+                        text = stringResource(Res.string.logout_desc),
                         fontSize = 16.sp,
                         color = Color.Gray
                     )
@@ -316,7 +334,7 @@ fun HomeScreen(
                         }
                     ) {
                         Text(
-                            "Logout",
+                            stringResource(Res.string.logout),
                             color = ColorPrimary,
                             fontWeight = FontWeight.Bold
                         )
@@ -325,7 +343,7 @@ fun HomeScreen(
                 dismissButton = {
                     TextButton(onClick = { showLogoutDialog.value = false }) {
                         Text(
-                            "Cancel",
+                            stringResource(Res.string.cancel),
                             color = Color.Gray,
                             fontWeight = FontWeight.Medium
                         )

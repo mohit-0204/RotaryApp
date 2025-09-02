@@ -30,15 +30,21 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.exit
+import rotaryhospital.composeapp.generated.resources.hint_mobile_number
 import rotaryhospital.composeapp.generated.resources.logo
+import rotaryhospital.composeapp.generated.resources.logo_desc
+import rotaryhospital.composeapp.generated.resources.next
+import rotaryhospital.composeapp.generated.resources.otp_instruction
+import rotaryhospital.composeapp.generated.resources.rotary_hospital
+import rotaryhospital.composeapp.generated.resources.tagline
 import rotaryhospital.composeapp.generated.resources.welcome_to
 
 
 @Composable
 fun WelcomeTextLoginScreen() {
     BoxWithConstraints(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center
     ) {
         val screenWidth = maxWidth
 
@@ -65,7 +71,7 @@ fun WelcomeTextLoginScreen() {
             )
 
             Text(
-                text = "Rotary Hospital",
+                text = stringResource(Res.string.rotary_hospital),
                 color = ColorPrimary,
                 fontSize = largeSize,
                 fontWeight = FontWeight.ExtraBold,
@@ -88,7 +94,7 @@ fun LoginScreen(
 
 
     if (loginState is LoginState.Error) {
-        Logger.d("LoginScreen",(loginState as LoginState.Error).message)
+        Logger.d("LoginScreen", (loginState as LoginState.Error).message)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = (loginState as LoginState.Error).message,
@@ -105,25 +111,18 @@ fun LoginScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxWidth().padding(24.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
 
 
-
-
             Image(
                 painter = painterResource(Res.drawable.logo),
-                contentDescription = "Logo",
+                contentDescription = stringResource(Res.string.logo_desc),
                 modifier = Modifier.size(200.dp).padding(top = 10.dp),
                 colorFilter = ColorFilter.tint(ColorPrimary)
             )
@@ -131,7 +130,7 @@ fun LoginScreen(
             WelcomeTextLoginScreen()
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Your health is our priority",
+                text = stringResource(Res.string.tagline),
                 color = Color.DarkGray,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
@@ -141,9 +140,7 @@ fun LoginScreen(
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 shadowElevation = 2.dp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 40.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp)
             ) {
                 OutlinedTextField(
                     value = mobileNumber,
@@ -152,15 +149,13 @@ fun LoginScreen(
                             viewModel.setMobileNumber(it)
                         }
                     },
-                    placeholder = { Text("Enter your mobile number") },
+                    placeholder = { Text(stringResource(Res.string.hint_mobile_number)) },
                     singleLine = true,
                     leadingIcon = {
                         Icon(Icons.Default.Phone, contentDescription = null, tint = ColorPrimary)
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White),
+                    modifier = Modifier.fillMaxWidth().background(Color.White),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = ColorPrimary,
                         unfocusedBorderColor = Color.Transparent,
@@ -175,12 +170,10 @@ fun LoginScreen(
             Surface(
                 shape = RoundedCornerShape(8.dp),
                 color = Color(0xFFDDFBFB),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 40.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp)
             ) {
                 Text(
-                    text = "🔒 Tap NEXT to get OTP for verification",
+                    text = stringResource(Res.string.otp_instruction),
                     color = ColorPrimary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(10.dp)
@@ -190,13 +183,9 @@ fun LoginScreen(
             ElevatedButton(
                 onClick = { viewModel.sendOtp() },
                 enabled = mobileNumber.length == 10 && loginState !is LoginState.Loading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 40.dp)
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp).height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorPrimary,
-                    contentColor = Color.White
+                    containerColor = ColorPrimary, contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(14.dp),
                 elevation = ButtonDefaults.elevatedButtonElevation(4.dp)
@@ -205,32 +194,33 @@ fun LoginScreen(
                     is LoginState.Loading -> {
                         CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
                     }
+
                     else -> {
-                        Text("NEXT", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(Res.string.next),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
             ElevatedButton(
                 onClick = onExitClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 40.dp)
-                    .padding(bottom = 10.dp)
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp)
+                    .padding(bottom = 10.dp).height(56.dp),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.error, contentColor = Color.White
                 ),
                 elevation = ButtonDefaults.elevatedButtonElevation(4.dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null, tint = White)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("EXIT", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(Res.string.exit), fontSize = 20.sp, fontWeight = FontWeight.Bold
+                )
             }
-
-
         }
     }
 }

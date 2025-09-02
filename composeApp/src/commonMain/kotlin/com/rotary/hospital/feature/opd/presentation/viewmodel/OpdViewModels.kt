@@ -32,8 +32,8 @@ class RegisterNewOpdViewModel(
     private val getDoctorsUseCase: GetDoctorsUseCase,
     private val getSlotsUseCase: GetSlotsUseCase,
     private val getAvailabilityUseCase: GetAvailabilityUseCase,
-//    private val initiatePaymentFlowUseCase: InitiatePaymentFlowUseCase
-    private val initiatePaymentFlowUseCase: InitiateDummyPaymentUseCase //todo remove after testing
+    private val initiatePaymentFlowUseCase: InitiatePaymentFlowUseCase
+//    private val initiatePaymentFlowUseCase: InitiateDummyPaymentUseCase //todo remove after testing
 ) : ViewModel() {
     private val _paymentState = MutableStateFlow<UiState<PaymentFlowResult>>(UiState.Idle)
     val paymentState: StateFlow<UiState<PaymentFlowResult>> = _paymentState.asStateFlow()
