@@ -27,7 +27,8 @@ fun calculateAge(dob: String): String? {
         val month = parts[1].toIntOrNull() ?: return null
         val year = parts[2].toIntOrNull() ?: return null
         val birthDate = LocalDate(year, month, day)
-        val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val today =
+            kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         var age = today.year - birthDate.year
         if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
             age--
@@ -47,7 +48,7 @@ sealed class OpdPatientRegistrationState {
 }
 
 data class OpdRegistrationFormState(
-    val mobileNumber : String = "",
+    val mobileNumber: String = "",
     val fullName: String = "",
     val gender: Gender = Gender.Male,
     val dob: String = "",
@@ -66,13 +67,12 @@ enum class Gender(val label: String) {
 }
 
 enum class Relation(val label: String) {
-    SonOf("Son of"), DaughterOf("Daughter of"), WifeOf("Wife of"), Other("Other");
+    SonOf("Son of"), DaughterOf("Daughter of"), WifeOf("Wife of");
 
     fun toApiString(): String = when (this) {
         SonOf -> "S/O"
         DaughterOf -> "D/O"
         WifeOf -> "W/O"
-        Other -> "Other"
     }
 }
 
@@ -80,7 +80,8 @@ class OpdPatientRegistrationViewModel(
     private val registerPatientUseCase: RegisterPatientUseCase,
     private val preferences: PreferencesManager
 ) : ViewModel() {
-    private val _state = MutableStateFlow<OpdPatientRegistrationState>(OpdPatientRegistrationState.Idle)
+    private val _state =
+        MutableStateFlow<OpdPatientRegistrationState>(OpdPatientRegistrationState.Idle)
     val state: StateFlow<OpdPatientRegistrationState> = _state.asStateFlow()
 
     private val _formState = MutableStateFlow(OpdRegistrationFormState())
@@ -135,10 +136,14 @@ class OpdPatientRegistrationViewModel(
                         OpdPatientRegistrationState.Error("No patient data received")
                     }
                 }
-                else -> OpdPatientRegistrationState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
+
+                else -> OpdPatientRegistrationState.Error(
+                    result.exceptionOrNull()?.message ?: "Registration failed"
+                )
             }
         }
     }
+
     private fun validateInputs(
         fullName: String,
         guardianName: String,
@@ -154,7 +159,8 @@ class OpdPatientRegistrationViewModel(
         if (guardianName.isEmpty()) errors["guardianName"] = "Please enter a valid guardian name"
         if (dob.isEmpty()) errors["dob"] = "Please enter a valid date of birth"
         if (bloodGroup.isEmpty()) errors["bloodGroup"] = "Please select a blood group"
-        if (email.isEmpty() || !isValidEmail(email)) errors["email"] = "Please enter a valid email address"
+        if (email.isEmpty() || !isValidEmail(email)) errors["email"] =
+            "Please enter a valid email address"
         if (address.isEmpty()) errors["address"] = "Please enter a valid address"
         if (city.isEmpty()) errors["city"] = "Please enter a valid city"
         if (state.isEmpty()) errors["state"] = "Please enter a valid state"

@@ -12,6 +12,9 @@
     <string name="clear_search">खोज हटाएँ</string>
     <string name="search">खोजें</string>
     <string name="add">जोड़ें</string>
+    <string name="oops_something_went_wrong">अरे! कुछ गलत हो गया</string>
+    <string name="try_again">फिर से प्रयास करें</string>
+    <string name="some_error_occurred">कुछ समस्या आ गई</string>
 
     <!-- for otp verification screen -->
     <string name="otp_verification">ओटीपी पुष्टिकरण</string>
@@ -44,7 +47,7 @@
     <string name="address">पता</string>
     <string name="city">शहर</string>
     <string name="state">राज्य</string>
-    <string name="error">त्रुटि</string>
+    <string name="error">गड़बड़</string>
     <string name="error_name_required">कृपया सही नाम दर्ज करें</string>
     <string name="error_guardian_required">कृपया अभिभावक का नाम दर्ज करें</string>
     <string name="error_dob_required">कृपया सही जन्मतिथि दर्ज करें</string>
@@ -112,5 +115,54 @@
     <string name="terms_conditions">नियम और शर्तें</string>
     <string name="logout">लॉगआउट</string>
     <string name="logout_desc">क्या आप वाकई लॉगआउट करना चाहते हैं?</string>
+
+    <!-- OPD Patient List Screen -->
+    <string name="select_patient_for_opd">ओपीडी के लिए मरीज चुनें</string>
+
+    <!-- OPD Patient List Screen -->
+    <string name="opd_patient_registration_title">ओपीडी के लिए नया मरीज पंजीकृत करें</string>
+
+    <!-- Booked OPDs List Screen -->
+    <string name="booked_opds">बुक किए गए ओपीडी</string>
+    <string name="add_opd">ओपीडी जोड़ें</string>
+    <string name="no_opds">कोई ओपीडी बुक नहीं हुई।</string>
+    <string name="register_new_opd">नई ओपीडी पंजीकृत करें</string>
+
+    <!-- Selected OPD details -->
+    <string name="opd_details_title">ओपीडी विवरण</string>
+    <string name="share">साझा करें</string>
+    <string name="loading_opd_details">ओपीडी विवरण लोड हो रहे हैं...</string>
+    <string name="error_loading_opd_details">ओपीडी विवरण लोड असफल रहा...</string>
+    <string name="opd_id">ओपीडी आईडी</string>
+    <string name="date">तारीख</string>
+    <string name="doctor">डॉक्टर</string>
+    <string name="child">बाल रोग</string>
+    <string name="token">टोकन</string>
+    <string name="est_time">अनुमानित समय</string>
+    <string name="charges">शुल्क</string>
+    <string name="patient_details">मरीज विवरण</string>
+    <string name="name">नाम</string>
+    <string name="payment_details">भुगतान विवरण</string>
+    <string name="transaction_id">लेन-देन आईडी</string>
+    <string name="status">स्थिति</string>
+    <string name="successful">सफल</string>
+
+    <!-- For Terms & Conditions details -->
+    <string name="terms_and_conditions_title">नियम और शर्तें</string>
+
+    <!-- For Payment Result details -->
+        <string name="payment_result">भुगतान परिणाम</string>
+        <string name="status_successful">सफल</string>
+        <string name="status_pending">लंबित</string>
+        <string name="status_failed">असफल</string>
+        <string name="payment_failed_message">भुगतान संसाधित नहीं हो सका।</string>
+        <string name="payment_pending_message">आपका भुगतान पुष्टि किया जा रहा है।\nइसमें कुछ मिनट लग सकते हैं।</string>
+        <string name="refresh_status">स्थिति ताज़ा करें</string>
+        <string name="appointment_details">नियुक्ति विवरण</string>
+        <string name="patient_name">नाम</string>
+        <string name="time">समय</string>
+        <string name="specialization">विशेषज्ञता</string>
+        <string name="order_id">ऑर्डर आईडी</string>
+        <string name="payment_id">भुगतान आईडी</string>
 
 </resources>

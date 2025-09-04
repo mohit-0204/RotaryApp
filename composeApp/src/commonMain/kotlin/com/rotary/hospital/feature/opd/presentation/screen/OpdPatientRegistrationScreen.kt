@@ -86,14 +86,39 @@ import com.rotary.hospital.core.ui.component.InputField
 import com.rotary.hospital.feature.opd.presentation.viewmodel.Gender
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientRegistrationState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientRegistrationViewModel
-import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdRegistrationFormState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.Relation
 import com.rotary.hospital.feature.patient.presentation.viewmodel.calculateAge
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.address
+import rotaryhospital.composeapp.generated.resources.back
+import rotaryhospital.composeapp.generated.resources.blood_group
+import rotaryhospital.composeapp.generated.resources.cancel
+import rotaryhospital.composeapp.generated.resources.city
+import rotaryhospital.composeapp.generated.resources.confirm
+import rotaryhospital.composeapp.generated.resources.contact_info
+import rotaryhospital.composeapp.generated.resources.email
+import rotaryhospital.composeapp.generated.resources.full_name
+import rotaryhospital.composeapp.generated.resources.gender_female
+import rotaryhospital.composeapp.generated.resources.gender_icon_description
+import rotaryhospital.composeapp.generated.resources.gender_male
+import rotaryhospital.composeapp.generated.resources.gender_other
+import rotaryhospital.composeapp.generated.resources.guardian_info
+import rotaryhospital.composeapp.generated.resources.guardian_name
+import rotaryhospital.composeapp.generated.resources.opd_patient_registration_title
+import rotaryhospital.composeapp.generated.resources.personal_info
+import rotaryhospital.composeapp.generated.resources.relation_daughter_of
+import rotaryhospital.composeapp.generated.resources.relation_guardian
+import rotaryhospital.composeapp.generated.resources.relation_son_of
+import rotaryhospital.composeapp.generated.resources.relation_wife_of
+import rotaryhospital.composeapp.generated.resources.save
+import rotaryhospital.composeapp.generated.resources.select_dob
+import rotaryhospital.composeapp.generated.resources.select_gender
+import rotaryhospital.composeapp.generated.resources.state
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -123,7 +148,7 @@ fun OpdPatientRegistrationScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Register New Patient for OPD",
+                        stringResource(Res.string.opd_patient_registration_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = ColorPrimary
@@ -133,7 +158,7 @@ fun OpdPatientRegistrationScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.back),
                             tint = ColorPrimary
                         )
                     }
@@ -173,12 +198,12 @@ fun OpdPatientRegistrationScreen(
                 ) {
                     Icon(
                         Icons.Default.Clear,
-                        contentDescription = "Cancel registration icon",
+                        contentDescription = stringResource(Res.string.cancel),
                         tint = White
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "Cancel",
+                        stringResource(Res.string.cancel),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -210,12 +235,12 @@ fun OpdPatientRegistrationScreen(
                     } else {
                         Icon(
                             Icons.Default.Check,
-                            contentDescription = "Save registration icon",
+                            contentDescription = stringResource(Res.string.save),
                             tint = White
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            "Save",
+                            stringResource(Res.string.save),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -244,7 +269,7 @@ fun OpdPatientRegistrationScreen(
                             modifier = Modifier.background(White).padding(20.dp)
                         ) {
                             Text(
-                                "Personal Info",
+                                stringResource(Res.string.personal_info),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = ColorPrimary
@@ -256,10 +281,10 @@ fun OpdPatientRegistrationScreen(
                                 onValueChange = {
                                     viewModel.updateFormState(formState.copy(fullName = it))
                                 },
-                                label = "Full Name",
+                                label = stringResource(Res.string.full_name),
                                 leadingIcon = Icons.Default.Person,
                                 errorMessage = formState.fieldErrors["fullName"],
-                                contentDescription = "Full name icon",
+                                contentDescription = stringResource(Res.string.full_name),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Text,
@@ -269,7 +294,7 @@ fun OpdPatientRegistrationScreen(
                             Spacer(Modifier.height(12.dp))
 
                             Text(
-                                "Select Gender",
+                                stringResource(Res.string.select_gender),
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 16.sp,
                                 color = Color.Black
@@ -278,22 +303,29 @@ fun OpdPatientRegistrationScreen(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Gender.entries.forEach { g ->
+                                Gender.entries.forEach { gender ->
                                     FilterChip(
-                                        selected = formState.gender == g,
+                                        selected = formState.gender == gender,
                                         onClick = {
-                                            viewModel.updateFormState(formState.copy(gender = g))
+                                            viewModel.updateFormState(formState.copy(gender = gender))
                                         },
-                                        label = { Text(g.label, fontSize = 14.sp) },
+                                        label = {
+                                            Text(
+                                                getGenderLabel(gender), fontSize = 14.sp
+                                            )
+                                        },
                                         leadingIcon = {
                                             Icon(
-                                                imageVector = when (g) {
+                                                imageVector = when (gender) {
                                                     Gender.Male -> IconMale
                                                     Gender.Female -> IconFemale
                                                     Gender.Other -> IconOther
                                                 },
-                                                contentDescription = "${g.label} gender icon",
-                                                tint = if (formState.gender == g) ColorPrimary else Color.Gray
+                                                contentDescription = stringResource(
+                                                    Res.string.gender_icon_description,
+                                                    getGenderLabel(gender)
+                                                ),
+                                                tint = if (formState.gender == gender) ColorPrimary else Color.Gray
                                             )
                                         },
                                         colors = FilterChipDefaults.filterChipColors(
@@ -325,11 +357,11 @@ fun OpdPatientRegistrationScreen(
                                 value = formState.dob,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = "Select age by Date of Birth",
+                                label = stringResource(Res.string.select_dob),
                                 placeholder = "dd-mm-yyyy",
                                 leadingIcon = Icons.Default.DateRange,
                                 errorMessage = formState.fieldErrors["dob"],
-                                contentDescription = "Date of birth icon",
+                                contentDescription = stringResource(Res.string.select_dob),
                                 modifier = Modifier
                                     .fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
@@ -374,12 +406,12 @@ fun OpdPatientRegistrationScreen(
                                                 }
                                             }
                                         ) {
-                                            Text("Confirm")
+                                            Text(stringResource(Res.string.confirm))
                                         }
                                     },
                                     dismissButton = {
                                         TextButton(onClick = { showDatePicker = false }) {
-                                            Text("Cancel")
+                                            Text(stringResource(Res.string.cancel))
                                         }
                                     }
                                 ) {
@@ -397,13 +429,13 @@ fun OpdPatientRegistrationScreen(
                                     value = formState.bloodGroup,
                                     onValueChange = {},
                                     readOnly = true,
-                                    label = "Blood Group",
+                                    label = stringResource(Res.string.blood_group),
                                     leadingIcon = IconDrop,
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = bloodExpanded)
                                     },
                                     errorMessage = formState.fieldErrors["bloodGroup"],
-                                    contentDescription = "Blood group icon",
+                                    contentDescription = stringResource(Res.string.blood_group),
                                     modifier = Modifier.fillMaxWidth().menuAnchor()
                                 )
                                 ExposedDropdownMenu(
@@ -447,7 +479,7 @@ fun OpdPatientRegistrationScreen(
                             modifier = Modifier.background(White).padding(20.dp)
                         ) {
                             Text(
-                                "Guardian Info",
+                                stringResource(Res.string.guardian_info),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = ColorPrimary
@@ -459,10 +491,10 @@ fun OpdPatientRegistrationScreen(
                                 onValueChange = {
                                     viewModel.updateFormState(formState.copy(guardianName = it))
                                 },
-                                label = "Guardian Name",
+                                label = stringResource(Res.string.guardian_name),
                                 leadingIcon = IconGuardian,
                                 errorMessage = formState.fieldErrors["guardianName"],
-                                contentDescription = "Guardian name icon",
+                                contentDescription = stringResource(Res.string.guardian_name),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Text,
@@ -472,7 +504,7 @@ fun OpdPatientRegistrationScreen(
                             Spacer(Modifier.height(12.dp))
 
                             Text(
-                                "Relation to Guardian",
+                                stringResource(Res.string.relation_guardian),
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 16.sp,
                                 color = Color.Black
@@ -502,7 +534,7 @@ fun OpdPatientRegistrationScreen(
                                             )
                                         )
                                         Text(
-                                            rel.label,
+                                            getRelationLabel(rel),
                                             fontSize = 16.sp,
                                             modifier = Modifier.padding(start = 8.dp)
                                         )
@@ -524,7 +556,7 @@ fun OpdPatientRegistrationScreen(
                             modifier = Modifier.background(White).padding(20.dp)
                         ) {
                             Text(
-                                "Contact Info",
+                                stringResource(Res.string.contact_info),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = ColorPrimary
@@ -536,10 +568,10 @@ fun OpdPatientRegistrationScreen(
                                 onValueChange = {
                                     viewModel.updateFormState(formState.copy(email = it))
                                 },
-                                label = "Email",
+                                label = stringResource(Res.string.email),
                                 leadingIcon = Icons.Default.Email,
                                 errorMessage = formState.fieldErrors["email"],
-                                contentDescription = "Email icon",
+                                contentDescription = stringResource(Res.string.email),
                                 modifier = Modifier.fillMaxWidth(),
                                 keyboardOptions = KeyboardOptions(
                                     keyboardType = KeyboardType.Email,
@@ -553,10 +585,10 @@ fun OpdPatientRegistrationScreen(
                                 onValueChange = {
                                     viewModel.updateFormState(formState.copy(address = it))
                                 },
-                                label = "Address",
+                                label = stringResource(Res.string.address),
                                 leadingIcon = Icons.Default.Home,
                                 errorMessage = formState.fieldErrors["address"],
-                                contentDescription = "Address icon",
+                                contentDescription = stringResource(Res.string.address),
                                 modifier = Modifier.fillMaxWidth(),
                                 maxLines = 3,
                                 keyboardOptions = KeyboardOptions(
@@ -574,10 +606,10 @@ fun OpdPatientRegistrationScreen(
                                     onValueChange = {
                                         viewModel.updateFormState(formState.copy(city = it))
                                     },
-                                    label = "City",
+                                    label = stringResource(Res.string.city),
                                     leadingIcon = IconCity,
                                     errorMessage = formState.fieldErrors["city"],
-                                    contentDescription = "City icon",
+                                    contentDescription = stringResource(Res.string.city),
                                     modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(
                                         keyboardType = KeyboardType.Text,
@@ -589,10 +621,10 @@ fun OpdPatientRegistrationScreen(
                                     onValueChange = {
                                         viewModel.updateFormState(formState.copy(state = it))
                                     },
-                                    label = "State",
+                                    label = stringResource(Res.string.state),
                                     leadingIcon = IconMap,
                                     errorMessage = formState.fieldErrors["state"],
-                                    contentDescription = "State icon",
+                                    contentDescription = stringResource(Res.string.state),
                                     modifier = Modifier.weight(1f),
                                     keyboardOptions = KeyboardOptions(
                                         keyboardType = KeyboardType.Text,
@@ -651,4 +683,18 @@ fun OpdPatientRegistrationScreen(
             }
         }
     )
+}
+
+@Composable
+private fun getGenderLabel(gender: Gender) = when (gender) {
+    Gender.Male -> stringResource(Res.string.gender_male)
+    Gender.Female -> stringResource(Res.string.gender_female)
+    Gender.Other -> stringResource(Res.string.gender_other)
+}
+
+@Composable
+private fun getRelationLabel(relation: Relation) = when (relation) {
+    Relation.SonOf -> stringResource(Res.string.relation_son_of)
+    Relation.DaughterOf -> stringResource(Res.string.relation_daughter_of)
+    Relation.WifeOf -> stringResource(Res.string.relation_wife_of)
 }

@@ -47,8 +47,16 @@ import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.feature.opd.presentation.screen.components.OpdListItem
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOPDsState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.RegisteredOPDsViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.add_opd
+import rotaryhospital.composeapp.generated.resources.back
+import rotaryhospital.composeapp.generated.resources.booked_opds
+import rotaryhospital.composeapp.generated.resources.no_opds
+import rotaryhospital.composeapp.generated.resources.register_new_opd
+import rotaryhospital.composeapp.generated.resources.search
 
 @Composable
 fun RegisteredOPDsScreen(
@@ -76,7 +84,7 @@ fun RegisteredOPDsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Booked OPDs",
+                        stringResource(Res.string.booked_opds),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = ColorPrimary
@@ -85,7 +93,7 @@ fun RegisteredOPDsScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.back),
                             tint = ColorPrimary
                         )
                     }
@@ -93,7 +101,7 @@ fun RegisteredOPDsScreen(
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = stringResource(Res.string.search),
                             tint = ColorPrimary.copy(alpha = 0.8f)
                         )
                     }
@@ -105,7 +113,11 @@ fun RegisteredOPDsScreen(
             FloatingActionButton(
                 onClick = onAddNew, containerColor = ColorPrimary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add OPD", tint = Color.White)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.add_opd),
+                    tint = Color.White
+                )
             }
         }
     ) { paddingValues ->
@@ -114,7 +126,7 @@ fun RegisteredOPDsScreen(
         ) {
             when (val currentState = state) {
                 is RegisteredOPDsState.Loading -> {
-                    Box(Modifier.fillMaxSize()){
+                    Box(Modifier.fillMaxSize()) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                     }
                 }
@@ -135,10 +147,13 @@ fun RegisteredOPDsScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text("No OPDs booked.", style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                stringResource(Res.string.no_opds),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(onClick = onAddNew) {
-                                Text("Register New OPD")
+                                Text(stringResource(Res.string.register_new_opd))
                             }
                         }
                     } else {

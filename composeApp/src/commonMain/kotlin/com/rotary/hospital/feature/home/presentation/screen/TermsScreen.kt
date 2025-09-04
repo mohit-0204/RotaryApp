@@ -46,9 +46,13 @@ import org.adman.kmp.webview.KWebView
 import org.adman.kmp.webview.TextAlign
 import org.adman.kmp.webview.formatHtmlContent
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.back
 import rotaryhospital.composeapp.generated.resources.rotary_bg
+import rotaryhospital.composeapp.generated.resources.some_error_occurred
+import rotaryhospital.composeapp.generated.resources.terms_and_conditions_title
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,7 +69,7 @@ fun TermsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Terms And Conditions",
+                        stringResource(Res.string.terms_and_conditions_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = ColorPrimary
@@ -75,14 +79,12 @@ fun TermsScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.back),
                             tint = ColorPrimary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = White,
-//                    titleContentColor = Color.Black
                     containerColor = White
                 )
             )
@@ -98,7 +100,7 @@ fun TermsScreen(
             when {
                 state.isLoading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 state.error != null -> Text(
-                    state.error ?: "some error occurred",
+                    state.error ?: stringResource(Res.string.some_error_occurred),
                     modifier = Modifier.align(Alignment.Center)
                 )
 

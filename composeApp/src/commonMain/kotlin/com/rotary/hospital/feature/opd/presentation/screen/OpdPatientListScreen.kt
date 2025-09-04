@@ -10,8 +10,12 @@ import com.rotary.hospital.core.ui.screen.SharedListScreen
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientListState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.OpdPatientListViewModel
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListItem
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.no_patients_found
+import rotaryhospital.composeapp.generated.resources.select_patient_for_opd
 
 @Composable
 fun OpdPatientListScreen(
@@ -33,11 +37,11 @@ fun OpdPatientListScreen(
     }
 
     SharedListScreen(
-        title = "Select Patient for OPD",
+        title = stringResource(Res.string.select_patient_for_opd),
         items = patients,
         isLoading = isLoading,
         errorMessage = error,
-        emptyMessage = "No patients registered",
+        emptyMessage = stringResource(Res.string.no_patients_found),
         onSearchQueryChange = null,   // no search here
         isSearchActive = false,
         onToggleSearch = null,

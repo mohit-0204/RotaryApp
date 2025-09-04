@@ -51,6 +51,34 @@ import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.feature.opd.presentation.model.TransactionDetails
+import org.jetbrains.compose.resources.stringResource
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.appointment_details
+import rotaryhospital.composeapp.generated.resources.back
+import rotaryhospital.composeapp.generated.resources.charges
+import rotaryhospital.composeapp.generated.resources.date
+import rotaryhospital.composeapp.generated.resources.doctor
+import rotaryhospital.composeapp.generated.resources.est_time
+import rotaryhospital.composeapp.generated.resources.opd_id
+import rotaryhospital.composeapp.generated.resources.order_id
+import rotaryhospital.composeapp.generated.resources.patient_details
+import rotaryhospital.composeapp.generated.resources.patient_id
+import rotaryhospital.composeapp.generated.resources.patient_name
+import rotaryhospital.composeapp.generated.resources.payment_details
+import rotaryhospital.composeapp.generated.resources.payment_failed_message
+import rotaryhospital.composeapp.generated.resources.payment_id
+import rotaryhospital.composeapp.generated.resources.payment_pending_message
+import rotaryhospital.composeapp.generated.resources.payment_result
+import rotaryhospital.composeapp.generated.resources.refresh_status
+import rotaryhospital.composeapp.generated.resources.share
+import rotaryhospital.composeapp.generated.resources.specialization
+import rotaryhospital.composeapp.generated.resources.status_failed
+import rotaryhospital.composeapp.generated.resources.status_pending
+import rotaryhospital.composeapp.generated.resources.status_successful
+import rotaryhospital.composeapp.generated.resources.time
+import rotaryhospital.composeapp.generated.resources.token
+import rotaryhospital.composeapp.generated.resources.transaction_id
+import rotaryhospital.composeapp.generated.resources.try_again
 
 /**
  * Payment result screen that supports SUCCESS / PENDING / FAILED.
@@ -92,15 +120,15 @@ fun OpdPaymentResultScreen(
     val statusColor: Color
     val statusIcon = when (status) {
         Status.SUCCESS -> {
-            headerColor = primaryGreen; statusText = "Successful"; statusColor = primaryGreen
+            headerColor = primaryGreen; statusText = stringResource(Res.string.status_successful); statusColor = primaryGreen
             Icons.Default.CheckCircle
         }
         Status.PENDING -> {
-            headerColor = amber; statusText = "Pending"; statusColor = amber
+            headerColor = amber; statusText = stringResource(Res.string.status_pending); statusColor = amber
             Icons.Default.Info
         }
         Status.FAILED -> {
-            headerColor = red; statusText = "Failed"; statusColor = red
+            headerColor = red; statusText = stringResource(Res.string.status_failed); statusColor = red
             Icons.Default.Clear
         }
     }
@@ -110,7 +138,7 @@ fun OpdPaymentResultScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Payment Result",
+                        text = stringResource(Res.string.payment_result),
                         fontSize = 20.sp,
                         color = ColorPrimary,
                         fontWeight = FontWeight.SemiBold
@@ -120,7 +148,7 @@ fun OpdPaymentResultScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.back),
                             tint = ColorPrimary
                         )
                     }
@@ -130,7 +158,7 @@ fun OpdPaymentResultScreen(
                         IconButton(onClick = onShare) {
                             Icon(
                                 imageVector = Icons.Default.Share,
-                                contentDescription = "Share",
+                                contentDescription = stringResource(Res.string.share),
                                 tint = ColorPrimary
                             )
                         }
@@ -197,17 +225,17 @@ fun OpdPaymentResultScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     StatItem(
-                                        label = "Token",
+                                        label = stringResource(Res.string.token),
                                         value = transaction.tokenNumber.orDash(),
                                         alignment = Alignment.Start
                                     )
                                     StatItem(
-                                        label = "Est. Time",
+                                        label = stringResource(Res.string.est_time),
                                         value = transaction.estimatedTime.orDash(),
                                         alignment = Alignment.CenterHorizontally
                                     )
                                     StatItem(
-                                        label = "Charges",
+                                        label = stringResource(Res.string.charges),
                                         value = if (transaction.opdCharges.isNotBlank())
                                             "₹${transaction.opdCharges}" else "-",
                                         alignment = Alignment.End
@@ -222,10 +250,10 @@ fun OpdPaymentResultScreen(
 
                                 // Patient Details
                                 Spacer(Modifier.height(14.dp))
-                                SectionTitle("Patient Details", textPrimary)
+                                SectionTitle(stringResource(Res.string.patient_details), textPrimary)
                                 Spacer(Modifier.height(8.dp))
-                                KeyRow("Name", transaction.patientName, textSecondary, textPrimary)
-                                KeyRow("Patient ID", transaction.patientId, textSecondary, textPrimary)
+                                KeyRow(stringResource(Res.string.patient_name), transaction.patientName, textSecondary, textPrimary)
+                                KeyRow(stringResource(Res.string.patient_id), transaction.patientId, textSecondary, textPrimary)
 
                                 Spacer(Modifier.height(14.dp))
                                 HorizontalDivider(
@@ -235,13 +263,13 @@ fun OpdPaymentResultScreen(
 
                                 // Appointment Details
                                 Spacer(Modifier.height(14.dp))
-                                SectionTitle("Appointment Details", textPrimary)
+                                SectionTitle(stringResource(Res.string.appointment_details), textPrimary)
                                 Spacer(Modifier.height(8.dp))
-                                KeyRow("Doctor", transaction.doctorName, textSecondary, textPrimary)
-                                KeyRow("OPD ID", transaction.opdId.orDash(), textSecondary, textPrimary)
-                                KeyRow("Date", transaction.registrationDate.orDash(), textSecondary, textPrimary)
-                                KeyRow("Time", transaction.estimatedTime.orDash(), textSecondary, textPrimary)
-                                KeyRow("Specialization", transaction.specialization, textSecondary, textPrimary)
+                                KeyRow(stringResource(Res.string.doctor), transaction.doctorName, textSecondary, textPrimary)
+                                KeyRow(stringResource(Res.string.opd_id), transaction.opdId.orDash(), textSecondary, textPrimary)
+                                KeyRow(stringResource(Res.string.date), transaction.registrationDate.orDash(), textSecondary, textPrimary)
+                                KeyRow(stringResource(Res.string.time), transaction.estimatedTime.orDash(), textSecondary, textPrimary)
+                                KeyRow(stringResource(Res.string.specialization), transaction.specialization, textSecondary, textPrimary)
 
                                 Spacer(Modifier.height(14.dp))
                                 HorizontalDivider(
@@ -251,22 +279,22 @@ fun OpdPaymentResultScreen(
 
                                 // Payment Details
                                 Spacer(Modifier.height(14.dp))
-                                SectionTitle("Payment Details", textPrimary)
+                                SectionTitle(stringResource(Res.string.payment_details), textPrimary)
                                 Spacer(Modifier.height(8.dp))
                                 KeyRow(
-                                    "Transaction ID",
+                                    stringResource(Res.string.transaction_id),
                                     transaction.transactionId.insertZeroWidthSpacesEvery(20),
                                     textSecondary,
                                     textPrimary
                                 )
                                 KeyRow(
-                                    "Order ID",
+                                    stringResource(Res.string.order_id),
                                     transaction.orderId.insertZeroWidthSpacesEvery(20),
                                     textSecondary,
                                     textPrimary
                                 )
                                 KeyRow(
-                                    "Payment ID",
+                                    stringResource(Res.string.payment_id),
                                     transaction.paymentId.insertZeroWidthSpacesEvery(20),
                                     textSecondary,
                                     textPrimary
@@ -276,7 +304,7 @@ fun OpdPaymentResultScreen(
                             Status.PENDING -> {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = "Your payment is being confirmed.\nThis can take a few minutes.",
+                                        text = stringResource(Res.string.payment_pending_message),
                                         fontSize = 16.sp,
                                         color = statusColor,
                                         textAlign = TextAlign.Center,
@@ -286,20 +314,20 @@ fun OpdPaymentResultScreen(
                                     CircularProgressIndicator(color = statusColor, strokeWidth = 3.dp)
                                     Spacer(Modifier.height(16.dp))
                                     KeyRow(
-                                        "Transaction ID",
+                                        stringResource(Res.string.transaction_id),
                                         transaction.transactionId.insertZeroWidthSpacesEvery(20),
                                         textSecondary,
                                         textPrimary
                                     )
                                     KeyRow(
-                                        "Order ID",
+                                        stringResource(Res.string.order_id),
                                         transaction.orderId.insertZeroWidthSpacesEvery(20),
                                         textSecondary,
                                         textPrimary
                                     )
                                     Spacer(Modifier.height(20.dp))
                                     TextButton(onClick = onRetry) {
-                                        Text("Refresh Status", color = ColorPrimary, fontWeight = FontWeight.Medium)
+                                        Text(stringResource(Res.string.refresh_status), color = ColorPrimary, fontWeight = FontWeight.Medium)
                                     }
                                 }
                             }
@@ -307,7 +335,7 @@ fun OpdPaymentResultScreen(
                             Status.FAILED -> {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = transaction.statusMessage ?: "Payment could not be processed.",
+                                        text = transaction.statusMessage ?: stringResource(Res.string.payment_failed_message),
                                         fontSize = 16.sp,
                                         color = statusColor,
                                         textAlign = TextAlign.Center,
@@ -315,13 +343,13 @@ fun OpdPaymentResultScreen(
                                     )
                                     Spacer(Modifier.height(12.dp))
                                     KeyRow(
-                                        "Transaction ID",
+                                        stringResource(Res.string.transaction_id),
                                         transaction.transactionId.insertZeroWidthSpacesEvery(20),
                                         textSecondary,
                                         textPrimary
                                     )
                                     KeyRow(
-                                        "Order ID",
+                                        stringResource(Res.string.order_id),
                                         transaction.orderId.insertZeroWidthSpacesEvery(20),
                                         textSecondary,
                                         textPrimary
@@ -331,11 +359,11 @@ fun OpdPaymentResultScreen(
                                         onClick = onRetry,
                                         colors = ButtonDefaults.buttonColors(containerColor = statusColor)
                                     ) {
-                                        Text("Try Again", color = Color.White, fontWeight = FontWeight.Medium)
+                                        Text(stringResource(Res.string.try_again), color = Color.White, fontWeight = FontWeight.Medium)
                                     }
                                     Spacer(Modifier.height(8.dp))
                                     TextButton(onClick = onBack) {
-                                        Text("Back", color = ColorPrimary, fontWeight = FontWeight.Medium)
+                                        Text(stringResource(Res.string.back), color = ColorPrimary, fontWeight = FontWeight.Medium)
                                     }
                                 }
                             }

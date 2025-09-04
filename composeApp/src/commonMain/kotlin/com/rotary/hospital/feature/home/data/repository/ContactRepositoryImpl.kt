@@ -9,37 +9,37 @@ class ContactRepositoryImpl : ContactRepository {
         Result.success(
             listOf(
                 ContactSection(
-                    title = "Contact",
+                    title = "24x7 EMERGENCY HELP",
                     items = listOf(
-                        Contact(label = "Emergency Help Desk 1", phone = "+91 12345 67890"),
-                        Contact(label = "Emergency Help Desk 2", phone = "+91 98765 43210"),
+                        Contact(label = "Help Desk 1", phone = "+91 90340 56793"),
+                        Contact(label = "Help Desk 2", phone = "+91 82228 56794"),
                     )
                 ),
                 ContactSection(
-                    title = "Heart Emergency",
+                    title = "24x7 HEART EMERGENCY",
                     items = listOf(
-                        Contact(label = "Cardiac Helpline", phone = "+91 11223 33445"),
+                        Contact(label = "Heart Help Desk", phone = "+91 98133 34999"),
                     )
                 ),
                 ContactSection(
-                    title = "Ambulance",
+                    title = "AMBULANCE",
                     items = listOf(
-                        Contact(label = "Ambulance Desk", phone = "+91 102"),
+                        Contact(label = "Ambulance Help Desk", phone = "+91 90340 56797"),
                     )
                 ),
                 ContactSection(
-                    title = "App Issues",
+                    title = "APP ISSUES",
                     items = listOf(
-                        Contact(label = "Tech Support 1", phone = "+91 90000 11111"),
-                        Contact(label = "Tech Support 2", phone = "+91 90000 22222"),
+                        Contact(label = "Tech Support 1", phone = "+91 98963 69290"),
+                        Contact(label = "Tech Support 2", phone = "+91 92156 75671"),
                     )
                 ),
                 ContactSection(
-                    title = "Address",
+                    title = "ADDRESS",
                     items = listOf(
                         Contact(
-                            label = "Rotary Hospital",
-                            phone = null,
+                            label = "Rotary Hospital Cancer and General Hospital",
+                            phone = "0171 2690009",
                             description = "123, Civil Lines, City – 000000"
                         )
                     )

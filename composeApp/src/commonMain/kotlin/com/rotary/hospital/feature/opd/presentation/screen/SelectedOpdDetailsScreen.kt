@@ -9,6 +9,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -37,7 +39,31 @@ import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsState
 import com.rotary.hospital.feature.opd.presentation.viewmodel.SelectedOpdDetailsViewModel
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.back
+import rotaryhospital.composeapp.generated.resources.charges
+import rotaryhospital.composeapp.generated.resources.child
+import rotaryhospital.composeapp.generated.resources.date
+import rotaryhospital.composeapp.generated.resources.doctor
+import rotaryhospital.composeapp.generated.resources.error
+import rotaryhospital.composeapp.generated.resources.error_loading_opd_details
+import rotaryhospital.composeapp.generated.resources.est_time
+import rotaryhospital.composeapp.generated.resources.name
+import rotaryhospital.composeapp.generated.resources.oops_something_went_wrong
+import rotaryhospital.composeapp.generated.resources.opd_details_title
+import rotaryhospital.composeapp.generated.resources.opd_id
+import rotaryhospital.composeapp.generated.resources.opd_patient_registration_title
+import rotaryhospital.composeapp.generated.resources.patient_details
+import rotaryhospital.composeapp.generated.resources.patient_id
+import rotaryhospital.composeapp.generated.resources.payment_details
+import rotaryhospital.composeapp.generated.resources.share
+import rotaryhospital.composeapp.generated.resources.status
+import rotaryhospital.composeapp.generated.resources.successful
+import rotaryhospital.composeapp.generated.resources.token
+import rotaryhospital.composeapp.generated.resources.transaction_id
+import rotaryhospital.composeapp.generated.resources.try_again
 
 @Composable
 fun SelectedOpdDetailsScreen(
@@ -58,7 +84,7 @@ fun SelectedOpdDetailsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "OPD Details",
+                        text = stringResource(Res.string.opd_details_title),
                         fontSize = 20.sp,
                         color = ColorPrimary,
                         fontWeight = FontWeight.SemiBold
@@ -67,8 +93,8 @@ fun SelectedOpdDetailsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back",
+                            Icons.AutoMirrored.Filled.ArrowBackIos,
+                            contentDescription = stringResource(Res.string.back),
                             tint = ColorPrimary
                         )
                     }
@@ -81,7 +107,7 @@ fun SelectedOpdDetailsScreen(
                     ) {
                         Icon(
                             Icons.Default.Share,
-                            contentDescription = "Share",
+                            contentDescription = stringResource(Res.string.share),
                             tint = if (state is SelectedOpdDetailsState.Success) ColorPrimary else MaterialTheme.colorScheme.onSurface.copy(
                                 alpha = 0.38f
                             )
@@ -115,11 +141,14 @@ fun SelectedOpdDetailsScreen(
                                 color = ColorPrimary,
                                 strokeWidth = 3.dp,
                                 modifier = Modifier.size(48.dp)
-                                    .semantics { contentDescription = "Loading OPD details" }
+                                    .semantics {
+                                        contentDescription =
+                                            Res.string.opd_details_title.toString()
+                                    }
                             )
                             Spacer(Modifier.height(12.dp))
                             Text(
-                                "Loading OPD details...",
+                                stringResource(Res.string.opd_details_title),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -131,18 +160,21 @@ fun SelectedOpdDetailsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(24.dp)
-                            .semantics { contentDescription = "Error loading OPD details" },
+                            .semantics {
+                                contentDescription =
+                                    Res.string.error_loading_opd_details.toString()
+                            },
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Error",
+                            contentDescription = stringResource(Res.string.error),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            text = "Oops! Something went wrong",
+                            text = stringResource(Res.string.oops_something_went_wrong),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -159,7 +191,7 @@ fun SelectedOpdDetailsScreen(
                             onClick = { viewModel.fetchOpdDetails(opdId) },
                             colors = ButtonDefaults.buttonColors(containerColor = ColorPrimary)
                         ) {
-                            Text("Try Again", fontWeight = FontWeight.Medium)
+                            Text(stringResource(Res.string.try_again), fontWeight = FontWeight.Medium)
                         }
                     }
                 }
@@ -199,7 +231,7 @@ fun SelectedOpdDetailsScreen(
                                     Column {
                                         // small label (like the HTML "OPD ID")
                                         Text(
-                                            text = "OPD ID",
+                                            text = stringResource(Res.string.opd_id),
                                             fontSize = 12.sp,
                                             color = Color.White.copy(alpha = 0.92f)
                                         )
@@ -214,7 +246,7 @@ fun SelectedOpdDetailsScreen(
 
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text(
-                                            text = "Date",
+                                            text = stringResource(Res.string.date),
                                             fontSize = 12.sp,
                                             color = Color.White.copy(alpha = 0.92f)
                                         )
@@ -245,7 +277,7 @@ fun SelectedOpdDetailsScreen(
                                 ) {
                                     Column {
                                         Text(
-                                            text = "Doctor",
+                                            text = stringResource(Res.string.doctor),
                                             fontSize = 13.sp,
                                             color = textSecondary
                                         )
@@ -265,7 +297,7 @@ fun SelectedOpdDetailsScreen(
                                             .padding(horizontal = 12.dp, vertical = 6.dp)
                                     ) {
                                         Text(
-                                            text = "CHILD",
+                                            text = stringResource(Res.string.child),
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = Color.White
@@ -276,23 +308,25 @@ fun SelectedOpdDetailsScreen(
                                 Spacer(Modifier.height(16.dp))
 
                                 // Token / Est. Time / Charges (3 columns)
-                                Row(modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
                                     StatItem(
-                                        label = "Token",
+                                        label = stringResource(Res.string.token),
                                         value = opd.tokenNumber,
                                         modifier = Modifier.weight(1f),
                                         alignment = Alignment.Start
                                     )
                                     StatItem(
-                                        label = "Est. Time",
+                                        label = stringResource(Res.string.est_time),
                                         value = opd.estimatedTime,
                                         modifier = Modifier.weight(1f),
                                         alignment = Alignment.CenterHorizontally
 
                                     )
                                     StatItem(
-                                        label = "Charges",
+                                        label = stringResource(Res.string.charges),
                                         value = "₹${opd.opdCharges}",
                                         modifier = Modifier.weight(1f),
                                         alignment = Alignment.End
@@ -334,7 +368,7 @@ fun SelectedOpdDetailsScreen(
                                     }
                                     Spacer(Modifier.width(12.dp))
                                     Text(
-                                        text = "Patient Details",
+                                        text = stringResource(Res.string.patient_details),
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = textPrimary
@@ -345,13 +379,13 @@ fun SelectedOpdDetailsScreen(
 
                                 Column {
                                     KeyRow(
-                                        label = "Name",
+                                        label = stringResource(Res.string.name),
                                         value = opd.patientName,
                                         labelColor = textSecondary,
                                         valueColor = textPrimary
                                     )
                                     KeyRow(
-                                        label = "Patient ID",
+                                        label = stringResource(Res.string.patient_id),
                                         value = opd.patientId,
                                         labelColor = textSecondary,
                                         valueColor = textPrimary
@@ -392,7 +426,7 @@ fun SelectedOpdDetailsScreen(
                                     }
                                     Spacer(Modifier.width(12.dp))
                                     Text(
-                                        text = "Payment Details",
+                                        text = stringResource(Res.string.payment_details),
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = textPrimary
@@ -407,7 +441,7 @@ fun SelectedOpdDetailsScreen(
                                     verticalAlignment = Alignment.Top
                                 ) {
                                     Text(
-                                        text = "Transaction ID",
+                                        text = stringResource(Res.string.transaction_id),
                                         fontSize = 14.sp,
                                         color = textSecondary,
                                         modifier = Modifier.weight(1f)
@@ -432,7 +466,7 @@ fun SelectedOpdDetailsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Status",
+                                        text = stringResource(Res.string.status),
                                         fontSize = 14.sp,
                                         color = textSecondary,
                                         modifier = Modifier.weight(1f)
@@ -451,7 +485,7 @@ fun SelectedOpdDetailsScreen(
                                         )
                                         Spacer(Modifier.width(8.dp))
                                         Text(
-                                            text = "Successful",
+                                            text = stringResource(Res.string.successful),
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.SemiBold,
                                             color = successGreen
@@ -475,7 +509,12 @@ fun SelectedOpdDetailsScreen(
 }
 
 @Composable
-private fun StatItem(label: String, value: String, modifier: Modifier = Modifier,alignment: Alignment.Horizontal) {
+private fun StatItem(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    alignment: Alignment.Horizontal
+) {
     Column(
         modifier = modifier,
         horizontalAlignment = alignment
