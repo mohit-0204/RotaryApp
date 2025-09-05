@@ -40,6 +40,7 @@ import com.rotary.hospital.feature.opd.presentation.screen.OpdPaymentResultScree
 import com.rotary.hospital.feature.opd.presentation.screen.RegisterNewOpdScreen
 import com.rotary.hospital.feature.opd.presentation.screen.RegisteredOPDsScreen
 import com.rotary.hospital.feature.opd.presentation.screen.SelectedOpdDetailsScreen
+import com.rotary.hospital.feature.opd.presentation.screen.testing.RegisterNewOpdSkeleton
 import com.rotary.hospital.feature.patient.presentation.screen.PatientListScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientProfileScreen
 import com.rotary.hospital.feature.patient.presentation.screen.PatientRegistrationScreen
@@ -292,24 +293,29 @@ fun App(paymentHandler: PaymentHandler? = null) {
                 }
                 composable<AppRoute.RegisterNewOpd> { backStackEntry ->
                     val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
-                    RegisterNewOpdScreen(
-                        paymentHandler = paymentHandler!!,
-                        onPaymentResult = { transactionDetails: TransactionDetails ->
-                            val transactionDetailsJson = Json.encodeToString(transactionDetails)
-                            val encodedTransactionDetailsJson =
-                                transactionDetailsJson.encodeUtf8().base64()
-                            navController.navigate(
-                                AppRoute.OpdPaymentResult(
-                                    encodedTransactionDetailsJson
-                                )
-                            )
-                        },
-                        onBack = { navController.popBackStack() },
-                        patientId = route.patientId,
-                        patientName = route.patientName,
-                        mobileNumber = route.mobileNumber,
-                        snackbarHostState = snackbarHostState
+//                    RegisterNewOpdScreen(
+//                        paymentHandler = paymentHandler!!,
+//                        onPaymentResult = { transactionDetails: TransactionDetails ->
+//                            val transactionDetailsJson = Json.encodeToString(transactionDetails)
+//                            val encodedTransactionDetailsJson =
+//                                transactionDetailsJson.encodeUtf8().base64()
+//                            navController.navigate(
+//                                AppRoute.OpdPaymentResult(
+//                                    encodedTransactionDetailsJson
+//                                )
+//                            )
+//                        },
+//                        onBack = { navController.popBackStack() },
+//                        patientId = route.patientId,
+//                        patientName = route.patientName,
+//                        mobileNumber = route.mobileNumber,
+//                        snackbarHostState = snackbarHostState
+//
+//                    )
 
+                    RegisterNewOpdSkeleton(
+                        onBack = { navController.popBackStack() },
+                        onCheckAvailability = {}
                     )
                 }
 
