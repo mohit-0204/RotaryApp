@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rotary.hospital.core.theme.AppTheme
@@ -74,10 +75,8 @@ import rotaryhospital.composeapp.generated.resources.verify
 fun OtpVerificationScreen(
     phoneNumber: String,
     onVerified: (Int) -> Unit,
-    onResend: () -> Unit,
     onBack: () -> Unit,
-    viewModel: OtpViewModel = koinViewModel(),
-    sendOtpUseCase: SendOtpUseCase = koinInject()
+    viewModel: OtpViewModel = koinViewModel()
 ) {
     AppTheme {
         val coroutineScope = rememberCoroutineScope()
@@ -120,9 +119,22 @@ fun OtpVerificationScreen(
 
         // forward success event
         LaunchedEffect(otpState) {
-            if (otpState is OtpVerificationState.Success) {
-                val response = (otpState as OtpVerificationState.Success).response
-                onVerified(response.patients ?: 0)
+            when (otpState) {
+                is OtpVerificationState.Resent -> {
+                    countdown = 40
+                    resendEnabled = false
+//                    viewModel.clearOtpState() // optional helper to reset back to Idle
+                }
+
+                is OtpVerificationState.Error -> { /* handled in Ui below*/
+                }
+
+                is OtpVerificationState.Success -> {
+                    val response = (otpState as OtpVerificationState.Success).response
+                    onVerified(response.patients ?: 0)
+                }
+
+                else -> Unit
             }
         }
 
@@ -139,14 +151,14 @@ fun OtpVerificationScreen(
             ) {
                 CustomKeyboard(
                     onNumberClick = { digit ->
-                    state.focusedIndex?.let { idx ->
-                        viewModel.onAction(OtpAction.OnEnterNumber(digit, idx))
-                    }
-                }, onBackspaceClick = {
-                    viewModel.onAction(OtpAction.OnKeyBoardBack)
-                }, onDoneClick = {
-                    coroutineScope.launch { sheetState.hide() }
-                }, modifier = Modifier.fillMaxWidth().systemBarsPadding().height(300.dp)
+                        state.focusedIndex?.let { idx ->
+                            viewModel.onAction(OtpAction.OnEnterNumber(digit, idx))
+                        }
+                    }, onBackspaceClick = {
+                        viewModel.onAction(OtpAction.OnKeyBoardBack)
+                    }, onDoneClick = {
+                        coroutineScope.launch { sheetState.hide() }
+                    }, modifier = Modifier.fillMaxWidth().systemBarsPadding().height(300.dp)
                 )
             }
         }
@@ -201,10 +213,14 @@ fun OtpVerificationScreen(
 
             // Error message
             if (otpState is OtpVerificationState.Error) {
+                val errorState = otpState as OtpVerificationState.Error
                 Text(
-                    text = (otpState as OtpVerificationState.Error).message,
+                    text = errorState.message.asString(), // Resolve UiText here
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp)
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Medium
                 )
             }
 
@@ -217,12 +233,20 @@ fun OtpVerificationScreen(
                         coroutineScope.launch {
                             viewModel.onAction(OtpAction.ClearFields)
                             viewModel.resendOtp()
-                            countdown = 40
-                            resendEnabled = false
-                            onResend()
                         }
                     }
-                }, enabled = resendEnabled && otpState !is OtpVerificationState.Loading
+                }, enabled = resendEnabled && otpState !is OtpVerificationState.Loading,
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .then(
+                        if (resendEnabled) Modifier
+                            .background(
+                                color = ColorPrimary.copy(alpha = 0.08f),       // very subtle tint
+                                shape = RoundedCornerShape(50)         // pill shape
+                            )
+                            .padding(horizontal = 16.dp)
+                        else Modifier
+                    )
             ) {
                 Text(
                     text = if (resendEnabled) stringResource(Res.string.resend_otp)

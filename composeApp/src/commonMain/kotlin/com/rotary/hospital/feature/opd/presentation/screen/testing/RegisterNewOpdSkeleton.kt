@@ -4,15 +4,38 @@ package com.rotary.hospital.feature.opd.presentation.screen.testing
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBackIos
-import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rotary.hospital.core.theme.ColorPrimary
 
 @Composable
 fun RegisterNewOpdSkeleton(
@@ -29,13 +53,13 @@ fun RegisterNewOpdSkeleton(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         "OPD Registration",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF212529)
+                        color = ColorPrimary
                     )
                 },
                 navigationIcon = {
@@ -43,7 +67,7 @@ fun RegisterNewOpdSkeleton(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBackIos,
                             contentDescription = "Back",
-                            tint = Color(0xFF0D9488) // teal
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 },
@@ -65,7 +89,7 @@ fun RegisterNewOpdSkeleton(
                         .height(56.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0D9488)
+                        containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Text(
@@ -81,7 +105,6 @@ fun RegisterNewOpdSkeleton(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -97,8 +120,8 @@ fun RegisterNewOpdSkeleton(
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
                             contentDescription = null,
-                            tint = Color(0xFF0D9488),
-                            modifier = Modifier.size(32.dp)
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(32.dp)
                         )
                         Spacer(Modifier.width(8.dp))
                         Column {
@@ -106,7 +129,7 @@ fun RegisterNewOpdSkeleton(
                                 "Patient Information",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 18.sp,
-                                color = Color(0xFF212529)
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
@@ -178,16 +201,15 @@ private fun LabeledDropdown(
     }
 }
 
-
 @Composable
 fun HtmlStyleAvailabilityAlert(
     title: String = "Not available today.",
     message: String = "This App allows OPD Registration only for current day. Check availability and try on next available day."
 ) {
-    val bg = Color(0xFFFEE2E2)      // tailwind red-100
+    val bg = Color(0xFFFEE2E2)      // tailwind red-100 (kept to match mock)
     val leftBar = Color(0xFFEF4444) // tailwind red-500
     val textColor = Color(0xFFB91C1C) // tailwind red-700
-    val corner = RoundedCornerShape(8.dp) // rounded-lg ~ 8dp
+    val corner = RoundedCornerShape(8.dp)
 
     Box(
         modifier = Modifier
@@ -197,15 +219,15 @@ fun HtmlStyleAvailabilityAlert(
     ) {
         Row(
             modifier = Modifier
-                .wrapContentHeight()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min), // FIX: use IntrinsicSize.Min so row wraps to content
             verticalAlignment = Alignment.Top
         ) {
             // left vertical bar
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .fillMaxHeight()     // ✅ but Row will now wrap content height
+                    .fillMaxHeight()
                     .background(leftBar)
             )
 
@@ -230,6 +252,4 @@ fun HtmlStyleAvailabilityAlert(
             }
         }
     }
-
 }
-

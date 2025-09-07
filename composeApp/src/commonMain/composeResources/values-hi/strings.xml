@@ -16,6 +16,17 @@
     <string name="try_again">फिर से प्रयास करें</string>
     <string name="some_error_occurred">कुछ समस्या आ गई</string>
 
+    <!-- Error Strings -->
+    <string name="error_no_internet">कोई इंटरनेट कनेक्शन नहीं है। कृपया अपना नेटवर्क जांचें और फिर से प्रयास करें।</string>
+    <string name="error_timeout">कनेक्शन का समय समाप्त हो गया। कृपया फिर से प्रयास करें।</string>
+    <string name="error_server">हमारी ओर से कुछ गलत हो गया। कृपया बाद में फिर से प्रयास करें।</string>
+    <string name="error_serialization">प्रतिक्रिया पढ़ते समय एक अप्रत्याशित त्रुटि हुई।</string>
+    <string name="error_unknown">एक अज्ञात त्रुटि हुई है।</string>
+    <string name="error_invalid_mobile_number">कृपया एक मान्य 10-अंकीय मोबाइल नंबर दर्ज करें।</string>
+    <string name="error_invalid_otp">गलत ओटीपी!!!\nकृपया एक मान्य 4-अंकीय ओटीपी दर्ज करें।</string>
+    <string name="error_send_sms_failed">सत्यापन कोड भेजने में विफल। कृपया फिर से प्रयास करें।</string>
+
+
     <!-- for otp verification screen -->
     <string name="otp_verification">ओटीपी पुष्टिकरण</string>
     <string name="otp_enter_instruction">+91 %1$s पर भेजा गया 4-अंकों का ओटीपी दर्ज करें</string>
@@ -151,18 +162,18 @@
     <string name="terms_and_conditions_title">नियम और शर्तें</string>
 
     <!-- For Payment Result details -->
-        <string name="payment_result">भुगतान परिणाम</string>
-        <string name="status_successful">सफल</string>
-        <string name="status_pending">लंबित</string>
-        <string name="status_failed">असफल</string>
-        <string name="payment_failed_message">भुगतान संसाधित नहीं हो सका।</string>
-        <string name="payment_pending_message">आपका भुगतान पुष्टि किया जा रहा है।\nइसमें कुछ मिनट लग सकते हैं।</string>
-        <string name="refresh_status">स्थिति ताज़ा करें</string>
-        <string name="appointment_details">नियुक्ति विवरण</string>
-        <string name="patient_name">नाम</string>
-        <string name="time">समय</string>
-        <string name="specialization">विशेषज्ञता</string>
-        <string name="order_id">ऑर्डर आईडी</string>
-        <string name="payment_id">भुगतान आईडी</string>
+    <string name="payment_result">भुगतान परिणाम</string>
+    <string name="status_successful">सफल</string>
+    <string name="status_pending">लंबित</string>
+    <string name="status_failed">असफल</string>
+    <string name="payment_failed_message">भुगतान संसाधित नहीं हो सका।</string>
+    <string name="payment_pending_message">आपका भुगतान पुष्टि किया जा रहा है।\nइसमें कुछ मिनट लग सकते हैं।</string>
+    <string name="refresh_status">स्थिति ताज़ा करें</string>
+    <string name="appointment_details">नियुक्ति विवरण</string>
+    <string name="patient_name">नाम</string>
+    <string name="time">समय</string>
+    <string name="specialization">विशेषज्ञता</string>
+    <string name="order_id">ऑर्डर आईडी</string>
+    <string name="payment_id">भुगतान आईडी</string>
 
 </resources>

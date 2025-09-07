@@ -91,17 +91,6 @@ fun LoginScreen(
 ) {
     val loginState by viewModel.loginState.collectAsState()
     val mobileNumber by viewModel.mobileNumber.collectAsState()
-
-
-    if (loginState is LoginState.Error) {
-        Logger.d("LoginScreen", (loginState as LoginState.Error).message)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = (loginState as LoginState.Error).message,
-            color = MaterialTheme.colorScheme.error,
-            fontSize = 14.sp
-        )
-    }
     if (loginState is LoginState.Success) {
 
         LaunchedEffect(Unit) {
@@ -164,6 +153,15 @@ fun LoginScreen(
                         cursorColor = ColorPrimary
                     ),
                     shape = RoundedCornerShape(12.dp)
+                )
+            }
+            if (loginState is LoginState.Error) {
+                val errorState = loginState as LoginState.Error
+                Text(
+                    text = errorState.message.asString(), // Resolve UiText here
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp, start = 40.dp, end = 40.dp)
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))

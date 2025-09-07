@@ -69,7 +69,6 @@ import com.rotary.hospital.core.payment.PaymentHandler
 import com.rotary.hospital.core.theme.AppTheme
 import com.rotary.hospital.core.theme.ColorPrimary
 import com.rotary.hospital.core.theme.White
-import com.rotary.hospital.core.ui.ToastController
 import com.rotary.hospital.core.ui.toastController
 import com.rotary.hospital.feature.opd.domain.model.Availability
 import com.rotary.hospital.feature.opd.domain.model.Doctor
@@ -86,7 +85,7 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun RegisterNewOpdScreen(
+fun OpdRegistrationScreen(
     paymentHandler: PaymentHandler,
     onPaymentResult: (TransactionDetails) -> Unit,
     onBack: () -> Unit,

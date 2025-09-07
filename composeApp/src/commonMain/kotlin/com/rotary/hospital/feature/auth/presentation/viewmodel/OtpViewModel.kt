@@ -4,6 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rotary.hospital.core.common.PreferenceKeys
 import com.rotary.hospital.core.data.preferences.PreferencesManager
+import com.rotary.hospital.core.domain.AppError
+import com.rotary.hospital.core.domain.AuthError
+import com.rotary.hospital.core.domain.NetworkError
+import com.rotary.hospital.core.domain.Result
+import com.rotary.hospital.core.domain.ServerError
+import com.rotary.hospital.core.domain.UiText
 import com.rotary.hospital.feature.auth.data.model.SmsVerificationResponse
 import com.rotary.hospital.feature.auth.domain.usecase.SendOtpUseCase
 import com.rotary.hospital.feature.auth.domain.usecase.VerifyOtpUseCase
@@ -12,6 +18,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.error_invalid_otp
+import rotaryhospital.composeapp.generated.resources.error_no_internet
+import rotaryhospital.composeapp.generated.resources.error_send_sms_failed
+import rotaryhospital.composeapp.generated.resources.error_server
+import rotaryhospital.composeapp.generated.resources.error_timeout
+import rotaryhospital.composeapp.generated.resources.error_unknown
 
 class OtpViewModel(
     private val verifyOtpUseCase: VerifyOtpUseCase,
@@ -87,15 +100,23 @@ class OtpViewModel(
     fun verifyOtp() {
         val otp = state.value.code.joinToString("") { it?.toString() ?: "" }
         if (otp.length != 4) {
-            _otpState.value = OtpVerificationState.Error("Please enter a valid 4-digit OTP")
+            _otpState.value = OtpVerificationState.Error(
+                UiText.StringResource(Res.string.error_invalid_otp)
+            )
             return
         }
         viewModelScope.launch {
             _otpState.value = OtpVerificationState.Loading
-            val result = verifyOtpUseCase(mobileNumber, otp)
-            _otpState.value = when {
-                result.isSuccess -> OtpVerificationState.Success(result.getOrNull()!!)
-                else -> OtpVerificationState.Error(result.exceptionOrNull()?.message ?: "Invalid OTP")
+            viewModelScope.launch {
+                _otpState.value = OtpVerificationState.Loading
+                when (val result = verifyOtpUseCase(mobileNumber, otp)) {
+                    is Result.Success -> {
+                        _otpState.value = OtpVerificationState.Success(result.data)
+                    }
+                    is Result.Error -> {
+                        _otpState.value = OtpVerificationState.Error(mapErrorToUiText(result.error))
+                    }
+                }
             }
         }
     }
@@ -104,11 +125,13 @@ class OtpViewModel(
     fun resendOtp() {
         viewModelScope.launch {
             _otpState.value = OtpVerificationState.Loading
-            val result = sendOtpUseCase(mobileNumber)
-            _otpState.value = if (result.isSuccess) {
-                OtpVerificationState.Idle // OTP resent successfully
-            } else {
-                OtpVerificationState.Error(result.exceptionOrNull()?.message ?: "Failed to resend OTP")
+            when (val result = sendOtpUseCase(mobileNumber)) {
+                is Result.Success -> {
+                    _otpState.value = OtpVerificationState.Resent
+                }
+                is Result.Error -> {
+                    _otpState.value = OtpVerificationState.Error(mapErrorToUiText(result.error))
+                }
             }
         }
     }
@@ -160,11 +183,27 @@ class OtpViewModel(
     }
 }
 
+
+private fun mapErrorToUiText(error: AppError): UiText {
+    return when (error) {
+        is AuthError.InvalidOtp -> UiText.StringResource(Res.string.error_invalid_otp)
+        is AuthError.ServerMessage -> UiText.DynamicString(error.message)
+        is AuthError.SmsSendFailed -> UiText.StringResource(Res.string.error_send_sms_failed)
+
+        is NetworkError.NoInternet -> UiText.StringResource(Res.string.error_no_internet)
+        is NetworkError.Timeout -> UiText.StringResource(Res.string.error_timeout)
+
+        is ServerError -> UiText.StringResource(Res.string.error_server)
+        else -> UiText.StringResource(Res.string.error_unknown)
+    }
+}
+
 sealed class OtpVerificationState {
     object Idle : OtpVerificationState()
     object Loading : OtpVerificationState()
+    object Resent : OtpVerificationState()
     data class Success(val response: SmsVerificationResponse) : OtpVerificationState()
-    data class Error(val message: String) : OtpVerificationState()
+    data class Error(val message: UiText) : OtpVerificationState()
 }
 
 data class OtpState(

@@ -16,6 +16,16 @@
     <string name="try_again">Try Again</string>
     <string name="some_error_occurred">Some error occurred</string>
 
+    <!-- Error Strings -->
+    <string name="error_no_internet">No internet connection. Please check your network and try again.</string>
+    <string name="error_timeout">The connection timed out. Please try again.</string>
+    <string name="error_server">Something went wrong on our end. Please try again later.</string>
+    <string name="error_serialization">An unexpected error occurred while reading the response.</string>
+    <string name="error_unknown">An unknown error has occurred.</string>
+    <string name="error_invalid_mobile_number">Please enter a valid 10-digit mobile number</string>
+    <string name="error_invalid_otp">Wrong OTP!!!\nPlease enter a valid 4-digit OTP</string>
+    <string name="error_send_sms_failed">Failed to send the verification code. Please try again.</string>
+
 
     <!-- for otp verification screen -->
     <string name="otp_verification">OTP Verification</string>
