@@ -290,7 +290,7 @@ fun App(paymentHandler: PaymentHandler? = null) {
                 }
                 composable<AppRoute.RegisterNewOpd> { backStackEntry ->
                     val route = backStackEntry.toRoute<AppRoute.RegisterNewOpd>()
-                    /*OpdRegistrationScreen(
+                    OpdRegistrationScreen(
                         paymentHandler = paymentHandler!!,
                         onPaymentResult = { transactionDetails: TransactionDetails ->
                             val transactionDetailsJson = Json.encodeToString(transactionDetails)
@@ -308,12 +308,12 @@ fun App(paymentHandler: PaymentHandler? = null) {
                         mobileNumber = route.mobileNumber,
                         snackbarHostState = snackbarHostState
 
-                    )*/
+                    )
 
-                    RegisterNewOpdSkeleton(
+                    /*RegisterNewOpdSkeleton(
                         onBack = { navController.popBackStack() },
                         onCheckAvailability = {}
-                    )
+                    )*/
                 }
 
                 composable<AppRoute.OpdPaymentResult> { backStackEntry ->
