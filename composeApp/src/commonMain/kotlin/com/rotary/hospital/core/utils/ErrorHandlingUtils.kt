@@ -19,11 +19,11 @@ suspend fun <T> safeApiCall(apiCall: suspend () -> T): Result<T> {
         Result.Success(apiCall())
     } catch (e: Throwable) {
         Logger.e("safeApiCall", "Exception caught: ${e.message.orEmpty()}", e)
-        Result.Error(mapThrowableToAppError(e))
+        Result.Error(mapThrowableToNetworkAppError(e))
     }
 }
 
-private fun mapThrowableToAppError(t: Throwable): AppError = when (t) {
+private fun mapThrowableToNetworkAppError(t: Throwable): AppError = when (t) {
     // server didn’t respond within the configured timeout(API is too slow, long-running query, backend lag)
     is HttpRequestTimeoutException -> NetworkError.Timeout
     // The client cannot establish a TCP connection to the host within the configured timeout(No internet, DNS failure, server unreachable)
@@ -34,10 +34,7 @@ private fun mapThrowableToAppError(t: Throwable): AppError = when (t) {
     is ServerResponseException -> ServerError(t.response.status.value)
     // The HTTP response body cannot be parsed into your expected Kotlin model
     is SerializationException -> SerializationError(t.message)
-//    is java.io.IOException -> NetworkError.NoInternet // Covers ConnectException, etc. todo complete it later
-//    is PosixException -> NetworkError.NoInternet // iOS / native socket errors
-//    is UnresolvedAddressException -> NetworkError.NoInternet
-
+    // Unexpected exception
     else -> mapPlatformException(t)
 }
 

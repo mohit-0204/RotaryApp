@@ -65,17 +65,23 @@ class InitiatePaymentFlowUseCase(
             is PaymentResult.Success -> {
                 // Step 4: Verify payment status
                 val statusResult: Result<PaymentStatus> =
-                    /*Result.success(PaymentStatus(
-                        "true",
-                        "PAYMENT_SUCCESS",
-                        "success",
-                        "T2508291141105345404867"
-                    ))*/
-                    paymentRepository.getPaymentStatus(
-                        paymentRequest.merchantTransactionId,
-                        doctorName, doctorId, docTimeFrom, durationPerPatient, opdType,
-                        paymentRequest.merchantTransactionId
-                    )
+                    /*Result.success(
+                        PaymentStatus(
+                            "true",
+                            "PAYMENT_SUCCESS",
+                            "success",
+                            "T2508291141105345404867",
+                            opdId = "",
+                            tokenNumber = "",
+                            registrationDate = "",
+                            estimatedTime = ""
+                        )
+                    )*/
+                paymentRepository.getPaymentStatus(
+                    paymentRequest.merchantTransactionId,
+                    doctorName, doctorId, docTimeFrom, durationPerPatient, opdType,
+                    paymentRequest.merchantTransactionId
+                )
                 statusResult.fold(
                     onSuccess = { status -> // this is payment result object carrying status(pass/fail/pending etc)
                         var transactionDetails =

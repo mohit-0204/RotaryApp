@@ -1,6 +1,7 @@
 package com.rotary.hospital.feature.patient.domain.repository
 
 import com.rotary.hospital.core.data.model.Patient
+import com.rotary.hospital.core.domain.Result
 import com.rotary.hospital.feature.patient.data.model.PatientProfileResponse
 import com.rotary.hospital.feature.patient.data.model.PatientRegistrationResponse
 
@@ -17,10 +18,10 @@ interface PatientRepository {
         address: String,
         city: String,
         state: String
-    ): PatientRegistrationResponse
+    ): Result<PatientRegistrationResponse>
 
-    suspend fun getRegisteredPatients(mobileNumber: String): List<Patient>
-    suspend fun getPatientProfile(patientId: String): PatientProfileResponse
+    suspend fun getRegisteredPatients(mobileNumber: String): Result<List<Patient>>
+    suspend fun getPatientProfile(patientId: String): Result<PatientProfileResponse>
     suspend fun updatePatientProfile(mobileNumber: String,
                                      patientId: String,
                                      name: String,
@@ -32,5 +33,5 @@ interface PatientRepository {
                                      email: String,
                                      address: String,
                                      city: String,
-                                     state: String): Boolean
+                                     state: String): Result<Boolean>
 }

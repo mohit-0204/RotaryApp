@@ -17,7 +17,7 @@ data class ApiPatient(
 
 @Serializable
 data class PatientListResponse(
-    val response: String,
+    val response: Boolean,
     val message: String,
     val data: List<ApiPatient>
 )

@@ -5,8 +5,9 @@ package com.rotary.hospital.feature.patient.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rotary.hospital.core.common.Logger
-import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.common.PreferenceKeys
+import com.rotary.hospital.core.data.preferences.PreferencesManager
+import com.rotary.hospital.core.domain.*
 import com.rotary.hospital.feature.patient.data.model.ApiPatient
 import com.rotary.hospital.feature.patient.domain.usecase.RegisterPatientUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +18,24 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.error_address
+import rotaryhospital.composeapp.generated.resources.error_blood_group
+import rotaryhospital.composeapp.generated.resources.error_city
+import rotaryhospital.composeapp.generated.resources.error_dob
+import rotaryhospital.composeapp.generated.resources.error_email
+import rotaryhospital.composeapp.generated.resources.error_full_name
+import rotaryhospital.composeapp.generated.resources.error_guardian_name
+import rotaryhospital.composeapp.generated.resources.error_no_internet
+import rotaryhospital.composeapp.generated.resources.error_no_patient_data
+import rotaryhospital.composeapp.generated.resources.error_profile_not_found
+import rotaryhospital.composeapp.generated.resources.error_registration_failed
+import rotaryhospital.composeapp.generated.resources.error_server
+import rotaryhospital.composeapp.generated.resources.error_state
+import rotaryhospital.composeapp.generated.resources.error_timeout
+import rotaryhospital.composeapp.generated.resources.error_unknown
+import rotaryhospital.composeapp.generated.resources.error_update_failed
 import kotlin.time.ExperimentalTime
-import org.jetbrains.compose.resources.getString
 
 
 fun calculateAge(dob: String): String? {
@@ -30,7 +47,8 @@ fun calculateAge(dob: String): String? {
         val month = parts[1].toIntOrNull() ?: return null
         val year = parts[2].toIntOrNull() ?: return null
         val birthDate = LocalDate(year, month, day)
-        val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        val today =
+            kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         var age = today.year - birthDate.year
         if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
             age--
@@ -46,11 +64,11 @@ sealed class PatientRegistrationState {
     object Idle : PatientRegistrationState()
     object Loading : PatientRegistrationState()
     data class Success(val patient: ApiPatient) : PatientRegistrationState()
-    data class Error(val message: String) : PatientRegistrationState()
+    data class Error(val message: UiText) : PatientRegistrationState()
 }
 
 data class RegistrationFormState(
-    val mobileNumber : String = "",
+    val mobileNumber: String = "",
     val fullName: String = "",
     val gender: Gender = Gender.Male,
     val dob: String = "",
@@ -61,7 +79,9 @@ data class RegistrationFormState(
     val address: String = "",
     val city: String = "",
     val state: String = "",
-    val fieldErrors: Map<String, String> = emptyMap()
+    val fieldErrors: Map<String, UiText.StringResource> = emptyMap(),
+    // This property holds the key of the first field with an error, to trigger a scroll in the UI.
+    val firstErrorField: String? = null
 )
 
 enum class Gender(val label: String) {
@@ -81,8 +101,7 @@ enum class Relation(val label: String) {
 class PatientRegistrationViewModel(
     private val registerPatientUseCase: RegisterPatientUseCase,
     private val preferences: PreferencesManager
-) : ViewModel()
-{
+) : ViewModel() {
     private val _state = MutableStateFlow<PatientRegistrationState>(PatientRegistrationState.Idle)
     val state: StateFlow<PatientRegistrationState> = _state.asStateFlow()
 
@@ -98,7 +117,13 @@ class PatientRegistrationViewModel(
     }
 
     fun updateFormState(formState: RegistrationFormState) {
-        _formState.value = formState.copy(fieldErrors = emptyMap())
+        // When user types, clear previous validation errors and scroll triggers.
+        _formState.value = formState.copy(fieldErrors = emptyMap(), firstErrorField = null)
+    }
+
+    // A function to reset the scroll trigger after the UI has handled it.
+    fun clearScrollToError() {
+        _formState.value = _formState.value.copy(firstErrorField = null)
     }
 
     fun registerPatient() {
@@ -108,13 +133,21 @@ class PatientRegistrationViewModel(
             form.email, form.address, form.city, form.state
         )
         if (validationErrors != null) {
-            _formState.value = form.copy(fieldErrors = validationErrors)
+            // If validation fails, we now determine the *first* field with an error
+            // to notify the UI which field to scroll to.
+            val fieldOrder = listOf("fullName", "dob", "bloodGroup", "guardianName", "email", "address", "city", "state")
+            val firstErrorKey = fieldOrder.firstOrNull { it in validationErrors }
+
+            _formState.value = form.copy(
+                fieldErrors = validationErrors,
+                firstErrorField = firstErrorKey
+            )
             return
         }
 
         viewModelScope.launch {
             _state.value = PatientRegistrationState.Loading
-            val result = registerPatientUseCase(
+            when (val result = registerPatientUseCase(
                 mobileNumber = form.mobileNumber,
                 name = form.fullName,
                 guardianType = form.relation.toApiString(),
@@ -126,25 +159,29 @@ class PatientRegistrationViewModel(
                 address = form.address,
                 city = form.city,
                 state = form.state
-            )
-            _state.value = when {
-                result.isSuccess -> {
-                    val response = result.getOrNull()!!
-                    val patient = response.data?.firstOrNull()
+            )) {
+                is Result.Success -> {
+                    val patient = result.data.data?.firstOrNull()
                     if (patient != null) {
                         preferences.saveBoolean(PreferenceKeys.IS_LOGGED_IN, true)
                         preferences.saveString(PreferenceKeys.PATIENT_ID, patient.id)
                         preferences.saveString(PreferenceKeys.MOBILE_NUMBER, form.mobileNumber)
                         preferences.saveString(PreferenceKeys.PATIENT_NAME, patient.name)
-                        PatientRegistrationState.Success(patient)
+                        _state.value = PatientRegistrationState.Success(patient)
                     } else {
-                        PatientRegistrationState.Error("No patient data received")
+                        _state.value = PatientRegistrationState.Error(
+                            UiText.StringResource(Res.string.error_unknown)
+                        )
                     }
                 }
-                else -> PatientRegistrationState.Error(result.exceptionOrNull()?.message ?: "Registration failed")
+
+                is Result.Error -> {
+                    _state.value = PatientRegistrationState.Error(mapErrorToUiText(result.error))
+                }
             }
         }
     }
+
     private fun validateInputs(
         fullName: String,
         guardianName: String,
@@ -154,16 +191,20 @@ class PatientRegistrationViewModel(
         address: String,
         city: String,
         state: String
-    ): Map<String, String>? {
-        val errors = mutableMapOf<String, String>()
-        if (fullName.isEmpty()) errors["fullName"] = "Please enter a valid name"
-        if (guardianName.isEmpty()) errors["guardianName"] = "Please enter a valid guardian name"
-        if (dob.isEmpty()) errors["dob"] = "Please enter a valid date of birth"
-        if (bloodGroup.isEmpty()) errors["bloodGroup"] = "Please select a blood group"
-        if (email.isEmpty() || !isValidEmail(email)) errors["email"] = "Please enter a valid email address"
-        if (address.isEmpty()) errors["address"] = "Please enter a valid address"
-        if (city.isEmpty()) errors["city"] = "Please enter a valid city"
-        if (state.isEmpty()) errors["state"] = "Please enter a valid state"
+    ): MutableMap<String, UiText.StringResource>? {
+        val errors = mutableMapOf<String, UiText.StringResource>()
+        if (fullName.isBlank()) errors["fullName"] =
+            UiText.StringResource(Res.string.error_full_name)
+        if (guardianName.isBlank()) errors["guardianName"] =
+            UiText.StringResource(Res.string.error_guardian_name)
+        if (dob.isBlank()) errors["dob"] = UiText.StringResource(Res.string.error_dob)
+        if (bloodGroup.isBlank()) errors["bloodGroup"] =
+            UiText.StringResource(Res.string.error_blood_group)
+        if (email.isBlank() || !isValidEmail(email)) errors["email"] =
+            UiText.StringResource(Res.string.error_email)
+        if (address.isBlank()) errors["address"] = UiText.StringResource(Res.string.error_address)
+        if (city.isBlank()) errors["city"] = UiText.StringResource(Res.string.error_city)
+        if (state.isBlank()) errors["state"] = UiText.StringResource(Res.string.error_state)
         return errors.ifEmpty { null }
     }
 
@@ -177,5 +218,21 @@ class PatientRegistrationViewModel(
                     "([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
         )
         return emailRegex.matches(email)
+    }
+
+    private fun mapErrorToUiText(error: AppError): UiText {
+        return when (error) {
+            // Add specific patient errors
+            is PatientError.RegistrationFailed -> UiText.StringResource(Res.string.error_registration_failed)
+            is PatientError.UpdateFailed -> UiText.StringResource(Res.string.error_update_failed)
+            is PatientError.NoPatientsFound -> UiText.StringResource(Res.string.error_no_patient_data)
+            is PatientError.ProfileNotFound -> UiText.StringResource(Res.string.error_profile_not_found)
+            is PatientError.ServerMessage -> UiText.DynamicString(error.message)
+            // Existing Network errors
+            is NetworkError.NoInternet -> UiText.StringResource(Res.string.error_no_internet)
+            is NetworkError.Timeout -> UiText.StringResource(Res.string.error_timeout)
+            is ServerError -> UiText.StringResource(Res.string.error_server)
+            else -> UiText.StringResource(Res.string.error_unknown)
+        }
     }
 }

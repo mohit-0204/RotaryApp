@@ -25,6 +25,17 @@
     <string name="error_invalid_mobile_number">Please enter a valid 10-digit mobile number</string>
     <string name="error_invalid_otp">Wrong OTP!!!\nPlease enter a valid 4-digit OTP</string>
     <string name="error_send_sms_failed">Failed to send the verification code. Please try again.</string>
+    <string name="error_no_patient_id">Patient ID not available</string>
+    <string name="error_profile_not_found">Profile not found</string>
+    <string name="error_update_failed">Update failed, please try again</string>
+    <string name="error_full_name">Please enter a valid name</string>
+    <string name="error_guardian_name">Please enter a valid guardian name</string>
+    <string name="error_dob">Please enter a valid date of birth</string>
+    <string name="error_blood_group">Please select a blood group</string>
+    <string name="error_email">Please enter a valid email address</string>
+    <string name="error_address">Please enter a valid address</string>
+    <string name="error_city">Please enter a valid city</string>
+    <string name="error_state">Please enter a valid state</string>
 
 
     <!-- for otp verification screen -->

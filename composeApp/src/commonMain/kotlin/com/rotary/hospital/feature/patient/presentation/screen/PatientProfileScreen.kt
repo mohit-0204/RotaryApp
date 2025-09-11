@@ -84,6 +84,7 @@ import rotaryhospital.composeapp.generated.resources.select_gender
 import rotaryhospital.composeapp.generated.resources.state
 import rotaryhospital.composeapp.generated.resources.update
 import kotlin.time.ExperimentalTime
+import com.rotary.hospital.core.domain.UiText
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
@@ -104,19 +105,21 @@ fun PatientProfileScreen(
 
     val notProvided = stringResource(Res.string.not_provided)
 
-    LaunchedEffect(state) {
-        when (state) {
-            is PatientProfileState.UpdateSuccess -> {
-                onSave((state as PatientProfileState.UpdateSuccess).profile.name)
-                toastController.show("Profile updated successfully")
+    // This LaunchedEffect will show toasts for success or error states
+    val currentState = state
+    if (currentState is PatientProfileState.Error || currentState is PatientProfileState.UpdateSuccess) {
+        val message = when (currentState) {
+            is PatientProfileState.UpdateSuccess -> "Profile updated successfully"
+            is PatientProfileState.Error -> currentState.message.asString()
+            else -> null
+        }
+        LaunchedEffect(message) {
+            if (message != null) {
+                toastController.show(message)
+                if (currentState is PatientProfileState.UpdateSuccess) {
+                    onSave(currentState.profile.name)
+                }
             }
-
-            is PatientProfileState.Error -> {
-                Logger.e("PatientProfileScreen", (state as PatientProfileState.Error).message)
-                toastController.show((state as PatientProfileState.Error).message)
-            }
-
-            else -> Unit
         }
     }
 
@@ -592,13 +595,13 @@ fun PatientProfileScreen(
                 // -------------------------
                 item {
                     AnimatedVisibility(
-                        visible = state is PatientProfileState.Error,
+                        visible = state is PatientProfileState.Error && formState.fieldErrors.isNotEmpty(),
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
                         if (state is PatientProfileState.Error) {
                             Text(
-                                text = (state as PatientProfileState.Error).message,
+                                text = (state as PatientProfileState.Error).message.asString(),
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier

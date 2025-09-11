@@ -2,28 +2,13 @@ package com.rotary.hospital.feature.patient.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,37 +41,35 @@ fun PatientListScreen(
     val state by viewModel.state.collectAsState()
     val patients = (state as? PatientListState.Success)?.patients.orEmpty()
     val isLoading = state is PatientListState.Loading
-    val error = (state as? PatientListState.Error)?.message
+    val errorUiText = (state as? PatientListState.Error)?.message
     val searchQuery by viewModel.searchQuery.collectAsState()
     val isSearchActive by viewModel.isSearchActive.collectAsState()
 
     LaunchedEffect(phoneNumber) { viewModel.fetchPatients(phoneNumber) }
 
     SharedListScreen(
-        title           = stringResource(Res.string.registered_patients),
-        items           = patients,
-        isLoading       = isLoading,
-        errorMessage    = error,
-        emptyMessage    = if (searchQuery.isEmpty()) stringResource(Res.string.no_patients_found)
-                            else stringResource(Res.string.no_match_for, searchQuery),
+        title               = stringResource(Res.string.registered_patients),
+        items               = patients,
+        isLoading           = isLoading,
+        errorMessage        = errorUiText?.asString(),
+        emptyMessage        = if (searchQuery.isEmpty()) stringResource(Res.string.no_patients_found)
+                                else stringResource(Res.string.no_match_for, searchQuery),
         onSearchQueryChange = viewModel::setSearchQuery,
-        searchQuery     = searchQuery,
-        isSearchActive  = isSearchActive,
-        onToggleSearch  = { viewModel.setSearchActive(!isSearchActive) },
-        onBack          = onBackClick,
-        onAdd           = onAddPatient,
-        itemContent     = { patient, onClick ->
+        searchQuery         = searchQuery,
+        isSearchActive      = isSearchActive,
+        onToggleSearch      = { viewModel.setSearchActive(!isSearchActive) },
+        onBack              = onBackClick,
+        onAdd               = onAddPatient,
+        itemContent         = { patient, onClick ->
             PatientListItem(patient, onClick = onClick)
         },
-        onItemClick     = { patient ->
+        onItemClick         = { patient ->
             viewModel.saveSelectedPatient(patient, onSaved = {
                 onPatientSelected(patient.name)
             })
-
         }
     )
 }
-
 
 
 @Composable

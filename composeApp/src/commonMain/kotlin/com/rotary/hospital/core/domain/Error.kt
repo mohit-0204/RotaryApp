@@ -17,6 +17,17 @@ sealed class AuthError : AppError {
 }
 
 /**
+ * Feature-specific errors for Patient management.
+ */
+sealed class PatientError : AppError {
+    data object RegistrationFailed : PatientError()
+    data object UpdateFailed : PatientError()
+    data object ProfileNotFound : PatientError()
+    data object NoPatientsFound : PatientError()
+    data class ServerMessage(val message: String) : PatientError()
+}
+
+/**
  * Common, cross-cutting errors related to network connectivity.
  */
 sealed class NetworkError : AppError {

@@ -5,8 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.common.PreferenceKeys
+import com.rotary.hospital.core.domain.Result
+import com.rotary.hospital.core.domain.UiText
 import com.rotary.hospital.feature.patient.data.model.ApiPatient
 import com.rotary.hospital.feature.patient.domain.usecase.RegisterPatientUseCase
+import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.error_unknown
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -112,7 +117,7 @@ class OpdPatientRegistrationViewModel(
 
         viewModelScope.launch {
             _state.value = OpdPatientRegistrationState.Loading
-            val result = registerPatientUseCase(
+            when (val result = registerPatientUseCase(
                 mobileNumber = form.mobileNumber,
                 name = form.fullName,
                 guardianType = form.relation.toApiString(),
@@ -124,22 +129,22 @@ class OpdPatientRegistrationViewModel(
                 address = form.address,
                 city = form.city,
                 state = form.state
-            )
-            _state.value = when {
-                result.isSuccess -> {
-                    val response = result.getOrNull()!!
-                    val patient = response.data?.firstOrNull()
+            )) {
+
+                is Result.Success -> {
+                    val patient = result.data.data?.firstOrNull()
                     if (patient != null) {
                         // For OPD, do not set logged-in preferences; just return success
-                        OpdPatientRegistrationState.Success(patient)
+                        _state.value = OpdPatientRegistrationState.Success(patient)
                     } else {
-                        OpdPatientRegistrationState.Error("No patient data received")
+                        _state.value = OpdPatientRegistrationState.Error("No patient data received")
+
                     }
                 }
 
-                else -> OpdPatientRegistrationState.Error(
-                    result.exceptionOrNull()?.message ?: "Registration failed"
-                )
+                is Result.Error -> {
+                    _state.value = OpdPatientRegistrationState.Error(result.error.toString())
+                }
             }
         }
     }

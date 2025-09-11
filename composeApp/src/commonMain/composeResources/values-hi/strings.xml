@@ -25,6 +25,17 @@
     <string name="error_invalid_mobile_number">कृपया एक मान्य 10-अंकीय मोबाइल नंबर दर्ज करें।</string>
     <string name="error_invalid_otp">गलत ओटीपी!!!\nकृपया एक मान्य 4-अंकीय ओटीपी दर्ज करें।</string>
     <string name="error_send_sms_failed">सत्यापन कोड भेजने में विफल। कृपया फिर से प्रयास करें।</string>
+    <string name="error_no_patient_id">मरीज आईडी उपलब्ध नहीं है</string>
+    <string name="error_profile_not_found">प्रोफ़ाइल नहीं मिली</string>
+    <string name="error_update_failed">अपडेट असफल रहा, कृपया दोबारा प्रयास करें</string>
+    <string name="error_full_name">कृपया एक मान्य नाम दर्ज करें</string>
+    <string name="error_guardian_name">कृपया एक मान्य अभिभावक का नाम दर्ज करें</string>
+    <string name="error_dob">कृपया सही जन्मतिथि दर्ज करें</string>
+    <string name="error_blood_group">कृपया रक्त समूह चुनें</string>
+    <string name="error_email">कृपया एक मान्य ईमेल पता दर्ज करें</string>
+    <string name="error_address">कृपया मान्य पता दर्ज करें</string>
+    <string name="error_city">कृपया मान्य शहर दर्ज करें</string>
+    <string name="error_state">कृपया मान्य राज्य दर्ज करें</string>
 
 
     <!-- for otp verification screen -->

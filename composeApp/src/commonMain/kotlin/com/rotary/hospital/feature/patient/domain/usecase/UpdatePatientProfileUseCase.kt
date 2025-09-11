@@ -1,6 +1,6 @@
 package com.rotary.hospital.feature.patient.domain.usecase
 
-import com.rotary.hospital.feature.patient.data.model.PatientRegistrationResponse
+import com.rotary.hospital.core.domain.Result
 import com.rotary.hospital.feature.patient.domain.repository.PatientRepository
 
 class UpdatePatientProfileUseCase(
@@ -20,18 +20,9 @@ class UpdatePatientProfileUseCase(
         city: String,
         state: String
     ): Result<Boolean> {
-        return try {
-            val response = repository.updatePatientProfile(
-                mobileNumber, patientId, name, guardianType, guardianName, gender,
-                age, bloodGroup, email, address, city, state
-            )
-            if (response) {
-                Result.success(response)
-            } else {
-                Result.failure(Exception("Update failed"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return repository.updatePatientProfile(
+            mobileNumber, patientId, name, guardianType, guardianName, gender,
+            age, bloodGroup, email, address, city, state
+        )
     }
 }

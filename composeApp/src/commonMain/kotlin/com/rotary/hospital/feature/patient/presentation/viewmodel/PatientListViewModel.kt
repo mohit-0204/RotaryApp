@@ -6,17 +6,28 @@ import com.rotary.hospital.core.data.model.Patient
 import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.common.Logger
 import com.rotary.hospital.core.common.PreferenceKeys
+import com.rotary.hospital.core.domain.AppError
+import com.rotary.hospital.core.domain.AuthError
+import com.rotary.hospital.core.domain.NetworkError
+import com.rotary.hospital.core.domain.Result
+import com.rotary.hospital.core.domain.ServerError
+import com.rotary.hospital.core.domain.UiText
 import com.rotary.hospital.feature.patient.domain.usecase.GetRegisteredPatientsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import rotaryhospital.composeapp.generated.resources.Res
+import rotaryhospital.composeapp.generated.resources.error_no_internet
+import rotaryhospital.composeapp.generated.resources.error_server
+import rotaryhospital.composeapp.generated.resources.error_timeout
+import rotaryhospital.composeapp.generated.resources.error_unknown
 
 sealed class PatientListState {
     object Idle : PatientListState()
     object Loading : PatientListState()
-    data class Success(val patients: List<Patient>) : PatientListState()
-    data class Error(val message: String) : PatientListState()
+    data class Success(val patients: List<Patient>, val allPatients: List<Patient>) : PatientListState()
+    data class Error(val message: UiText) : PatientListState()
 }
 
 class PatientListViewModel(
@@ -48,14 +59,14 @@ class PatientListViewModel(
     fun fetchPatients(phoneNumber: String) {
         viewModelScope.launch {
             _state.value = PatientListState.Loading
-            val result = getRegisteredPatientsUseCase(phoneNumber)
-            _state.value = when {
-                result.isSuccess -> PatientListState.Success(result.getOrNull()!!)
-                else -> PatientListState.Error(
-                    result.exceptionOrNull()?.message ?: "Error fetching patients"
-                )
+            when (val result = getRegisteredPatientsUseCase(phoneNumber)) {
+                is Result.Success -> {
+                    _state.value = PatientListState.Success(result.data, result.data)
+                }
+                is Result.Error -> {
+                    _state.value = PatientListState.Error(mapErrorToUiText(result.error))
+                }
             }
-            filterPatients()
         }
     }
 
@@ -71,24 +82,27 @@ class PatientListViewModel(
 
     private fun filterPatients() {
         val query = _searchQuery.value.trim()
-        Logger.d("FilterPatients", "Query: '$query'")
-        val state = _state.value
-        if (state is PatientListState.Success) {
+        val currentState = _state.value
+        if (currentState is PatientListState.Success) {
             val filteredPatients = if (query.isEmpty()) {
-                state.patients
+                currentState.allPatients
             } else {
-                state.patients.filter { patient ->
-                    Logger.d(
-                        "FilterPatients",
-                        "Checking patient: ${patient.name}, ID: ${patient.id}"
-                    )
+                currentState.allPatients.filter { patient ->
                     patient.name.trim().contains(query, ignoreCase = true) ||
                             patient.id.contains(query, ignoreCase = true)
-                }.also { it ->
-                    Logger.d("FilterPatients", "Filtered patients: ${it.map { it.name }}")
                 }
             }
-            _state.value = PatientListState.Success(filteredPatients)
+            _state.value = currentState.copy(patients = filteredPatients)
+        }
+    }
+
+    private fun mapErrorToUiText(error: AppError): UiText {
+        return when (error) {
+            is AuthError.ServerMessage -> UiText.DynamicString(error.message)
+            is NetworkError.NoInternet -> UiText.StringResource(Res.string.error_no_internet)
+            is NetworkError.Timeout -> UiText.StringResource(Res.string.error_timeout)
+            is ServerError -> UiText.StringResource(Res.string.error_server)
+            else -> UiText.StringResource(Res.string.error_unknown)
         }
     }
 }
