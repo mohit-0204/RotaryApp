@@ -98,6 +98,7 @@ import rotaryhospital.composeapp.generated.resources.address
 import rotaryhospital.composeapp.generated.resources.back
 import rotaryhospital.composeapp.generated.resources.blood_group
 import rotaryhospital.composeapp.generated.resources.cancel
+import rotaryhospital.composeapp.generated.resources.choose_guardian
 import rotaryhospital.composeapp.generated.resources.city
 import rotaryhospital.composeapp.generated.resources.confirm
 import rotaryhospital.composeapp.generated.resources.contact_info
@@ -112,7 +113,6 @@ import rotaryhospital.composeapp.generated.resources.guardian_name
 import rotaryhospital.composeapp.generated.resources.opd_patient_registration_title
 import rotaryhospital.composeapp.generated.resources.personal_info
 import rotaryhospital.composeapp.generated.resources.relation_daughter_of
-import rotaryhospital.composeapp.generated.resources.relation_guardian
 import rotaryhospital.composeapp.generated.resources.relation_son_of
 import rotaryhospital.composeapp.generated.resources.relation_wife_of
 import rotaryhospital.composeapp.generated.resources.save
@@ -504,7 +504,7 @@ fun OpdPatientRegistrationScreen(
                             Spacer(Modifier.height(12.dp))
 
                             Text(
-                                stringResource(Res.string.relation_guardian),
+                                stringResource(Res.string.choose_guardian),
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 16.sp,
                                 color = Color.Black

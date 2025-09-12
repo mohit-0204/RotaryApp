@@ -59,7 +59,7 @@
     <string name="blood_group">रक्त समूह</string>
     <string name="guardian_info">अभिभावक की जानकारी</string>
     <string name="guardian_name">अभिभावक का नाम</string>
-    <string name="relation_guardian">अभिभावक से संबंध</string>
+    <string name="choose_guardian">अपने अभिभावक का चयन करें:</string>
     <string name="relation_son_of">पुत्र</string>
     <string name="relation_daughter_of">पुत्री</string>
     <string name="relation_wife_of">पत्नी</string>

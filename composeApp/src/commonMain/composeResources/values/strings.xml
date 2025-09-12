@@ -59,7 +59,7 @@
     <string name="blood_group">Blood Group</string>
     <string name="guardian_info">Guardian Info</string>
     <string name="guardian_name">Guardian Name</string>
-    <string name="relation_guardian">Relation to Guardian</string>
+    <string name="choose_guardian">Select your Guardian:</string>
     <string name="relation_son_of">Son of</string>
     <string name="relation_daughter_of">Daughter of</string>
     <string name="relation_wife_of">Wife of</string>

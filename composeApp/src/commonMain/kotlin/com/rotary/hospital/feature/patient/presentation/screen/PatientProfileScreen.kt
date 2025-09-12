@@ -76,7 +76,6 @@ import rotaryhospital.composeapp.generated.resources.patient_id
 import rotaryhospital.composeapp.generated.resources.patient_profile
 import rotaryhospital.composeapp.generated.resources.personal_info
 import rotaryhospital.composeapp.generated.resources.relation_daughter_of
-import rotaryhospital.composeapp.generated.resources.relation_guardian
 import rotaryhospital.composeapp.generated.resources.relation_son_of
 import rotaryhospital.composeapp.generated.resources.relation_wife_of
 import rotaryhospital.composeapp.generated.resources.select_dob
@@ -85,6 +84,7 @@ import rotaryhospital.composeapp.generated.resources.state
 import rotaryhospital.composeapp.generated.resources.update
 import kotlin.time.ExperimentalTime
 import com.rotary.hospital.core.domain.UiText
+import rotaryhospital.composeapp.generated.resources.choose_guardian
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
@@ -459,7 +459,7 @@ fun PatientProfileScreen(
                         Spacer(Modifier.height(12.dp))
 
                         Text(
-                            stringResource(Res.string.relation_guardian),
+                            stringResource(Res.string.choose_guardian),
                             fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
                             color = Color.Black

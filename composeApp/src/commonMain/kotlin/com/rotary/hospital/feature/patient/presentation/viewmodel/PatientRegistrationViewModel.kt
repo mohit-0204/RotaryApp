@@ -39,6 +39,7 @@ import rotaryhospital.composeapp.generated.resources.error_unknown
 import rotaryhospital.composeapp.generated.resources.error_update_failed
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationViewModel.GuardianType
 
 
 fun calculateAge(dob: String): String? {
@@ -91,7 +92,9 @@ data class RegistrationFormState(
     val dob: String = "",
     val bloodGroup: String = "",
     val guardianName: String = "",
-    val relation: Relation = Relation.SonOf,
+//    val relation: Relation = Relation.SonOf,
+    // 👇 CHANGE THIS LINE
+    val guardianType: GuardianType = GuardianType.Father,
     val email: String = "",
     val address: String = "",
     val city: String = "",
@@ -176,7 +179,9 @@ class PatientRegistrationViewModel(
             when (val result = registerPatientUseCase(
                 mobileNumber = form.mobileNumber,
                 name = form.fullName,
-                guardianType = form.relation.toApiString(),
+//                guardianType = form.relation.toApiString(),
+                // 👇 CHANGE THIS LINE
+                guardianType = getGuardianApiString(form.guardianType),
                 guardianName = form.guardianName,
                 gender = form.gender.label,
                 age = form.dob,
@@ -282,5 +287,20 @@ class PatientRegistrationViewModel(
             )
         }
         _eventChannel.send(event)
+    }
+
+
+    /* ---+++---+++---+++---+++---+++---+++---+++--- */
+    // This is the new state enum you should use.
+    enum class GuardianType {
+        Father, Husband
+    }
+
+    // added for new guardian type etc
+    private fun getGuardianApiString(guardianType: GuardianType): String {
+        return when (guardianType) {
+            GuardianType.Father -> "S/O"
+            GuardianType.Husband -> "W/O" // Wife Of
+        }
     }
 }

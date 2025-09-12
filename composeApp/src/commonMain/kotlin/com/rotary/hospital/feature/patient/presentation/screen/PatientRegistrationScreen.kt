@@ -6,7 +6,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +38,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -78,6 +82,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.text.font.FontWeight
@@ -116,6 +121,7 @@ import rotaryhospital.composeapp.generated.resources.address
 import rotaryhospital.composeapp.generated.resources.back
 import rotaryhospital.composeapp.generated.resources.blood_group
 import rotaryhospital.composeapp.generated.resources.cancel
+import rotaryhospital.composeapp.generated.resources.choose_guardian
 import rotaryhospital.composeapp.generated.resources.city
 import rotaryhospital.composeapp.generated.resources.confirm
 import rotaryhospital.composeapp.generated.resources.contact_info
@@ -131,7 +137,6 @@ import rotaryhospital.composeapp.generated.resources.guardian_name
 import rotaryhospital.composeapp.generated.resources.personal_info
 import rotaryhospital.composeapp.generated.resources.register_new_patient
 import rotaryhospital.composeapp.generated.resources.relation_daughter_of
-import rotaryhospital.composeapp.generated.resources.relation_guardian
 import rotaryhospital.composeapp.generated.resources.relation_son_of
 import rotaryhospital.composeapp.generated.resources.relation_wife_of
 import rotaryhospital.composeapp.generated.resources.save
@@ -580,7 +585,7 @@ private fun PersonalInfoCard(
     }
 }
 
-@Composable
+/*@Composable
 private fun GuardianInfoCard(
     formState: RegistrationFormState,
     onFormChange: (RegistrationFormState) -> Unit,
@@ -647,6 +652,67 @@ private fun GuardianInfoCard(
                     }
                 }
             }
+        }
+    }
+}*/
+
+@Composable
+private fun GuardianInfoCard(
+    formState: RegistrationFormState,
+    onFormChange: (RegistrationFormState) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.background(White).padding(20.dp)
+        ) {
+            Text(
+                stringResource(Res.string.guardian_info),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorPrimary
+            )
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                stringResource(Res.string.choose_guardian),
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Color.Black
+            )
+            Spacer(Modifier.height(12.dp))
+
+            // Use the new GuardianSelector component
+            GuardianSelector(
+                selectedType = formState.guardianType,
+                onTypeSelected = { newType ->
+                    onFormChange(formState.copy(guardianType = newType))
+                }
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            // InputField with a dynamic label
+            InputField(
+                value = formState.guardianName,
+                onValueChange = { onFormChange(formState.copy(guardianName = it)) },
+                label = if (formState.guardianType == PatientRegistrationViewModel.GuardianType.Father) {
+                    "Father's Name"
+                } else {
+                    "Husband's Name"
+                },
+                leadingIcon = IconGuardian,
+                errorMessage = formState.fieldErrors["guardianName"]?.asString(),
+                contentDescription = stringResource(Res.string.guardian_name),
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+                )
+            )
         }
     }
 }
@@ -745,4 +811,73 @@ private fun getRelationLabel(relation: Relation) = when (relation) {
     Relation.SonOf -> stringResource(Res.string.relation_son_of)
     Relation.DaughterOf -> stringResource(Res.string.relation_daughter_of)
     Relation.WifeOf -> stringResource(Res.string.relation_wife_of)
+}
+
+
+
+@Composable
+fun GuardianSelector(
+    selectedType: PatientRegistrationViewModel.GuardianType,
+    onTypeSelected: (PatientRegistrationViewModel.GuardianType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val options = PatientRegistrationViewModel.GuardianType.entries
+
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.8f)),
+        modifier = modifier.fillMaxWidth().height(52.dp),
+        elevation = CardDefaults.cardElevation(0.dp),
+        colors = CardDefaults.cardColors(containerColor = White)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            options.forEachIndexed { index, option ->
+                val isSelected = selectedType == option
+
+                // Determine the shape for rounded corners only on the ends
+                val shape = when (index) {
+                    0 -> RoundedCornerShape(topStart = 11.dp, bottomStart = 11.dp)
+                    options.lastIndex -> RoundedCornerShape(topEnd = 11.dp, bottomEnd = 11.dp)
+                    else -> RectangleShape
+                }
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .background(
+                            color = if (isSelected) ColorPrimary.copy(0.1f) else Color.Transparent,
+                            shape = shape
+                        )
+                        .then(
+                            if (isSelected) Modifier.border(
+                                width = 1.5.dp,
+                                color = ColorPrimary.copy(alpha = 0.7f),
+                                shape = shape
+                            ) else Modifier
+                        )
+                        .clickable { onTypeSelected(option) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = option.name, // Displays "Father" or "Husband"
+                        color = if (isSelected) ColorPrimary else Color.DarkGray,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
+                }
+
+                // Add a vertical divider between the chips
+                if (index < options.lastIndex) {
+                    Divider(
+                        modifier = Modifier.fillMaxHeight(0.6f).width(1.dp),
+                        color = Color.LightGray.copy(alpha = 0.8f)
+                    )
+                }
+            }
+        }
+    }
 }
