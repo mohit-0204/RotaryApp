@@ -197,6 +197,7 @@ fun App(paymentHandler: PaymentHandler? = null) {
 
                 composable<AppRoute.PatientRegistration> { backStackEntry ->
                     PatientRegistrationScreen(
+                        snackbarHostState = snackbarHostState,
                         onBack = { navController.popBackStack() },
                         onCancel = { navController.popBackStack() },
                         onSave = { patientName ->

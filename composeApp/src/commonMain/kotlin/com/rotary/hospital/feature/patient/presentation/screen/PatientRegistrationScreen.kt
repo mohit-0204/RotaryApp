@@ -34,12 +34,14 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
@@ -55,6 +57,9 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -87,15 +92,19 @@ import appicon.IconMale
 import appicon.IconOther
 import com.rotary.hospital.core.common.appicon.IconCity
 import com.rotary.hospital.core.common.appicon.IconMap
+import com.rotary.hospital.core.domain.UiText
 import com.rotary.hospital.core.theme.ColorPrimary
+import com.rotary.hospital.core.theme.Surface
 import com.rotary.hospital.core.theme.White
 import com.rotary.hospital.core.ui.component.InputField
 import com.rotary.hospital.feature.patient.presentation.viewmodel.Gender
 import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationState
 import com.rotary.hospital.feature.patient.presentation.viewmodel.PatientRegistrationViewModel
+import com.rotary.hospital.feature.patient.presentation.viewmodel.RegistrationEvent
 import com.rotary.hospital.feature.patient.presentation.viewmodel.RegistrationFormState
 import com.rotary.hospital.feature.patient.presentation.viewmodel.Relation
 import com.rotary.hospital.feature.patient.presentation.viewmodel.calculateAge
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
@@ -111,6 +120,7 @@ import rotaryhospital.composeapp.generated.resources.city
 import rotaryhospital.composeapp.generated.resources.confirm
 import rotaryhospital.composeapp.generated.resources.contact_info
 import rotaryhospital.composeapp.generated.resources.email
+import rotaryhospital.composeapp.generated.resources.error
 import rotaryhospital.composeapp.generated.resources.full_name
 import rotaryhospital.composeapp.generated.resources.gender_female
 import rotaryhospital.composeapp.generated.resources.gender_icon_description
@@ -135,10 +145,18 @@ fun PatientRegistrationScreen(
     onBack: () -> Unit,
     onCancel: () -> Unit,
     onSave: (String) -> Unit,
-    viewModel: PatientRegistrationViewModel = koinViewModel()
+    viewModel: PatientRegistrationViewModel = koinViewModel(),
+    snackbarHostState: SnackbarHostState,
 ) {
     val state by viewModel.state.collectAsState()
     val formState by viewModel.formState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // We now store the UiText object for the dialog, not the resolved String.
+    var dialogMessageUiText by remember { mutableStateOf<UiText?>(null) }
+
+    // State to hold the UiText for the snackbar message.
+    var snackbarMessageUiText by remember { mutableStateOf<UiText?>(null) }
 
     // These interaction sources are used to create a press-and-release animation on the buttons.
     val cancelInteractionSource = remember { MutableInteractionSource() }
@@ -151,7 +169,6 @@ fun PatientRegistrationScreen(
 
     // This block handles the automatic scrolling to the first validation error.
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
     val fieldPositions = remember { mutableStateMapOf<String, Float>() }
 
     LaunchedEffect(formState.firstErrorField) {
@@ -170,169 +187,201 @@ fun PatientRegistrationScreen(
         }
     }
 
-    LaunchedEffect(state) {
-        if (state is PatientRegistrationState.Success) {
-            onSave((state as PatientRegistrationState.Success).patient.name)
+    // This LaunchedEffect collects events from the ViewModel.
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                is RegistrationEvent.NavigateOnSuccess -> {
+                    onSave(event.patientName)
+                }
+                is RegistrationEvent.ShowSnackbar -> {
+                    // Instead of showing the snackbar directly, we set the state.
+                    snackbarMessageUiText = event.message
+                }
+                is RegistrationEvent.ShowDialog -> {
+                    // Set the UiText object to be shown in the dialog.
+                    dialogMessageUiText = event.message
+                }
+            }
         }
     }
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = {
-                Text(
-                    stringResource(Res.string.register_new_patient),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = ColorPrimary
-                )
-            }, navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(Res.string.back),
-                        tint = ColorPrimary
-                    )
-                }
-            }, colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = White, titleContentColor = Color.Black
-            )
-        )
-    }, bottomBar = {
-        // -------------------------
-        // Bottom fixed buttons for Cancel and Save
-        // -------------------------
-        Row(
-            modifier = Modifier.fillMaxWidth().background(Color(0xFFEEEEEE))
-                .padding(horizontal = 16.dp, vertical = 8.dp).navigationBarsPadding(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(
-                onClick = onCancel,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error, contentColor = White
-                ),
-                modifier = Modifier.weight(1f).height(56.dp).scale(cancelButtonScale),
-                shape = RoundedCornerShape(14.dp),
-                enabled = state !is PatientRegistrationState.Loading,
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
-                interactionSource = cancelInteractionSource
-            ) {
-                Icon(
-                    Icons.Default.Clear,
-                    contentDescription = stringResource(Res.string.cancel),
-                    tint = White
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    stringResource(Res.string.cancel),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-            ElevatedButton(
-                onClick = viewModel::registerPatient,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ColorPrimary, contentColor = White
-                ),
-                modifier = Modifier.weight(1f).height(56.dp).scale(saveButtonScale),
-                shape = RoundedCornerShape(12.dp),
-                enabled = state !is PatientRegistrationState.Loading,
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
-                interactionSource = saveInteractionSource
-            ) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = stringResource(Res.string.save),
-                    tint = White
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    stringResource(Res.string.save),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+    // It runs when snackbarMessageUiText changes & handle showing the snackbar.
+    snackbarMessageUiText?.let { message ->
+        // We resolve the string here, in the main body of the Composable, which is allowed.
+        val snackbarText = message.asString()
+        LaunchedEffect(snackbarText) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(message = snackbarText)
+                // Reset the state so the same message can be shown again if needed.
+                snackbarMessageUiText = null
             }
         }
-    }, content = { padding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(padding)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
-                    // Attach the scrollState to the Column to make it scrollable.
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+    }
+
+    // This composable will render the AlertDialog when dialogMessageUiText is not null
+    if (dialogMessageUiText != null) {
+        AlertDialog(
+            onDismissRequest = { dialogMessageUiText = null },
+            title = { Text(text = stringResource(Res.string.error)) },
+            // We call .asString() here, inside a Composable context, which is valid.
+            text = { Text(text = dialogMessageUiText!!.asString()) },
+            confirmButton = {
+                TextButton(onClick = { dialogMessageUiText = null }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(Res.string.register_new_patient),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = ColorPrimary
+                    )
+                }, navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.back),
+                            tint = ColorPrimary
+                        )
+                    }
+                }, colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = White, titleContentColor = Color.Black
+                )
+            )
+        }, bottomBar = {
+            // -------------------------
+            // Bottom fixed buttons for Cancel and Save
+            // -------------------------
+            Row(
+                modifier = Modifier.fillMaxWidth().background(Color(0xFFEEEEEE))
+                    .padding(horizontal = 16.dp, vertical = 8.dp).navigationBarsPadding(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Spacer(Modifier.height(16.dp))
+                Button(
+                    onClick = onCancel,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error, contentColor = White
+                    ),
+                    modifier = Modifier.weight(1f).height(56.dp).scale(cancelButtonScale),
+                    shape = RoundedCornerShape(14.dp),
+                    enabled = state !is PatientRegistrationState.Loading,
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                    interactionSource = cancelInteractionSource
+                ) {
+                    Icon(
+                        Icons.Default.Clear,
+                        contentDescription = stringResource(Res.string.cancel),
+                        tint = White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(Res.string.cancel),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                ElevatedButton(
+                    onClick = viewModel::registerPatient,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ColorPrimary, contentColor = White
+                    ),
+                    modifier = Modifier.weight(1f).height(56.dp).scale(saveButtonScale),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = state !is PatientRegistrationState.Loading,
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                    interactionSource = saveInteractionSource
+                ) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = stringResource(Res.string.save),
+                        tint = White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(Res.string.save),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }, content = { padding ->
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                        // Attach the scrollState to the Column to make it scrollable.
+                        .verticalScroll(scrollState)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Spacer(Modifier.height(16.dp))
 
-                PersonalInfoCard(formState = formState, onFormChange = viewModel::updateFormState,
-                    // We attach a modifier to capture the Y position of this card in the layout for scrolling.
-                    // Map this card's position to "fullName".
-                    modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
-                        fieldPositions["fullName"] = layoutCoordinates.positionInParent().y
-                        fieldPositions["dob"] = layoutCoordinates.positionInParent().y
-                        fieldPositions["bloodGroup"] = layoutCoordinates.positionInParent().y
-                    })
+                    PersonalInfoCard(
+                        formState = formState, onFormChange = viewModel::updateFormState,
+                        // We attach a modifier to capture the Y position of this card in the layout for scrolling.
+                        // Map this card's position to "fullName".
+                        modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                            fieldPositions["fullName"] = layoutCoordinates.positionInParent().y
+                            fieldPositions["dob"] = layoutCoordinates.positionInParent().y
+                            fieldPositions["bloodGroup"] = layoutCoordinates.positionInParent().y
+                        })
 
-                Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(24.dp))
 
-                GuardianInfoCard(formState = formState, onFormChange = viewModel::updateFormState,
-                    // Map this card's position to "guardianName".
-                    modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
-                        fieldPositions["guardianName"] = layoutCoordinates.positionInParent().y
-                    })
+                    GuardianInfoCard(
+                        formState = formState, onFormChange = viewModel::updateFormState,
+                        // Map this card's position to "guardianName".
+                        modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                            fieldPositions["guardianName"] = layoutCoordinates.positionInParent().y
+                        })
 
-                Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(24.dp))
 
-                ContactInfoCard(formState = formState, onFormChange = viewModel::updateFormState,
-                    // Map this card's position to the first field within it, "email".
-                    modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
-                        fieldPositions["email"] = layoutCoordinates.positionInParent().y
-                        fieldPositions["address"] = layoutCoordinates.positionInParent().y
-                        fieldPositions["city"] = layoutCoordinates.positionInParent().y
-                        fieldPositions["state"] = layoutCoordinates.positionInParent().y
-                    })
+                    ContactInfoCard(
+                        formState = formState, onFormChange = viewModel::updateFormState,
+                        // Map this card's position to the first field within it, "email".
+                        modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                            fieldPositions["email"] = layoutCoordinates.positionInParent().y
+                            fieldPositions["address"] = layoutCoordinates.positionInParent().y
+                            fieldPositions["city"] = layoutCoordinates.positionInParent().y
+                            fieldPositions["state"] = layoutCoordinates.positionInParent().y
+                        })
 
-                Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(24.dp))
+                    // The old AnimatedVisibility for the error text has been removed from here.
+                }
 
+
+                // -------------------------
+                // Loading overlay for progress bar icon
+                // -------------------------
                 AnimatedVisibility(
-                    visible = state is PatientRegistrationState.Error,
+                    visible = state is PatientRegistrationState.Loading,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    if (state is PatientRegistrationState.Error) {
-                        Text(
-                            text = (state as PatientRegistrationState.Error).message.asString(),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                    Box(
+                        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.1f))
+                            .clickable(enabled = false) { }, contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = ColorPrimary,
+                            modifier = Modifier.size(48.dp),
+                            strokeWidth = 4.dp
                         )
                     }
                 }
-                Spacer(Modifier.height(8.dp))
             }
-
-
-            // -------------------------
-            // Loading overlay for progress bar icon
-            // -------------------------
-            AnimatedVisibility(
-                visible = state is PatientRegistrationState.Loading,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.1f))
-                        .clickable(enabled = false) { }, contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        color = ColorPrimary, modifier = Modifier.size(48.dp), strokeWidth = 4.dp
-                    )
-                }
-            }
-        }
-    })
+        })
 }
 
 @Composable
@@ -415,7 +464,8 @@ private fun PersonalInfoCard(
             Spacer(Modifier.height(12.dp))
 
             // DOB selector with DatePicker
-            val currentYear = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
+            val currentYear =
+                kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
             val datePickerState = rememberDatePickerState(
                 yearRange = 1900..currentYear,
                 selectableDates = object : SelectableDates {
@@ -447,9 +497,13 @@ private fun PersonalInfoCard(
                                 val selectedDate =
                                     kotlin.time.Instant.fromEpochMilliseconds(millis)
                                         .toLocalDateTime(TimeZone.UTC).date
-                                val formattedDate = "${selectedDate.day.toString().padStart(2, '0')}-" +
-                                        "${selectedDate.month.number.toString().padStart(2, '0')}-" +
-                                        "${selectedDate.year}"
+                                val formattedDate =
+                                    "${selectedDate.day.toString().padStart(2, '0')}-" +
+                                            "${
+                                                selectedDate.month.number.toString()
+                                                    .padStart(2, '0')
+                                            }-" +
+                                            "${selectedDate.year}"
                                 val age = calculateAge(formattedDate)
                                 age?.let {
                                     onFormChange(formState.copy(dob = it))
@@ -463,8 +517,29 @@ private fun PersonalInfoCard(
                         TextButton(onClick = { showDatePicker = false }) {
                             Text(stringResource(Res.string.cancel))
                         }
-                    }) {
-                    DatePicker(state = datePickerState)
+                    },
+                    colors = DatePickerDefaults.colors(
+                        containerColor = Color.White,
+                    )
+                ) {
+                    DatePicker(
+                        state = datePickerState,
+                        colors = DatePickerDefaults.colors(
+                            containerColor = Color.White,
+                            titleContentColor = MaterialTheme.colorScheme.primary,
+                            headlineContentColor = MaterialTheme.colorScheme.primary,
+                            weekdayContentColor = Color.DarkGray,
+                            subheadContentColor = Color.DarkGray,
+                            yearContentColor = Color.Black,
+                            selectedYearContentColor = Color.White,
+                            selectedYearContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            dayContentColor = Color.Black,
+                            selectedDayContentColor = Color.White,
+                            selectedDayContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            todayContentColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
+
                 }
             }
 

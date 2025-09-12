@@ -10,10 +10,12 @@ import com.rotary.hospital.core.data.preferences.PreferencesManager
 import com.rotary.hospital.core.domain.*
 import com.rotary.hospital.feature.patient.data.model.ApiPatient
 import com.rotary.hospital.feature.patient.domain.usecase.RegisterPatientUseCase
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -35,6 +37,7 @@ import rotaryhospital.composeapp.generated.resources.error_state
 import rotaryhospital.composeapp.generated.resources.error_timeout
 import rotaryhospital.composeapp.generated.resources.error_unknown
 import rotaryhospital.composeapp.generated.resources.error_update_failed
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 
@@ -48,7 +51,7 @@ fun calculateAge(dob: String): String? {
         val year = parts[2].toIntOrNull() ?: return null
         val birthDate = LocalDate(year, month, day)
         val today =
-            kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         var age = today.year - birthDate.year
         if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) {
             age--
@@ -60,11 +63,25 @@ fun calculateAge(dob: String): String? {
     }
 }
 
+// NOTE: This enum is no longer needed as the event system handles display type implicitly.
+// enum class ErrorDisplayType {
+//     SNACKBAR,
+//     DIALOG
+// }
+
+// NEW: Sealed class for one-shot events sent to the UI.
+sealed class RegistrationEvent {
+    data class NavigateOnSuccess(val patientName: String) : RegistrationEvent()
+    data class ShowSnackbar(val message: UiText) : RegistrationEvent()
+    data class ShowDialog(val message: UiText) : RegistrationEvent()
+}
+
 sealed class PatientRegistrationState {
     object Idle : PatientRegistrationState()
     object Loading : PatientRegistrationState()
     data class Success(val patient: ApiPatient) : PatientRegistrationState()
-    data class Error(val message: UiText) : PatientRegistrationState()
+    // NOTE: The Error state is removed as transient errors are now handled by the event channel.
+    // data class Error(val message: UiText, val displayType: ErrorDisplayType) : PatientRegistrationState()
 }
 
 data class RegistrationFormState(
@@ -88,8 +105,8 @@ enum class Gender(val label: String) {
     Male("Male"), Female("Female"), Other("Other")
 }
 
-enum class Relation(val label: String) {
-    SonOf("Son of"), DaughterOf("Daughter of"), WifeOf("Wife of");
+enum class Relation {
+    SonOf, DaughterOf, WifeOf;
 
     fun toApiString(): String = when (this) {
         SonOf -> "S/O"
@@ -108,6 +125,10 @@ class PatientRegistrationViewModel(
     private val _formState = MutableStateFlow(RegistrationFormState())
     val formState: StateFlow<RegistrationFormState> = _formState.asStateFlow()
 
+    // Channel for sending one-shot events to the UI.
+    private val _eventChannel = Channel<RegistrationEvent>()
+    val events = _eventChannel.receiveAsFlow()
+
     init {
         viewModelScope.launch {
             _formState.value = _formState.value.copy(
@@ -125,6 +146,11 @@ class PatientRegistrationViewModel(
     fun clearScrollToError() {
         _formState.value = _formState.value.copy(firstErrorField = null)
     }
+
+    // NOTE: This function is no longer needed as the event-driven UI will consume the event once.
+    // fun errorHandled() {
+    //     _state.value = PatientRegistrationState.Idle
+    // }
 
     fun registerPatient() {
         val form = _formState.value
@@ -168,15 +194,14 @@ class PatientRegistrationViewModel(
                         preferences.saveString(PreferenceKeys.MOBILE_NUMBER, form.mobileNumber)
                         preferences.saveString(PreferenceKeys.PATIENT_NAME, patient.name)
                         _state.value = PatientRegistrationState.Success(patient)
-                    } else {
-                        _state.value = PatientRegistrationState.Error(
-                            UiText.StringResource(Res.string.error_unknown)
-                        )
+                    }  else {
+                        _state.value = PatientRegistrationState.Idle // Reset loading state
+                        _eventChannel.send(RegistrationEvent.ShowDialog(UiText.StringResource(Res.string.error_unknown)))
                     }
                 }
-
                 is Result.Error -> {
-                    _state.value = PatientRegistrationState.Error(mapErrorToUiText(result.error))
+                    _state.value = PatientRegistrationState.Idle // Reset loading state
+                    mapErrorToEvent(result.error) // Send error event
                 }
             }
         }
@@ -220,19 +245,42 @@ class PatientRegistrationViewModel(
         return emailRegex.matches(email)
     }
 
-    private fun mapErrorToUiText(error: AppError): UiText {
-        return when (error) {
-            // Add specific patient errors
-            is PatientError.RegistrationFailed -> UiText.StringResource(Res.string.error_registration_failed)
-            is PatientError.UpdateFailed -> UiText.StringResource(Res.string.error_update_failed)
-            is PatientError.NoPatientsFound -> UiText.StringResource(Res.string.error_no_patient_data)
-            is PatientError.ProfileNotFound -> UiText.StringResource(Res.string.error_profile_not_found)
-            is PatientError.ServerMessage -> UiText.DynamicString(error.message)
-            // Existing Network errors
-            is NetworkError.NoInternet -> UiText.StringResource(Res.string.error_no_internet)
-            is NetworkError.Timeout -> UiText.StringResource(Res.string.error_timeout)
-            is ServerError -> UiText.StringResource(Res.string.error_server)
-            else -> UiText.StringResource(Res.string.error_unknown)
+    // NEW: This function maps an AppError to a RegistrationEvent and sends it through the channel.
+    private suspend fun mapErrorToEvent(error: AppError) {
+        val event: RegistrationEvent = when (error) {
+            // Transient errors that are good for a Snackbar
+            is NetworkError.NoInternet -> RegistrationEvent.ShowSnackbar(
+                UiText.StringResource(Res.string.error_no_internet)
+            )
+            is NetworkError.Timeout -> RegistrationEvent.ShowSnackbar(
+                UiText.StringResource(Res.string.error_timeout)
+            )
+
+            // Critical or detailed errors that need a Dialog
+            is PatientError.RegistrationFailed -> RegistrationEvent.ShowDialog(
+                UiText.StringResource(Res.string.error_registration_failed)
+            )
+            is PatientError.UpdateFailed -> RegistrationEvent.ShowDialog(
+                UiText.StringResource(Res.string.error_update_failed)
+            )
+            is PatientError.NoPatientsFound -> RegistrationEvent.ShowDialog(
+                UiText.StringResource(Res.string.error_no_patient_data)
+            )
+            is PatientError.ProfileNotFound -> RegistrationEvent.ShowDialog(
+                UiText.StringResource(Res.string.error_profile_not_found)
+            )
+            is PatientError.ServerMessage -> RegistrationEvent.ShowDialog(
+                UiText.DynamicString(error.message) // This could be a long server message
+            )
+            is ServerError -> RegistrationEvent.ShowDialog(
+                UiText.StringResource(Res.string.error_server)
+            )
+
+            // Default to a dialog for safety
+            else -> RegistrationEvent.ShowDialog(
+                UiText.StringResource(Res.string.error_unknown)
+            )
         }
+        _eventChannel.send(event)
     }
 }
